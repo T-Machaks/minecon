@@ -7,7 +7,7 @@ import { ADS } from '@/lib/adBanners';
 
 const KEYFRAMES = `
   @keyframes adProgress { from { width: 0 } to { width: 100% } }
-  @keyframes adSlideIn  { from { opacity: 0; transform: translateX(8px) } to { opacity: 1; transform: translateX(0) } }
+  @keyframes adFadeIn   { from { opacity: 0; transform: translateX(6px) } to { opacity: 1; transform: translateX(0) } }
 `;
 
 const INTERVAL = 4500;
@@ -35,32 +35,96 @@ export default function AdBannerCarousel() {
 
   const ad = slots[current] ?? slots[0];
   const accent = ad.accent || '#f59e0b';
+  const isBg     = ad.image_type === 'bg'     && ad.image_url;
+  const isCutout = ad.image_type === 'cutout' && ad.image_url;
 
   const goTo = (i, e) => { e.preventDefault(); e.stopPropagation(); setPaused(true); setCurrent(i); };
   const prev = (e) => goTo((current - 1 + slots.length) % slots.length, e);
   const next = (e) => goTo((current + 1) % slots.length, e);
-
   const handleClick = () => {
     if (ad.exhibitor_id) track(ad.exhibitor_id, ad.exhibitor_name, 'ad_click', 'home_carousel');
   };
 
   const card = (
     <div
-      className={`relative w-full bg-gradient-to-br ${ad.bg} rounded-2xl overflow-hidden cursor-pointer group`}
-      style={{ minHeight: 148 }}
+      className={`relative w-full rounded-2xl overflow-hidden cursor-pointer group bg-gradient-to-br ${ad.bg}`}
+      style={{ minHeight: 156 }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      {/* Hatching texture */}
+      {/* ── Background layer ── */}
+
+      {/* Full-bleed photo */}
+      {isBg && (
+        <>
+          <img
+            key={`bg-${current}`}
+            src={ad.image_url}
+            alt=""
+            draggable={false}
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+            style={{ objectPosition: ad.image_pos || 'center', animation: 'adFadeIn 0.4s ease-out' }}
+          />
+          {/* Scrim: strong on left + bottom for text, lighter top-right */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{ background: 'linear-gradient(135deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.45) 45%, rgba(0,0,0,0.65) 100%)' }}
+          />
+        </>
+      )}
+
+      {/* Right-side product cutout (white-bg PNG, multiply removes white) */}
+      {isCutout && (
+        <>
+          {/* Subtle texture on the gradient */}
+          <div
+            className="absolute inset-0 pointer-events-none opacity-[0.06]"
+            style={{ backgroundImage: 'repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%)', backgroundSize: '10px 10px' }}
+          />
+          <img
+            key={`cut-${current}`}
+            src={ad.image_url}
+            alt=""
+            draggable={false}
+            className="absolute right-0 bottom-0 pointer-events-none"
+            style={{
+              height: '108%',
+              width: '54%',
+              objectFit: 'contain',
+              objectPosition: 'right bottom',
+              mixBlendMode: 'multiply',
+              opacity: 0.92,
+              animation: 'adFadeIn 0.4s ease-out',
+            }}
+          />
+          {/* Fade from left gradient into the cutout area */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.08) 45%, transparent 70%)' }}
+          />
+        </>
+      )}
+
+      {/* No image: texture overlay only */}
+      {!isBg && !isCutout && (
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.07]"
+          style={{ backgroundImage: 'repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%)', backgroundSize: '10px 10px' }}
+        />
+      )}
+
+      {/* ── Content (keyed for fade-in on slide change) ── */}
       <div
-        className="absolute inset-0 opacity-[0.07] pointer-events-none"
-        style={{ backgroundImage: 'repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%)', backgroundSize: '10px 10px' }}
-      />
-
-      {/* Slide content — keyed so it fades in on each change */}
-      <div key={current} className="relative p-4 flex flex-col gap-2.5" style={{ animation: 'adSlideIn 0.3s ease-out' }}>
-
-        {/* Top row: logo + company + counter */}
+        key={current}
+        className="relative flex flex-col gap-2.5 p-4"
+        style={{
+          minHeight: 156,
+          animation: 'adFadeIn 0.3s ease-out',
+          // Cutout: keep text in left 56% so it doesn't overlap the product image
+          paddingRight: isCutout ? '46%' : undefined,
+        }}
+      >
+        {/* Top: logo + company + counter */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5">
             <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center flex-shrink-0 shadow overflow-hidden">
@@ -70,11 +134,11 @@ export default function AdBannerCarousel() {
               }
             </div>
             <div>
-              <p className="text-white font-bold text-sm leading-none">{ad.company}</p>
+              <p className="text-white font-bold text-sm leading-none drop-shadow-sm">{ad.company}</p>
               <p className="text-white/55 text-[10px] mt-0.5 font-medium">{ad.label}</p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             {paused && <PauseCircle className="w-3 h-3 text-white/30" />}
             <span className="text-[10px] font-bold tabular-nums text-white/35 select-none">
               {current + 1}&thinsp;/&thinsp;{slots.length}
@@ -83,38 +147,38 @@ export default function AdBannerCarousel() {
         </div>
 
         {/* Headline + sub */}
-        <div>
-          <p className="text-white font-heading font-bold text-base leading-snug">{ad.headline}</p>
+        <div className="flex-1">
+          <p className="text-white font-heading font-bold text-base leading-snug drop-shadow-sm">{ad.headline}</p>
           {ad.sub && <p className="text-white/55 text-xs mt-0.5">{ad.sub}</p>}
         </div>
 
-        {/* Bottom row: stat + tags + CTA */}
+        {/* Bottom: stat + tags + CTA */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 flex-wrap min-w-0">
             {ad.stat && (
               <span
                 className="text-[11px] font-bold px-2 py-0.5 rounded-full text-white"
-                style={{ background: `${accent}30`, border: `1px solid ${accent}60` }}
+                style={{ background: `${accent}38`, border: `1px solid ${accent}65` }}
               >
                 {ad.stat}
               </span>
             )}
             {(ad.tags || []).map(tag => (
-              <span key={tag} className="text-[10px] text-white/45 bg-white/10 px-1.5 py-0.5 rounded-full">
+              <span key={tag} className="text-[10px] text-white/50 bg-white/12 px-1.5 py-0.5 rounded-full">
                 {tag}
               </span>
             ))}
           </div>
           <span
-            className="flex-shrink-0 text-[11px] font-bold text-white/80 px-2.5 py-1 rounded-lg transition-colors group-hover:bg-white/25"
-            style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.15)' }}
+            className="flex-shrink-0 text-[11px] font-bold text-white/85 px-2.5 py-1 rounded-lg transition-colors group-hover:bg-white/25"
+            style={{ background: 'rgba(255,255,255,0.13)', border: '1px solid rgba(255,255,255,0.18)' }}
           >
             Visit ↗
           </span>
         </div>
       </div>
 
-      {/* Animated progress bar */}
+      {/* ── Progress bar ── */}
       <div className="absolute bottom-6 left-0 right-0 h-[2px] bg-white/10">
         <div
           key={`prog-${current}-${paused}`}
@@ -126,7 +190,7 @@ export default function AdBannerCarousel() {
         />
       </div>
 
-      {/* Dot indicators */}
+      {/* ── Dot indicators ── */}
       <div className="absolute bottom-1.5 left-0 right-0 flex justify-center gap-1.5">
         {slots.map((_, i) => (
           <button
@@ -142,12 +206,12 @@ export default function AdBannerCarousel() {
         ))}
       </div>
 
-      {/* Prev / Next edge buttons — visible on hover */}
+      {/* ── Prev / Next (appear on hover) ── */}
       <button
         onClick={prev}
         className="absolute left-0 top-0 bottom-6 w-9 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
       >
-        <div className="w-6 h-6 rounded-full bg-black/30 hover:bg-black/50 flex items-center justify-center transition-colors">
+        <div className="w-6 h-6 rounded-full bg-black/35 hover:bg-black/55 flex items-center justify-center transition-colors">
           <ChevronLeft className="w-3.5 h-3.5 text-white" />
         </div>
       </button>
@@ -155,7 +219,7 @@ export default function AdBannerCarousel() {
         onClick={next}
         className="absolute right-0 top-0 bottom-6 w-9 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
       >
-        <div className="w-6 h-6 rounded-full bg-black/30 hover:bg-black/50 flex items-center justify-center transition-colors">
+        <div className="w-6 h-6 rounded-full bg-black/35 hover:bg-black/55 flex items-center justify-center transition-colors">
           <ChevronRight className="w-3.5 h-3.5 text-white" />
         </div>
       </button>
