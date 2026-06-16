@@ -31,7 +31,7 @@ const navGroups = [
   {
     label: 'Content & Info',
     items: [
-      { path: '/magazine',      label: 'Digital Magazine',  icon: BookOpen },
+      { path: '/magazine',      label: 'Publications',       icon: BookOpen },
       { path: '/announcements', label: 'Updates',           icon: Bell },
       { path: '/event-info',    label: 'Event Info',        icon: Info },
       { path: '/qr-resources',  label: 'QR Resources',      icon: QrCode },
@@ -44,7 +44,7 @@ const bottomNav = [
   { path: '/exhibitors',  label: 'Exhibitors', icon: Users },
   { path: '/connect',     label: 'Connect',    icon: Zap },
   { path: '/meetings',    label: 'Meetings',   icon: Calendar },
-  { path: '/magazine',    label: 'Magazine',   icon: BookOpen },
+  { path: '/magazine',    label: 'Publications', icon: BookOpen },
 ];
 
 export default function AppShell({ children }) {
