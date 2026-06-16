@@ -56,9 +56,7 @@ function CoverPage() {
       <div className="flex-1 flex flex-col items-center justify-between px-5 py-4 relative overflow-hidden">
         <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle,#f59e0b 1.5px,transparent 1.5px)', backgroundSize: '20px 20px' }} />
         <div className="w-full flex justify-between items-start">
-          <div className="w-11 h-11 rounded-full flex items-center justify-center border-2 border-amber-500" style={{ background: 'rgba(245,158,11,0.1)' }}>
-            <span className="text-amber-400 font-black" style={{ fontSize: 15, fontFamily: 'Barlow Condensed,sans-serif' }}>MC</span>
-          </div>
+          <img src="/minecon-logo.png" alt="MineCon" className="object-contain drop-shadow-lg" style={{ width: 52, height: 52 }} />
           <div className="text-right">
             <div className="text-slate-500 uppercase tracking-widest" style={{ fontSize: 8 }}>Vol. 1 · Issue 1</div>
           </div>
@@ -192,40 +190,158 @@ function ContentsPage() {
 }
 
 // ── PAGE 4: SANY Ad (CLICKABLE) ───────────────────────────────────────────────
-function SANYAdPage() {
+function SANYCarouselAd() {
+  const slides = [
+    {
+      category: 'Excavators',
+      model: 'SY365H',
+      stat: '36,500 kg',
+      statLabel: 'Operating Weight',
+      headline: 'Built for African Ground',
+      specs: [['Engine', '205 kW'], ['Bucket', '1.8 m³'], ['Dig Depth', '7.17 m']],
+      accent: '#C8102E',
+      icon: '⛏️',
+      tag: '#1 Globally',
+    },
+    {
+      category: 'Crawler Cranes',
+      model: 'SCC800A',
+      stat: '80 t',
+      statLabel: 'Max Lift Capacity',
+      headline: 'Lifting Africa\'s Future',
+      specs: [['Main Boom', '72 m'], ['Jib', '36 m'], ['Engine', '261 kW']],
+      accent: '#1d4ed8',
+      icon: '🏗️',
+      tag: 'Mine Ready',
+    },
+    {
+      category: 'Concrete Pump Trucks',
+      model: 'SYG5445THB',
+      stat: '66 m',
+      statLabel: 'Boom Reach',
+      headline: 'The World Pump King',
+      specs: [['Output', '180 m³/h'], ['Pressure', '8.7 MPa'], ['Sections', '6-fold']],
+      accent: '#15803d',
+      icon: '🔩',
+      tag: 'World #1',
+    },
+    {
+      category: 'Motor Graders',
+      model: 'SMG200C-8',
+      stat: '164 kW',
+      statLabel: 'Engine Power',
+      headline: 'Mine Roads. Any Terrain.',
+      specs: [['Blade', '4,267 mm'], ['Weight', '17,200 kg'], ['Drive', 'All-Wheel']],
+      accent: '#b45309',
+      icon: '🛣️',
+      tag: 'AWD',
+    },
+    {
+      category: 'Rotary Drilling Rigs',
+      model: 'SR285R',
+      stat: '285 kN·m',
+      statLabel: 'Max Torque',
+      headline: 'Drill Deeper, Faster',
+      specs: [['Depth', '104 m'], ['Diameter', '3,000 mm'], ['Engine', '447 kW']],
+      accent: '#6d28d9',
+      icon: '🔩',
+      tag: 'Piling',
+    },
+  ];
+
+  const [idx, setIdx] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const total = slides.length;
+  const s = slides[idx];
+
+  useEffect(() => {
+    if (paused) return;
+    const t = setTimeout(() => setIdx(i => (i + 1) % total), 3800);
+    return () => clearTimeout(t);
+  }, [idx, paused]);
+
+  const stop = e => { e.stopPropagation(); e.preventDefault(); };
+  const prev = e => { stop(e); setPaused(true); setIdx(i => (i - 1 + total) % total); };
+  const next = e => { stop(e); setPaused(true); setIdx(i => (i + 1) % total); };
+
   return (
-    <div className="absolute inset-0 flex flex-col" style={{ background: 'linear-gradient(160deg,#92400e 0%,#b45309 45%,#d97706 100%)' }}>
-      <div className="px-5 pt-3 pb-1 shrink-0">
-        <div className="text-amber-200 uppercase tracking-widest font-bold" style={{ fontSize: 8 }}>Diamond Sponsor · Booth A07</div>
+    <div
+      className="absolute inset-0 flex flex-col overflow-hidden"
+      style={{ background: '#0a0a0a' }}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      {/* SANY red top bar */}
+      <div className="flex items-center justify-between px-4 py-1.5 shrink-0" style={{ background: '#C8102E' }}>
+        <span className="text-white font-black tracking-[0.15em]" style={{ fontSize: 13, fontFamily: 'Barlow Condensed,sans-serif' }}>SANY</span>
+        <span className="text-white font-bold" style={{ fontSize: 7.5 }}>MineCon 2026 · Booth A07</span>
       </div>
-      <div className="px-5 flex-1 flex flex-col justify-between overflow-hidden">
-        <div>
-          <div className="font-black text-white leading-none" style={{ fontSize: 44, fontFamily: 'Barlow Condensed,sans-serif', lineHeight: 1 }}>SANY</div>
-          <div className="font-black text-amber-200 leading-none" style={{ fontSize: 28, fontFamily: 'Barlow Condensed,sans-serif' }}>ZIMBABWE</div>
-          <div className="text-amber-100 font-medium mt-1" style={{ fontSize: 10 }}>World-Class Equipment for African Conditions</div>
-        </div>
-        <div className="w-full rounded-xl overflow-hidden my-2 flex items-center justify-center" style={{ height: 110, background: 'rgba(0,0,0,0.3)' }}>
-          <div className="text-center">
-            <div style={{ fontSize: 38 }}>🏗️</div>
-            <div className="text-amber-200 font-bold mt-1" style={{ fontSize: 9 }}>Heavy Equipment · Lifting · Concrete</div>
+
+      {/* Coloured accent band */}
+      <div className="shrink-0" style={{ height: 3, background: s.accent, transition: 'background 0.5s' }} />
+
+      {/* Main slide area */}
+      <div className="flex-1 flex flex-col px-4 pt-3 pb-2 gap-2 overflow-hidden">
+
+        {/* Category tag + icon */}
+        <div className="flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="rounded px-2 py-0.5 font-bold text-white uppercase tracking-wide" style={{ background: s.accent, fontSize: 7 }}>{s.category}</div>
+            <div className="rounded px-1.5 py-0.5 font-bold uppercase tracking-wide" style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)', fontSize: 7 }}>{s.tag}</div>
           </div>
+          <span style={{ fontSize: 22 }}>{s.icon}</span>
         </div>
-        <div className="grid grid-cols-2 gap-2 mb-2">
-          {['Excavators','Tower Cranes','Concrete Pumps','Road Machines'].map(c => (
-            <div key={c} className="rounded px-2 py-1.5 text-center" style={{ background: 'rgba(0,0,0,0.25)' }}>
-              <div className="text-white font-bold" style={{ fontSize: 9.5 }}>{c}</div>
+
+        {/* Model name */}
+        <div className="shrink-0">
+          <div className="font-black text-white leading-none" style={{ fontFamily: 'Barlow Condensed,sans-serif', fontSize: 30, lineHeight: 1 }}>{s.model}</div>
+          <div className="font-semibold mt-0.5" style={{ fontSize: 10, color: s.accent }}>{s.headline}</div>
+        </div>
+
+        {/* Hero stat */}
+        <div className="rounded-xl flex flex-col items-center justify-center shrink-0 py-3" style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${s.accent}55` }}>
+          <div className="font-black text-white" style={{ fontFamily: 'Barlow Condensed,sans-serif', fontSize: 38, lineHeight: 1 }}>{s.stat}</div>
+          <div className="uppercase tracking-widest mt-0.5" style={{ fontSize: 7, color: s.accent }}>{s.statLabel}</div>
+        </div>
+
+        {/* Specs row */}
+        <div className="grid grid-cols-3 gap-1.5 shrink-0">
+          {s.specs.map(([label, val]) => (
+            <div key={label} className="rounded-lg text-center py-2" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div className="font-black text-white" style={{ fontFamily: 'Barlow Condensed,sans-serif', fontSize: 12, lineHeight: 1 }}>{val}</div>
+              <div className="mt-0.5" style={{ fontSize: 6.5, color: 'rgba(255,255,255,0.4)' }}>{label}</div>
             </div>
           ))}
         </div>
-        <AdLink href="https://www.sanyglobal.com" bg="#fff" color="#92400e">
-          <ExternalLink size={13} /> Visit www.sanyglobal.com ↗
+
+        {/* Nav row */}
+        <div className="flex items-center justify-between shrink-0 mt-auto">
+          <button
+            style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(200,16,46,0.2)', border: '1px solid rgba(200,16,46,0.4)', color: '#fff', fontSize: 16, cursor: 'pointer' }}
+            onMouseDown={stop} onTouchStart={stop} onClick={prev}
+          >‹</button>
+          <div className="flex gap-1.5 items-center">
+            {slides.map((_, i) => (
+              <div
+                key={i}
+                onClick={e => { stop(e); setPaused(true); setIdx(i); }}
+                style={{ height: 5, borderRadius: 3, cursor: 'pointer', transition: 'all 0.3s', width: i === idx ? 16 : 5, background: i === idx ? s.accent : 'rgba(255,255,255,0.2)' }}
+              />
+            ))}
+          </div>
+          <button
+            style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(200,16,46,0.2)', border: '1px solid rgba(200,16,46,0.4)', color: '#fff', fontSize: 16, cursor: 'pointer' }}
+            onMouseDown={stop} onTouchStart={stop} onClick={next}
+          >›</button>
+        </div>
+      </div>
+
+      {/* CTA footer */}
+      <div className="shrink-0 px-4 py-2" style={{ background: 'rgba(200,16,46,0.12)', borderTop: '1px solid rgba(200,16,46,0.3)' }}>
+        <AdLink href="https://www.sanyglobal.com" bg="#C8102E" color="#fff">
+          <ExternalLink size={11} /> sanyglobal.com — Quality Changes the World ↗
         </AdLink>
       </div>
-      <div className="px-5 py-2 flex items-center justify-between shrink-0">
-        <div className="text-amber-200" style={{ fontSize: 8 }}>Booth A07 · Main Hall</div>
-        <div className="rounded px-2 py-0.5 text-amber-900 font-bold" style={{ background: '#fde68a', fontSize: 8 }}>DIAMOND SPONSOR</div>
-      </div>
-      <PNum n={4} />
     </div>
   );
 }
@@ -280,90 +396,20 @@ function EventOverviewPage() {
   );
 }
 
-// ── PAGE 6: Steel Warehouse Holdings ─────────────────────────────────────────
-function SteelWarehousePage() {
+// ── PAGE 6: Elimobil ─────────────────────────────────────────────────────────
+function ElimobilAdPage() {
   return (
-    <div className="absolute inset-0 bg-white flex flex-col">
-      <Strip label="Diamond Exhibitor Profile" />
-      <div className="flex-1 px-5 py-3 flex flex-col gap-2.5 overflow-hidden">
-        <div className="rounded-lg overflow-hidden shrink-0" style={{ height: 65, background: 'linear-gradient(135deg,#1e293b 0%,#334155 100%)' }}>
-          <div className="h-full flex items-center px-4 gap-3">
-            <div className="w-11 h-11 rounded-lg flex items-center justify-center text-xl shrink-0" style={{ background: 'rgba(255,255,255,0.1)' }}>🏗️</div>
-            <div>
-              <div className="text-amber-400 uppercase tracking-widest" style={{ fontSize: 7.5 }}>Diamond Sponsor · Booth A01</div>
-              <div className="text-white font-black" style={{ fontSize: 14, fontFamily: 'Barlow Condensed,sans-serif' }}>STEEL WAREHOUSE HOLDINGS</div>
-            </div>
-          </div>
-        </div>
-        <div className="text-slate-600 font-semibold shrink-0" style={{ fontSize: 10 }}>Zimbabwe's Leading Steel & Metal Products Supplier</div>
-        <div className="text-slate-600 leading-relaxed shrink-0" style={{ fontSize: 9.5 }}>Steel Warehouse Holdings is the country's foremost distributor of structural steel, flat-rolled products, and metal solutions. Supplying Zimbabwe's construction, mining, and manufacturing sectors for decades, they bring unmatched inventory depth and technical expertise to every project.</div>
-        <div className="shrink-0">
-          <div className="text-slate-700 font-bold mb-1" style={{ fontSize: 10 }}>Products on Display:</div>
-          <div className="grid grid-cols-2 gap-1">
-            {['Structural Steel (H & I Beams)','Flat-Rolled Sheet & Plate','Steel Pipes & Tubing','Roofing & Cladding Sheets','Wire Rods & Rebar','Mining Support Structures'].map(p => (
-              <div key={p} className="flex items-start gap-1" style={{ fontSize: 9 }}>
-                <span className="text-amber-500 font-bold shrink-0" style={{ lineHeight: '14px' }}>›</span>
-                <span className="text-slate-600">{p}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="rounded-lg p-2 shrink-0" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-          <div className="grid grid-cols-3 gap-2 text-center">
-            {[['30+','Years'],['500+','Products'],['24/7','Delivery']].map(([n,l]) => (
-              <div key={l}>
-                <div className="text-slate-800 font-black" style={{ fontSize: 14, fontFamily: 'Barlow Condensed,sans-serif' }}>{n}</div>
-                <div className="text-slate-400" style={{ fontSize: 8 }}>{l}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="mt-auto pt-2 border-t border-slate-100 flex items-center justify-between shrink-0">
-          <div className="text-slate-500" style={{ fontSize: 8 }}>📍 Booth A01 · Main Hall</div>
-          <div className="text-slate-500" style={{ fontSize: 8 }}>steelwarehouse.co.zw</div>
-        </div>
-      </div>
-      <PNum n={6} />
+    <div className="absolute inset-0">
+      <img src="/magazines/ads/ad-elimobil.jpg" alt="Elimobil" className="absolute inset-0 w-full h-full select-none" style={{ objectFit: 'fill' }} draggable={false} />
     </div>
   );
 }
 
-// ── PAGE 7: Isuzu Zimbabwe (CLICKABLE) ───────────────────────────────────────
-function IsuzuPage() {
+// ── PAGE 7: Jetmaster ────────────────────────────────────────────────────────
+function JetmasterAdPage() {
   return (
-    <div className="absolute inset-0 bg-white flex flex-col">
-      <Strip label="Diamond Exhibitor Profile" />
-      <div className="flex-1 px-5 py-3 flex flex-col gap-2.5 overflow-hidden">
-        <div className="rounded-lg overflow-hidden shrink-0" style={{ height: 65, background: 'linear-gradient(135deg,#1e3a5f 0%,#1d4ed8 100%)' }}>
-          <div className="h-full flex items-center px-4 gap-3">
-            <div className="w-11 h-11 rounded-lg flex items-center justify-center text-xl shrink-0" style={{ background: 'rgba(255,255,255,0.15)' }}>🚛</div>
-            <div>
-              <div className="text-blue-200 uppercase tracking-widest" style={{ fontSize: 7.5 }}>Diamond Sponsor · Booth A02</div>
-              <div className="text-white font-black" style={{ fontSize: 17, fontFamily: 'Barlow Condensed,sans-serif' }}>ISUZU ZIMBABWE</div>
-            </div>
-          </div>
-        </div>
-        <div className="text-slate-600 font-semibold shrink-0" style={{ fontSize: 10 }}>Official Isuzu Commercial Vehicle Dealer for Zimbabwe</div>
-        <div className="text-slate-600 leading-relaxed shrink-0" style={{ fontSize: 9.5 }}>Isuzu Zimbabwe is the authorised dealer for commercial vehicles across Zimbabwe. From light delivery vans to heavy-duty mining trucks, Isuzu's legendary reliability makes them the fleet choice for the country's most demanding environments.</div>
-        <div className="flex flex-col gap-1 shrink-0">
-          <div className="text-slate-700 font-bold" style={{ fontSize: 10 }}>Vehicles on Display:</div>
-          {[['FTR 850','Medium-duty truck · Ideal for medium-haul mining operations'],['FVR 900','Heavy-duty · High payload capacity for bulk material haulage'],['NMR 85','Light commercial · Workshop and site support vehicle'],['D-MAX 4×4','Pick-up · Underground & surface operational use']].map(([m,d]) => (
-            <div key={m} className="flex gap-2 py-1 border-b border-slate-100">
-              <span className="font-bold text-blue-700 shrink-0" style={{ fontSize: 10, minWidth: 52 }}>{m}</span>
-              <span className="text-slate-500" style={{ fontSize: 9 }}>{d}</span>
-            </div>
-          ))}
-        </div>
-        <div className="flex flex-col gap-1.5 mt-auto shrink-0">
-          <AdLink href="https://www.youtube.com/results?search_query=isuzu+commercial+trucks+africa" bg="#1d4ed8" color="#fff">
-            <Play size={12} /> Watch Product Demo Videos ↗
-          </AdLink>
-          <AdLink href="https://www.isuzu.co.zw" bg="#eff6ff" color="#1d4ed8">
-            <ExternalLink size={12} /> isuzu.co.zw ↗
-          </AdLink>
-        </div>
-      </div>
-      <PNum n={7} right />
+    <div className="absolute inset-0">
+      <img src="/magazines/ads/ad-jetmaster.jpg" alt="Jetmaster Fireplaces & Braais" className="absolute inset-0 w-full h-full select-none" style={{ objectFit: 'fill' }} draggable={false} />
     </div>
   );
 }
@@ -450,42 +496,11 @@ function IndustryInsightPage() {
   );
 }
 
-// ── PAGE 10: Zimplow Ad (CLICKABLE) ──────────────────────────────────────────
-function ZimplowAdPage() {
+// ── PAGE 10: Zambezi Gas & Coal ──────────────────────────────────────────────
+function ZambeziCoalAdPage() {
   return (
-    <div className="absolute inset-0 flex flex-col" style={{ background: 'linear-gradient(160deg,#0c1a33 0%,#1e3a5f 55%,#0c1a33 100%)' }}>
-      <div className="px-5 pt-3 pb-1 shrink-0">
-        <div className="text-blue-300 uppercase tracking-widest font-bold" style={{ fontSize: 8 }}>Diamond Sponsor · Booth A13</div>
-      </div>
-      <div className="px-5 flex-1 flex flex-col justify-between overflow-hidden">
-        <div>
-          <div className="font-black text-white leading-none" style={{ fontSize: 42, fontFamily: 'Barlow Condensed,sans-serif', lineHeight: 1 }}>ZIMPLOW</div>
-          <div className="font-black leading-none" style={{ fontSize: 26, fontFamily: 'Barlow Condensed,sans-serif', color: '#60a5fa' }}>HOLDINGS</div>
-          <div className="text-blue-200 font-medium mt-1" style={{ fontSize: 10 }}>Diversified Industrial Solutions for Sub-Saharan Africa</div>
-        </div>
-        <div className="w-full rounded-xl flex items-center justify-center my-2" style={{ height: 100, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <div className="text-center">
-            <div style={{ fontSize: 36 }}>🏭</div>
-            <div className="text-blue-300 font-bold mt-1" style={{ fontSize: 9 }}>Manufacturing · Distribution · Equipment</div>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-2 mb-2">
-          {['Blades & Tillage Tools','Steel Castings','Industrial Equipment','Agricultural Implements'].map(c => (
-            <div key={c} className="rounded px-2 py-1.5 flex items-center gap-1.5" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: '#60a5fa' }} />
-              <div className="text-slate-200" style={{ fontSize: 9 }}>{c}</div>
-            </div>
-          ))}
-        </div>
-        <AdLink href="https://www.zimplow.co.zw" bg="#60a5fa" color="#0c1a33">
-          <ExternalLink size={13} /> Visit www.zimplow.co.zw ↗
-        </AdLink>
-      </div>
-      <div className="px-5 py-2 flex items-center justify-between shrink-0">
-        <div className="text-blue-300" style={{ fontSize: 8 }}>Booth A13 · Main Hall</div>
-        <div className="rounded px-2 py-0.5 text-white font-bold" style={{ background: '#3b82f6', fontSize: 8 }}>DIAMOND SPONSOR</div>
-      </div>
-      <PNum n={10} />
+    <div className="absolute inset-0">
+      <img src="/magazines/ads/ad-zambezi.jpg" alt="Zambezi Gas & Coal Mine" className="absolute inset-0 w-full h-full select-none" style={{ objectFit: 'fill' }} draggable={false} />
     </div>
   );
 }
@@ -527,52 +542,20 @@ function ExhibitorDirectoryPage() {
   );
 }
 
-// ── PAGE 12: LiuGong Spotlight (CLICKABLE) ────────────────────────────────────
-function LiuGongPage() {
-  const specs = [['Bucket Capacity','3.0 – 3.5 m³'],['Engine Power','162 kW (217 hp)'],['Operating Weight','16,500 kg'],['Dump Height','2,860 mm'],['Breakout Force','176 kN'],['Tipping Load','10,500 kg']];
+// ── PAGE 12: Zimtile ─────────────────────────────────────────────────────────
+function ZimtileAdPage() {
   return (
-    <div className="absolute inset-0 bg-white flex flex-col">
-      <Strip label="Product Spotlight" />
-      <div className="flex-1 px-5 py-3 flex flex-col gap-2 overflow-hidden">
-        <div className="rounded-lg overflow-hidden shrink-0" style={{ height: 60, background: 'linear-gradient(135deg,#14532d 0%,#15803d 100%)' }}>
-          <div className="h-full flex items-center px-4 gap-3">
-            <div className="w-10 h-10 rounded flex items-center justify-center text-xl shrink-0" style={{ background: 'rgba(255,255,255,0.15)' }}>🚜</div>
-            <div>
-              <div className="text-green-200 uppercase tracking-widest" style={{ fontSize: 7.5 }}>Diamond Sponsor · Booth A16</div>
-              <div className="text-white font-black" style={{ fontSize: 15, fontFamily: 'Barlow Condensed,sans-serif' }}>LIUGONG ZIMBABWE</div>
-            </div>
-          </div>
-        </div>
-        <div className="shrink-0">
-          <div className="text-slate-400 uppercase tracking-widest" style={{ fontSize: 8 }}>Feature Machine</div>
-          <div className="font-black text-slate-900" style={{ fontSize: 18, fontFamily: 'Barlow Condensed,sans-serif' }}>LiuGong 856H</div>
-          <div className="text-green-700 font-semibold" style={{ fontSize: 10 }}>Heavy-Duty Wheel Loader</div>
-        </div>
-        <div className="rounded-lg overflow-hidden shrink-0" style={{ height: 75, background: 'linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%)', border: '2px solid #bbf7d0' }}>
-          <div className="h-full flex items-center justify-center gap-4">
-            <div style={{ fontSize: 36 }}>🚜</div>
-            <div className="text-green-700" style={{ fontSize: 9 }}>
-              <div className="font-bold">856H Wheel Loader</div>
-              <div>Live demo at Booth A16</div>
-              <div className="font-bold text-green-800">See it in action!</div>
-            </div>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-1.5 flex-1">
-          {specs.map(([l,v]) => (
-            <div key={l} className="rounded p-1.5" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-              <div className="text-slate-400" style={{ fontSize: 7.5 }}>{l}</div>
-              <div className="text-slate-800 font-bold" style={{ fontSize: 10 }}>{v}</div>
-            </div>
-          ))}
-        </div>
-        <div className="shrink-0">
-          <AdLink href="https://www.liugong.com/en/products/wheel-loader/" bg="#15803d" color="#fff">
-            <ExternalLink size={12} /> Full Specifications at liugong.com ↗
-          </AdLink>
-        </div>
-      </div>
-      <PNum n={12} />
+    <div className="absolute inset-0">
+      <img src="/magazines/ads/ad-zimtile.jpg" alt="Zimtile" className="absolute inset-0 w-full h-full select-none" style={{ objectFit: 'fill' }} draggable={false} />
+    </div>
+  );
+}
+
+// ── PAGE 13: Woodlot Timbers (half-page ad) ───────────────────────────────────
+function WoodlotAdPage() {
+  return (
+    <div className="absolute inset-0 bg-white flex flex-col items-center justify-center">
+      <img src="/magazines/ads/ad-woodlot.jpg" alt="Woodlot Timbers" className="w-full select-none" style={{ objectFit: 'contain' }} draggable={false} />
     </div>
   );
 }
@@ -584,10 +567,13 @@ function WhyAttendPage() {
     <div className="absolute inset-0 bg-white flex flex-col">
       <Strip label="Why Attend MineCon?" />
       <div className="flex-1 px-5 py-3 flex flex-col gap-2.5 overflow-hidden">
-        <div className="shrink-0">
-          <div className="text-amber-500 uppercase tracking-widest font-bold" style={{ fontSize: 8 }}>MineCon 2026</div>
-          <div className="font-black text-slate-900 leading-tight" style={{ fontSize: 20, fontFamily: 'Barlow Condensed,sans-serif' }}>WHY ATTEND?</div>
-          <div className="h-0.5 w-10 mt-0.5" style={{ background: '#f59e0b' }} />
+        <div className="shrink-0 flex items-start justify-between">
+          <div>
+            <div className="text-amber-500 uppercase tracking-widest font-bold" style={{ fontSize: 8 }}>MineCon 2026</div>
+            <div className="font-black text-slate-900 leading-tight" style={{ fontSize: 20, fontFamily: 'Barlow Condensed,sans-serif' }}>WHY ATTEND?</div>
+            <div className="h-0.5 w-10 mt-0.5" style={{ background: '#f59e0b' }} />
+          </div>
+          <img src="/minecon-logo.png" alt="MineCon" className="object-contain" style={{ width: 38, height: 38 }} />
         </div>
         <div className="rounded-xl p-3 shrink-0" style={{ background: 'linear-gradient(135deg,#0f172a 0%,#1e293b 100%)' }}>
           <div className="text-slate-300 italic" style={{ fontSize: 10 }}>"MineCon is where Zimbabwe's mining and construction industry comes together — to do business, to learn, and to shape the future of our sector."</div>
@@ -619,9 +605,7 @@ function BackCoverPage() {
       <div className="flex-1 flex flex-col items-center justify-between px-5 py-4 relative overflow-hidden">
         <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle,#f59e0b 1.5px,transparent 1.5px)', backgroundSize: '20px 20px' }} />
         <div className="text-center w-full">
-          <div className="w-14 h-14 rounded-full flex items-center justify-center border-2 border-amber-500 mx-auto mb-2" style={{ background: 'rgba(245,158,11,0.1)' }}>
-            <span className="text-amber-400 font-black" style={{ fontSize: 20, fontFamily: 'Barlow Condensed,sans-serif' }}>MC</span>
-          </div>
+          <img src="/minecon-logo.png" alt="MineCon" className="object-contain mx-auto mb-2 drop-shadow-lg" style={{ width: 56, height: 56 }} />
           <div className="font-black text-amber-400" style={{ fontSize: 18, fontFamily: 'Barlow Condensed,sans-serif' }}>MINECON 2026</div>
           <div className="text-slate-400" style={{ fontSize: 9.5 }}>Southern Africa's Mining & Construction Exhibition</div>
         </div>
@@ -668,7 +652,7 @@ function GuideViewer({ onBack, isMobile }) {
   const flipPrev = () => bookRef.current?.pageFlip().flipPrev();
   const flipNext = () => bookRef.current?.pageFlip().flipNext();
 
-  const TOTAL = 14;
+  const TOTAL = 15;
   const spreadLabel = isMobile
     ? `Page ${currentPage + 1} of ${TOTAL}`
     : currentPage === 0 ? 'Cover'
@@ -711,17 +695,18 @@ function GuideViewer({ onBack, isMobile }) {
           <MagazinePage key="p1"><CoverPage /></MagazinePage>
           <MagazinePage key="p2"><WelcomePage /></MagazinePage>
           <MagazinePage key="p3"><ContentsPage /></MagazinePage>
-          <MagazinePage key="p4"><SANYAdPage /></MagazinePage>
+          <MagazinePage key="p4"><SANYCarouselAd /></MagazinePage>
           <MagazinePage key="p5"><EventOverviewPage /></MagazinePage>
-          <MagazinePage key="p6"><SteelWarehousePage /></MagazinePage>
-          <MagazinePage key="p7"><IsuzuPage /></MagazinePage>
+          <MagazinePage key="p6"><ElimobilAdPage /></MagazinePage>
+          <MagazinePage key="p7"><JetmasterAdPage /></MagazinePage>
           <MagazinePage key="p8"><SitePlanPage /></MagazinePage>
           <MagazinePage key="p9"><IndustryInsightPage /></MagazinePage>
-          <MagazinePage key="p10"><ZimplowAdPage /></MagazinePage>
+          <MagazinePage key="p10"><ZambeziCoalAdPage /></MagazinePage>
           <MagazinePage key="p11"><ExhibitorDirectoryPage /></MagazinePage>
-          <MagazinePage key="p12"><LiuGongPage /></MagazinePage>
-          <MagazinePage key="p13"><WhyAttendPage /></MagazinePage>
-          <MagazinePage key="p14"><BackCoverPage /></MagazinePage>
+          <MagazinePage key="p12"><ZimtileAdPage /></MagazinePage>
+          <MagazinePage key="p13"><WoodlotAdPage /></MagazinePage>
+          <MagazinePage key="p14"><WhyAttendPage /></MagazinePage>
+          <MagazinePage key="p15"><BackCoverPage /></MagazinePage>
         </HTMLFlipBook>
       </div>
 
@@ -753,7 +738,22 @@ function ADMAFlipBook({ onBack, isMobile }) {
     setBookKey(isMobile ? 'mb' : 'dk');
   }, [isMobile]);
 
-  const TOTAL = 44;
+  // PDF pages 2-43 are landscape double-spreads (3047×1984) containing two magazine
+  // pages side-by-side. Split each into left+right halves via objectPosition so the
+  // flipbook shows proper portrait pages. PDF pages 1 and 44 are portrait singles.
+  const admaPages = (() => {
+    const list = [];
+    list.push({ src: '/magazines/adma-pages/page-001.jpg', half: 'portrait' });
+    for (let i = 2; i <= 43; i++) {
+      const n = String(i).padStart(3, '0');
+      list.push({ src: `/magazines/adma-pages/page-${n}.jpg`, half: 'left' });
+      list.push({ src: `/magazines/adma-pages/page-${n}.jpg`, half: 'right' });
+    }
+    list.push({ src: '/magazines/adma-pages/page-044.jpg', half: 'portrait' });
+    return list;
+  })();
+
+  const TOTAL = admaPages.length; // 86
   const onFlip = useCallback(e => setCurrentPage(e.data), []);
   const flipPrev = () => bookRef.current?.pageFlip().flipPrev();
   const flipNext = () => bookRef.current?.pageFlip().flipNext();
@@ -805,21 +805,21 @@ function ADMAFlipBook({ onBack, isMobile }) {
           swipeDistance={30}
           style={{ margin: '0 auto', display: 'block' }}
         >
-          {Array.from({ length: TOTAL }, (_, i) => {
-            const n = String(i + 1).padStart(3, '0');
-            return (
-              <MagazinePage key={`adma-p${n}`}>
-                <img
-                  src={`/magazines/adma-pages/page-${n}.jpg`}
-                  alt={`Page ${i + 1}`}
-                  className="absolute inset-0 w-full h-full select-none"
-                  style={{ objectFit: 'fill' }}
-                  loading={i < 6 ? 'eager' : 'lazy'}
-                  draggable={false}
-                />
-              </MagazinePage>
-            );
-          })}
+          {admaPages.map((p, i) => (
+            <MagazinePage key={`adma-p${i}`}>
+              <img
+                src={p.src}
+                alt={`Page ${i + 1}`}
+                className="absolute inset-0 w-full h-full select-none"
+                style={{
+                  objectFit: p.half === 'portrait' ? 'fill' : 'cover',
+                  objectPosition: p.half === 'left' ? 'left center' : p.half === 'right' ? 'right center' : 'center',
+                }}
+                loading={i < 8 ? 'eager' : 'lazy'}
+                draggable={false}
+              />
+            </MagazinePage>
+          ))}
         </HTMLFlipBook>
       </div>
 
@@ -848,30 +848,44 @@ function MagazineLibrary({ onSelect }) {
       id: 'guide',
       title: 'MineCon 2026',
       subtitle: 'Official Exhibition Guide',
-      tag: 'Interactive Flip Book · 14 pages',
+      tag: 'Interactive Flip Book · 15 pages',
       type: 'flipbook',
       cover: (
-        <div className="absolute inset-0 flex flex-col" style={{ background: 'linear-gradient(160deg,#080f1e 0%,#1e293b 60%,#080f1e 100%)' }}>
-          <div className="px-3 py-1 shrink-0" style={{ background: '#f59e0b' }}>
-            <span className="text-slate-900 font-black uppercase tracking-widest" style={{ fontSize: 8 }}>Official Exhibition Guide</span>
-          </div>
-          <div className="flex-1 flex flex-col items-center justify-between px-4 py-3 relative overflow-hidden">
-            <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle,#f59e0b 1.5px,transparent 1.5px)', backgroundSize: '16px 16px' }} />
-            <div className="w-8 h-8 rounded-full flex items-center justify-center border border-amber-500" style={{ background: 'rgba(245,158,11,0.1)' }}>
-              <span className="text-amber-400 font-black" style={{ fontSize: 10 }}>MC</span>
+        <div className="absolute inset-0 flex flex-col overflow-hidden">
+          {/* Top ~55% — dramatic dark "mine site" photo zone */}
+          <div className="relative shrink-0" style={{ height: '55%', background: 'linear-gradient(175deg,#0d1f3c 0%,#111820 40%,#1a1208 70%,#0a0c0e 100%)' }}>
+            {/* Subtle amber equipment-light glow */}
+            <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 80% 60% at 35% 70%, rgba(245,158,11,0.13) 0%, transparent 70%)' }} />
+            {/* Tyre-track texture lines */}
+            <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'repeating-linear-gradient(170deg, transparent, transparent 6px, rgba(255,255,255,0.06) 6px, rgba(255,255,255,0.06) 7px)', backgroundSize: '100% 100%' }} />
+            {/* MineCon logo — centred, 50% of the top zone height */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <img src="/minecon-logo.png" alt="MineCon" className="object-contain drop-shadow-lg" style={{ height: '50%', maxWidth: '85%' }} />
             </div>
-            <div className="text-center">
-              <div className="font-black leading-none" style={{ fontFamily: 'Barlow Condensed,sans-serif', fontSize: 36, color: '#fff', lineHeight: 1 }}>
-                MINE<span style={{ color: '#f59e0b' }}>CON</span>
-              </div>
-              <div className="font-black text-slate-400" style={{ fontFamily: 'Barlow Condensed,sans-serif', fontSize: 18 }}>2026</div>
-            </div>
-            <div className="w-full rounded py-1.5 flex justify-center" style={{ background: 'rgba(245,158,11,0.12)' }}>
-              <span className="text-amber-400 font-bold" style={{ fontSize: 8 }}>Mining · Construction · Innovation</span>
+            {/* "EXHIBITION" overlaid on photo, bottom of dark zone */}
+            <div className="absolute bottom-1 left-3">
+              <div className="font-black text-white leading-none" style={{ fontFamily: 'Barlow Condensed,sans-serif', fontSize: 22, lineHeight: 1, letterSpacing: '-0.01em', textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>EXHIBITION</div>
             </div>
           </div>
-          <div className="px-3 py-1.5 shrink-0" style={{ background: '#080f1e' }}>
-            <span className="text-amber-400 font-bold" style={{ fontSize: 8 }}>October 2026 · Harare, Zimbabwe</span>
+          {/* Bottom ~45% — light zone with large bold text (Zambezi white area) */}
+          <div className="flex-1 flex flex-col justify-between px-3 py-2" style={{ background: '#f5f0e8' }}>
+            {/* "GUIDE" in massive text like "VALUE COAL" */}
+            <div className="font-black leading-none" style={{ fontFamily: 'Barlow Condensed,sans-serif', fontSize: 34, color: '#0a0c0e', lineHeight: 0.9, letterSpacing: '-0.02em' }}>
+              GUIDE <span style={{ color: '#f59e0b' }}>2026</span>
+            </div>
+            {/* Pipe-separated categories like "Cobbles | Peas | Nuts | Duff" */}
+            <div className="font-black text-slate-700" style={{ fontFamily: 'Barlow Condensed,sans-serif', fontSize: 25.5, letterSpacing: '0.01em', lineHeight: 1 }}>
+              Mining &nbsp;|&nbsp; Construction &nbsp;|&nbsp; Innovation
+            </div>
+            {/* Body copy like Zambezi */}
+            <div className="text-slate-600 leading-tight" style={{ fontSize: 15, fontStyle: 'italic' }}>
+              Zimbabwe's premier mining &amp; construction exhibition. Connect, discover and procure.
+            </div>
+            {/* Footer info like Zambezi contact row */}
+            <div className="flex items-center justify-between pt-1 border-t" style={{ borderColor: '#d1c9b8' }}>
+              <span className="font-bold text-slate-800" style={{ fontSize: 7 }}>October 2026</span>
+              <span className="text-slate-500" style={{ fontSize: 7 }}>Artfarm · Pomona · Harare</span>
+            </div>
           </div>
         </div>
       ),
@@ -880,32 +894,15 @@ function MagazineLibrary({ onSelect }) {
       id: 'adma',
       title: 'ADMA 2026',
       subtitle: 'Agricultural Show Magazine',
-      tag: 'Interactive Flip Book · 44 pages',
+      tag: 'Interactive Flip Book · 86 pages',
       type: 'flipbook',
       cover: (
-        <div className="absolute inset-0 flex flex-col" style={{ background: 'linear-gradient(160deg,#052e16 0%,#166534 55%,#052e16 100%)' }}>
-          <div className="px-3 py-1 shrink-0" style={{ background: '#eab308' }}>
-            <span className="text-slate-900 font-black uppercase tracking-widest" style={{ fontSize: 8 }}>Agricultural Show Magazine</span>
-          </div>
-          <div className="flex-1 flex flex-col items-center justify-between px-4 py-3 relative overflow-hidden">
-            <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(circle,#86efac 1.5px,transparent 1.5px)', backgroundSize: '16px 16px' }} />
-            <div className="w-8 h-8 rounded flex items-center justify-center" style={{ background: '#eab308' }}>
-              <span className="text-slate-900 font-black" style={{ fontSize: 14 }}>🌾</span>
-            </div>
-            <div className="text-center">
-              <div className="font-black leading-none text-white" style={{ fontFamily: 'Barlow Condensed,sans-serif', fontSize: 40, lineHeight: 1 }}>ADMA</div>
-              <div className="font-black text-yellow-300" style={{ fontFamily: 'Barlow Condensed,sans-serif', fontSize: 18 }}>2026</div>
-              <div className="text-green-300 mt-1" style={{ fontSize: 8 }}>Agricultural Development &</div>
-              <div className="text-green-300" style={{ fontSize: 8 }}>Marketing Association</div>
-            </div>
-            <div className="w-full rounded py-1.5 flex justify-center" style={{ background: 'rgba(234,179,8,0.15)' }}>
-              <span className="text-yellow-300 font-bold" style={{ fontSize: 8 }}>Farming · Agri-Business · Livestock</span>
-            </div>
-          </div>
-          <div className="px-3 py-1.5 shrink-0" style={{ background: '#052e16' }}>
-            <span className="text-yellow-400 font-bold" style={{ fontSize: 8 }}>2026 Edition · Zimbabwe</span>
-          </div>
-        </div>
+        <img
+          src="/magazines/adma-pages/page-001.jpg"
+          alt="ADMA 2026 cover"
+          className="absolute inset-0 w-full h-full"
+          style={{ objectFit: 'cover', objectPosition: 'center top' }}
+        />
       ),
     },
   ];
