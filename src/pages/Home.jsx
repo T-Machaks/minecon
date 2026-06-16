@@ -3,7 +3,9 @@ import { Users, Map, Calendar, Info, Bell, QrCode, LayoutDashboard, ArrowRight, 
 import { useQuery } from '@tanstack/react-query';
 import { Announcement, Exhibitor } from '@/api/entities';
 import AdBannerCarousel from '@/components/home/AdBannerCarousel';
+import VirtualBanner from '@/components/VirtualBanner';
 import { track } from '@/lib/tracking';
+import { useAppSettings } from '@/lib/AppSettingsContext';
 
 const quickActions = [
   { label: 'Exhibitors', path: '/exhibitors', icon: Users, color: 'bg-blue-600' },
@@ -25,6 +27,7 @@ const typeColor = {
 };
 
 export default function Home() {
+  const { settings } = useAppSettings();
   const { data: announcements = [] } = useQuery({
     queryKey: ['announcements'],
     queryFn: () => Announcement.list('-created_date'),
@@ -71,6 +74,9 @@ export default function Home() {
       <div className="pt-4">
         <AdBannerCarousel />
       </div>
+
+      {/* Virtual exhibition banner */}
+      {settings.virtualExhibitionOpen && <VirtualBanner />}
 
       {/* Pinned announcements */}
       {pinned.length > 0 && (

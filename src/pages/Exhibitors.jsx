@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Exhibitor } from '@/api/entities';
-import { Search, Calendar, Globe, Phone, Mail, Filter } from 'lucide-react';
+import { Search, Calendar, Globe, Phone, Mail, Filter, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import TierBadge from '@/components/ui/TierBadge';
 import { track } from '@/lib/tracking';
+import { useAppSettings } from '@/lib/AppSettingsContext';
 
 const CATEGORIES = ['All', 'Equipment', 'Services', 'Suppliers', 'Solutions'];
 const TIERS = ['All', 'Diamond', 'Gold', 'Chrome', 'Copper'];
@@ -16,6 +17,7 @@ export default function Exhibitors() {
   const [tier, setTier] = useState('All');
   const [section, setSection] = useState('All');
   const [expanded, setExpanded] = useState(null);
+  const { settings } = useAppSettings();
 
   const { data: exhibitors = [], isLoading } = useQuery({
     queryKey: ['exhibitors'],
@@ -125,16 +127,13 @@ export default function Exhibitors() {
 
             {/* Actions */}
             <div className="border-t border-border px-4 py-2.5 flex gap-2 items-center justify-between">
-              <button
-                onClick={() => {
-                  const opening = expanded !== ex.id;
-                  setExpanded(opening ? ex.id : null);
-                  if (opening) track(ex.id, ex.name, 'profile_view', 'directory');
-                }}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              <Link
+                to={`/exhibitors/${ex.id}`}
+                onClick={() => track(ex.id, ex.name, 'profile_view', 'directory')}
+                className="text-xs text-amber font-medium hover:underline flex items-center gap-0.5"
               >
-                {expanded === ex.id ? 'Less info ↑' : 'More info ↓'}
-              </button>
+                {settings.virtualExhibitionOpen ? 'Virtual Booth' : 'View Profile'} <ChevronRight className="w-3 h-3" />
+              </Link>
               <div className="flex gap-2">
                 {ex.website && (
                   <a href={ex.website} target="_blank" rel="noreferrer" className="text-xs border border-border px-3 py-1.5 rounded-lg font-medium hover:bg-muted transition-colors flex items-center gap-1">

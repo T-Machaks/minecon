@@ -1,33 +1,40 @@
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import {
   LayoutDashboard, BarChart2, MessageSquare, Shield,
-  LogOut, Users, Menu, X, ChevronLeft, UserCog, ScanLine,
+  LogOut, Users, Menu, X, ChevronLeft, UserCog, ScanLine, Megaphone,
 } from 'lucide-react';
 import { useState } from 'react';
 import MineConLogo from './MineConLogo.jsx';
+import { useAuth } from '@/lib/AuthContext';
 
 const consoleNav = [
-  { path: '/console',                 label: 'Dashboard',       icon: LayoutDashboard, exact: true },
-  { path: '/console/registrations',   label: 'Registrations',   icon: Users },
-  { path: '/console/check-in',        label: 'Gate Check-In',   icon: ScanLine },
-  { path: '/console/analytics',       label: 'Analytics',       icon: BarChart2 },
-  { path: '/console/communications',  label: 'Communications',  icon: MessageSquare },
-  { path: '/console/users',           label: 'Users & Roles',   icon: UserCog },
-  { path: '/console/admin',           label: 'Admin & Security',icon: Shield },
+  { path: '/console',                label: 'Dashboard',        icon: LayoutDashboard, exact: true, roles: ['organizer', 'marketing_partner'] },
+  { path: '/console/registrations',  label: 'Registrations',    icon: Users,                        roles: ['organizer'] },
+  { path: '/console/check-in',       label: 'Gate Check-In',    icon: ScanLine,                     roles: ['organizer'] },
+  { path: '/console/analytics',      label: 'Analytics',        icon: BarChart2,                    roles: ['organizer', 'marketing_partner'] },
+  { path: '/console/communications', label: 'Communications',   icon: MessageSquare,                roles: ['organizer'] },
+  { path: '/console/marketing',      label: 'Marketing Hub',    icon: Megaphone,                    roles: ['organizer', 'marketing_partner'] },
+  { path: '/console/users',          label: 'Users & Roles',    icon: UserCog,                      roles: ['organizer'] },
+  { path: '/console/admin',          label: 'Admin & Security', icon: Shield,                       roles: ['organizer'] },
 ];
 
 export default function ConsoleShell() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const isHome = location.pathname === '/console';
 
   const isActive = (path, exact) =>
     exact ? location.pathname === path : location.pathname.startsWith(path);
 
+  const visibleNav = consoleNav.filter(item =>
+    !item.roles || item.roles.includes(user?.role)
+  );
+
   const NavLinks = () => (
     <>
-      {consoleNav.map(({ path, label, icon: Icon, exact }) => (
+      {visibleNav.map(({ path, label, icon: Icon, exact }) => (
         <Link
           key={path}
           to={path}
@@ -54,7 +61,7 @@ export default function ConsoleShell() {
             <MineConLogo />
           </Link>
           <p className="text-[10px] text-amber font-bold uppercase tracking-widest mt-2">
-            Management Console
+            {user?.role === 'marketing_partner' ? 'Marketing Console' : 'Management Console'}
           </p>
         </div>
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">

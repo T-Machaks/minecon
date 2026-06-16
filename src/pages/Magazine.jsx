@@ -1,6 +1,6 @@
 import HTMLFlipBook from 'react-pageflip';
 import { forwardRef, useRef, useState, useEffect, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, ExternalLink, Play, BookOpen } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLink, Play, BookOpen, ArrowLeft, FileText } from 'lucide-react';
 
 // ── Page wrapper required by react-pageflip ──────────────────────────────────
 const MagazinePage = forwardRef(function MagazinePage({ children }, ref) {
@@ -654,24 +654,15 @@ function BackCoverPage() {
   );
 }
 
-// ── Main Component ────────────────────────────────────────────────────────────
-export default function Magazine() {
+// ── MineCon Guide flip-book viewer ───────────────────────────────────────────
+function GuideViewer({ onBack, isMobile }) {
   const bookRef = useRef(null);
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
-  const [bookKey, setBookKey] = useState('dk');
+  const [bookKey, setBookKey] = useState(isMobile ? 'mb' : 'dk');
   const [currentPage, setCurrentPage] = useState(0);
 
   useEffect(() => {
-    const handler = () => {
-      const m = window.innerWidth < 768;
-      setIsMobile(prev => {
-        if (prev !== m) setBookKey(m ? 'mb' : 'dk');
-        return m;
-      });
-    };
-    window.addEventListener('resize', handler);
-    return () => window.removeEventListener('resize', handler);
-  }, []);
+    setBookKey(isMobile ? 'mb' : 'dk');
+  }, [isMobile]);
 
   const onFlip = useCallback(e => setCurrentPage(e.data), []);
   const flipPrev = () => bookRef.current?.pageFlip().flipPrev();
@@ -680,17 +671,18 @@ export default function Magazine() {
   const TOTAL = 14;
   const spreadLabel = isMobile
     ? `Page ${currentPage + 1} of ${TOTAL}`
-    : currentPage === 0
-    ? 'Cover'
-    : currentPage >= TOTAL - 1
-    ? 'Back Cover'
+    : currentPage === 0 ? 'Cover'
+    : currentPage >= TOTAL - 1 ? 'Back Cover'
     : `Pages ${currentPage}–${currentPage + 1} of ${TOTAL}`;
 
   return (
     <div className="pb-24 pt-2">
-      <div className="px-4 mb-3">
-        <h1 className="font-heading text-xl font-black uppercase tracking-wide">Digital Magazine</h1>
-        <p className="text-sm text-muted-foreground">MineCon 2026 Official Exhibition Guide</p>
+      <div className="px-4 mb-3 flex items-center gap-3">
+        <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Publications
+        </button>
+        <span className="text-muted-foreground">/</span>
+        <span className="text-sm font-semibold">MineCon 2026 Exhibition Guide</span>
       </div>
 
       <div className="w-full" style={{ touchAction: 'pan-y' }}>
@@ -698,12 +690,12 @@ export default function Magazine() {
           key={bookKey}
           ref={bookRef}
           width={420}
-          height={594}
+          height={544}
           size="stretch"
           minWidth={200}
           maxWidth={500}
-          minHeight={280}
-          maxHeight={720}
+          minHeight={259}
+          maxHeight={660}
           maxShadowOpacity={0.5}
           showCover
           mobileScrollSupport
@@ -734,27 +726,239 @@ export default function Magazine() {
       </div>
 
       <div className="flex items-center justify-center gap-4 mt-4 px-4">
-        <button
-          onClick={flipPrev}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border bg-card hover:bg-muted transition-colors font-medium text-sm"
-        >
+        <button onClick={flipPrev} className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border bg-card hover:bg-muted transition-colors font-medium text-sm">
           <ChevronLeft className="w-4 h-4" /> Prev
         </button>
         <span className="text-sm text-muted-foreground font-medium">{spreadLabel}</span>
-        <button
-          onClick={flipNext}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border bg-card hover:bg-muted transition-colors font-medium text-sm"
-        >
+        <button onClick={flipNext} className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border bg-card hover:bg-muted transition-colors font-medium text-sm">
           Next <ChevronRight className="w-4 h-4" />
         </button>
       </div>
 
       <p className="text-xs text-muted-foreground text-center mt-3 px-4">
         <BookOpen className="inline w-3.5 h-3.5 mr-1" />
-        {isMobile
-          ? 'Swipe left/right or use arrows to turn pages'
-          : 'Click page corners or drag to flip · Double-page spread on desktop'}
+        {isMobile ? 'Swipe left/right or use arrows to turn pages' : 'Click page corners or drag to flip · Double-page spread on desktop'}
       </p>
     </div>
   );
+}
+
+// ── ADMA 2026 flip book (pre-rendered page images) ───────────────────────────
+function ADMAFlipBook({ onBack, isMobile }) {
+  const bookRef = useRef(null);
+  const [bookKey, setBookKey] = useState(isMobile ? 'mb' : 'dk');
+  const [currentPage, setCurrentPage] = useState(0);
+
+  useEffect(() => {
+    setBookKey(isMobile ? 'mb' : 'dk');
+  }, [isMobile]);
+
+  const TOTAL = 44;
+  const onFlip = useCallback(e => setCurrentPage(e.data), []);
+  const flipPrev = () => bookRef.current?.pageFlip().flipPrev();
+  const flipNext = () => bookRef.current?.pageFlip().flipNext();
+
+  const spreadLabel = isMobile
+    ? `Page ${currentPage + 1} of ${TOTAL}`
+    : currentPage === 0 ? 'Cover'
+    : currentPage >= TOTAL - 1 ? 'Back Cover'
+    : `Pages ${currentPage}–${currentPage + 1} of ${TOTAL}`;
+
+  return (
+    <div className="pb-24 pt-2">
+      <div className="px-4 mb-3 flex items-center gap-3">
+        <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Publications
+        </button>
+        <span className="text-muted-foreground">/</span>
+        <span className="text-sm font-semibold">ADMA 2026 Agricultural Show Magazine</span>
+        <a
+          href="/magazines/adma-2026.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0"
+        >
+          <ExternalLink className="w-3.5 h-3.5" /> PDF
+        </a>
+      </div>
+
+      <div className="w-full" style={{ touchAction: 'pan-y' }}>
+        <HTMLFlipBook
+          key={bookKey}
+          ref={bookRef}
+          width={420}
+          height={544}
+          size="stretch"
+          minWidth={200}
+          maxWidth={500}
+          minHeight={259}
+          maxHeight={660}
+          maxShadowOpacity={0.5}
+          showCover
+          mobileScrollSupport
+          usePortrait={isMobile}
+          onFlip={onFlip}
+          flippingTime={650}
+          drawShadow
+          showPageCorners
+          disableFlipByClick={false}
+          swipeDistance={30}
+          style={{ margin: '0 auto', display: 'block' }}
+        >
+          {Array.from({ length: TOTAL }, (_, i) => {
+            const n = String(i + 1).padStart(3, '0');
+            return (
+              <MagazinePage key={`adma-p${n}`}>
+                <img
+                  src={`/magazines/adma-pages/page-${n}.jpg`}
+                  alt={`Page ${i + 1}`}
+                  className="absolute inset-0 w-full h-full select-none"
+                  style={{ objectFit: 'fill' }}
+                  loading={i < 6 ? 'eager' : 'lazy'}
+                  draggable={false}
+                />
+              </MagazinePage>
+            );
+          })}
+        </HTMLFlipBook>
+      </div>
+
+      <div className="flex items-center justify-center gap-4 mt-4 px-4">
+        <button onClick={flipPrev} className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border bg-card hover:bg-muted transition-colors font-medium text-sm">
+          <ChevronLeft className="w-4 h-4" /> Prev
+        </button>
+        <span className="text-sm text-muted-foreground font-medium">{spreadLabel}</span>
+        <button onClick={flipNext} className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border bg-card hover:bg-muted transition-colors font-medium text-sm">
+          Next <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+
+      <p className="text-xs text-muted-foreground text-center mt-3 px-4">
+        <BookOpen className="inline w-3.5 h-3.5 mr-1" />
+        {isMobile ? 'Swipe left/right or use arrows to turn pages' : 'Click page corners or drag to flip · Double-page spread on desktop'}
+      </p>
+    </div>
+  );
+}
+
+// ── Magazine library (home screen) ───────────────────────────────────────────
+function MagazineLibrary({ onSelect }) {
+  const publications = [
+    {
+      id: 'guide',
+      title: 'MineCon 2026',
+      subtitle: 'Official Exhibition Guide',
+      tag: 'Interactive Flip Book · 14 pages',
+      type: 'flipbook',
+      cover: (
+        <div className="absolute inset-0 flex flex-col" style={{ background: 'linear-gradient(160deg,#080f1e 0%,#1e293b 60%,#080f1e 100%)' }}>
+          <div className="px-3 py-1 shrink-0" style={{ background: '#f59e0b' }}>
+            <span className="text-slate-900 font-black uppercase tracking-widest" style={{ fontSize: 8 }}>Official Exhibition Guide</span>
+          </div>
+          <div className="flex-1 flex flex-col items-center justify-between px-4 py-3 relative overflow-hidden">
+            <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle,#f59e0b 1.5px,transparent 1.5px)', backgroundSize: '16px 16px' }} />
+            <div className="w-8 h-8 rounded-full flex items-center justify-center border border-amber-500" style={{ background: 'rgba(245,158,11,0.1)' }}>
+              <span className="text-amber-400 font-black" style={{ fontSize: 10 }}>MC</span>
+            </div>
+            <div className="text-center">
+              <div className="font-black leading-none" style={{ fontFamily: 'Barlow Condensed,sans-serif', fontSize: 36, color: '#fff', lineHeight: 1 }}>
+                MINE<span style={{ color: '#f59e0b' }}>CON</span>
+              </div>
+              <div className="font-black text-slate-400" style={{ fontFamily: 'Barlow Condensed,sans-serif', fontSize: 18 }}>2026</div>
+            </div>
+            <div className="w-full rounded py-1.5 flex justify-center" style={{ background: 'rgba(245,158,11,0.12)' }}>
+              <span className="text-amber-400 font-bold" style={{ fontSize: 8 }}>Mining · Construction · Innovation</span>
+            </div>
+          </div>
+          <div className="px-3 py-1.5 shrink-0" style={{ background: '#080f1e' }}>
+            <span className="text-amber-400 font-bold" style={{ fontSize: 8 }}>October 2026 · Harare, Zimbabwe</span>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: 'adma',
+      title: 'ADMA 2026',
+      subtitle: 'Agricultural Show Magazine',
+      tag: 'Interactive Flip Book · 44 pages',
+      type: 'flipbook',
+      cover: (
+        <div className="absolute inset-0 flex flex-col" style={{ background: 'linear-gradient(160deg,#052e16 0%,#166534 55%,#052e16 100%)' }}>
+          <div className="px-3 py-1 shrink-0" style={{ background: '#eab308' }}>
+            <span className="text-slate-900 font-black uppercase tracking-widest" style={{ fontSize: 8 }}>Agricultural Show Magazine</span>
+          </div>
+          <div className="flex-1 flex flex-col items-center justify-between px-4 py-3 relative overflow-hidden">
+            <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(circle,#86efac 1.5px,transparent 1.5px)', backgroundSize: '16px 16px' }} />
+            <div className="w-8 h-8 rounded flex items-center justify-center" style={{ background: '#eab308' }}>
+              <span className="text-slate-900 font-black" style={{ fontSize: 14 }}>🌾</span>
+            </div>
+            <div className="text-center">
+              <div className="font-black leading-none text-white" style={{ fontFamily: 'Barlow Condensed,sans-serif', fontSize: 40, lineHeight: 1 }}>ADMA</div>
+              <div className="font-black text-yellow-300" style={{ fontFamily: 'Barlow Condensed,sans-serif', fontSize: 18 }}>2026</div>
+              <div className="text-green-300 mt-1" style={{ fontSize: 8 }}>Agricultural Development &</div>
+              <div className="text-green-300" style={{ fontSize: 8 }}>Marketing Association</div>
+            </div>
+            <div className="w-full rounded py-1.5 flex justify-center" style={{ background: 'rgba(234,179,8,0.15)' }}>
+              <span className="text-yellow-300 font-bold" style={{ fontSize: 8 }}>Farming · Agri-Business · Livestock</span>
+            </div>
+          </div>
+          <div className="px-3 py-1.5 shrink-0" style={{ background: '#052e16' }}>
+            <span className="text-yellow-400 font-bold" style={{ fontSize: 8 }}>2026 Edition · Zimbabwe</span>
+          </div>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="pb-24 pt-2 px-4">
+      <div className="mb-5">
+        <h1 className="font-heading text-xl font-black uppercase tracking-wide">Publications</h1>
+        <p className="text-sm text-muted-foreground">Magazines, guides and resources for MineCon 2026</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3">
+        {publications.map(pub => (
+          <button
+            key={pub.id}
+            onClick={() => onSelect(pub.id)}
+            className="group text-left rounded-2xl overflow-hidden border border-border bg-card shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 active:translate-y-0"
+          >
+            {/* Cover thumbnail */}
+            <div className="relative w-full" style={{ aspectRatio: '210/297' }}>
+              {pub.cover}
+            </div>
+
+            {/* Info footer */}
+            <div className="p-3">
+              <div className="font-heading font-black text-base leading-tight">{pub.title}</div>
+              <div className="text-sm text-foreground/80 font-medium leading-tight">{pub.subtitle}</div>
+              <div className="flex items-center gap-1.5 mt-2">
+                {pub.type === 'flipbook'
+                  ? <BookOpen className="w-3 h-3 text-amber-500 shrink-0" />
+                  : <FileText className="w-3 h-3 text-green-600 shrink-0" />}
+                <span className="text-xs text-muted-foreground">{pub.tag}</span>
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Root component ────────────────────────────────────────────────────────────
+export default function Magazine() {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  const [view, setView] = useState(null); // null | 'guide' | 'adma'
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+
+  if (view === 'guide') return <GuideViewer  onBack={() => setView(null)} isMobile={isMobile} />;
+  if (view === 'adma')  return <ADMAFlipBook onBack={() => setView(null)} isMobile={isMobile} />;
+  return <MagazineLibrary onSelect={setView} />;
 }

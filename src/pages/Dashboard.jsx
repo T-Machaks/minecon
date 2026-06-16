@@ -1,12 +1,23 @@
-import { useQuery } from '@tanstack/react-query';
-import { Exhibitor, MeetingRequest, Announcement } from '@/api/entities';
-import { Users, Calendar, QrCode, BarChart2, TrendingUp, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Exhibitor, MeetingRequest, Announcement, VirtualEnquiry } from '@/api/entities';
+import { Users, Calendar, QrCode, BarChart2, TrendingUp, CheckCircle, Clock, XCircle, Globe, ToggleLeft, ToggleRight, MessageSquare } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { useAppSettings } from '@/lib/AppSettingsContext';
+import { useState } from 'react';
 
 export default function Dashboard() {
   const { data: exhibitors = [] } = useQuery({ queryKey: ['exhibitors'], queryFn: () => Exhibitor.list() });
   const { data: meetings = [] } = useQuery({ queryKey: ['meetings'], queryFn: () => MeetingRequest.list() });
   const { data: announcements = [] } = useQuery({ queryKey: ['announcements'], queryFn: () => Announcement.list() });
+  const { data: enquiries = [] } = useQuery({ queryKey: ['virtual-enquiries'], queryFn: () => VirtualEnquiry.list('-created_date') });
+  const { settings, updateSettings } = useAppSettings();
+  const [toggling, setToggling] = useState(false);
+
+  async function handleVirtualToggle() {
+    setToggling(true);
+    await updateSettings({ virtualExhibitionOpen: !settings.virtualExhibitionOpen });
+    setToggling(false);
+  }
 
   const tierCounts = ['Diamond', 'Gold', 'Chrome', 'Copper'].map(t => ({
     name: t,
@@ -25,8 +36,8 @@ export default function Dashboard() {
   const statCards = [
     { label: 'Total Exhibitors', value: exhibitors.length || 0, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
     { label: 'Meeting Requests', value: meetings.length || 0, icon: Calendar, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20' },
+    { label: 'Info Enquiries', value: enquiries.length || 0, icon: MessageSquare, color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/20' },
     { label: 'Announcements', value: announcements.length || 0, icon: BarChart2, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
-    { label: 'QR Scans (Demo)', value: 284, icon: QrCode, color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' },
   ];
 
   return (
@@ -37,6 +48,36 @@ export default function Dashboard() {
           <p className="text-muted-foreground text-sm mt-0.5">MineCon 2026 — Organiser Overview</p>
         </div>
         <div className="bg-amber/10 border border-amber/30 text-amber text-xs font-bold px-2.5 py-1.5 rounded-lg">DEMO</div>
+      </div>
+
+      {/* Virtual Exhibition control */}
+      <div className={`rounded-xl border p-4 mb-5 flex items-center justify-between gap-4 ${settings.virtualExhibitionOpen ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700' : 'bg-card border-border'}`}>
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${settings.virtualExhibitionOpen ? 'bg-emerald-100 dark:bg-emerald-900/40' : 'bg-muted'}`}>
+            <Globe className={`w-5 h-5 ${settings.virtualExhibitionOpen ? 'text-emerald-600' : 'text-muted-foreground'}`} />
+          </div>
+          <div>
+            <p className="font-semibold text-sm leading-tight">Virtual Exhibition</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {settings.virtualExhibitionOpen
+                ? 'Open — attendees can browse virtual booths and submit enquiries'
+                : 'Closed — virtual features hidden from attendees'}
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={handleVirtualToggle}
+          disabled={toggling}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex-shrink-0 ${
+            settings.virtualExhibitionOpen
+              ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+              : 'bg-steel hover:bg-steel/90 text-white'
+          } disabled:opacity-60`}
+        >
+          {settings.virtualExhibitionOpen
+            ? <><ToggleRight className="w-4 h-4" /> Open</>
+            : <><ToggleLeft className="w-4 h-4" /> Closed</>}
+        </button>
       </div>
 
       {/* Stat cards */}

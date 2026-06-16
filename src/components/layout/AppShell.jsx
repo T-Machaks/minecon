@@ -2,10 +2,11 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Home, Users, Map, Calendar, Info, Bell,
   LayoutDashboard, QrCode, Menu, X, Star,
-  BookOpen, UserCheck, Zap, Clock, Shield, ChevronLeft,
+  BookOpen, UserCheck, Zap, Clock, Shield, ChevronLeft, Download,
 } from 'lucide-react';
 import { useState } from 'react';
 import MineConLogo from './MineConLogo.jsx';
+import { usePWAInstall } from '@/lib/PWAInstallContext';
 
 const navGroups = [
   {
@@ -50,6 +51,8 @@ export default function AppShell({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showInstallTip, setShowInstallTip] = useState(false);
+  const { showMenuLink, isIOS, hasBrowserPrompt, promptInstall, markSeen } = usePWAInstall();
 
   const isHome = location.pathname === '/';
   const isActive = (path) =>
@@ -134,6 +137,32 @@ export default function AppShell({ children }) {
                 </Link>
               </div>
             </div>
+
+            {/* Install App */}
+            {showMenuLink && (
+              <div className="border-t border-white/10 pt-3">
+                <button
+                  onClick={async () => {
+                    if (hasBrowserPrompt) {
+                      setMenuOpen(false);
+                      await promptInstall();
+                      markSeen();
+                    } else {
+                      setShowInstallTip(t => !t);
+                    }
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-amber hover:bg-amber/10 transition-all duration-150 active:scale-95"
+                >
+                  <Download className="w-4 h-4" />
+                  {isIOS ? 'Add to Home Screen' : 'Install App'}
+                </button>
+                {showInstallTip && (
+                  <p className="text-xs text-slate-400 px-3 pb-2 leading-relaxed">
+                    In Chrome, click the <span className="text-white font-medium">install icon</span> in the address bar, or open the browser menu and choose <span className="text-white font-medium">"Install MineCon 2026"</span>.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         )}
       </header>

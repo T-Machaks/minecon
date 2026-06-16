@@ -1,19 +1,36 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { AdSlot } from '@/api/entities';
 import { track } from '@/lib/tracking';
 import { ADS } from '@/lib/adBanners';
 
 export default function AdBannerCarousel() {
   const [current, setCurrent] = useState(0);
 
-  useEffect(() => {
-    const t = setInterval(() => setCurrent(c => (c + 1) % ADS.length), 4000);
-    return () => clearInterval(t);
-  }, []);
+  const { data: dynamicSlots = [] } = useQuery({
+    queryKey: ['adslots-active'],
+    queryFn: () => AdSlot.listActive(),
+  });
 
-  const ad = ADS[current];
-  const prev = () => setCurrent(c => (c - 1 + ADS.length) % ADS.length);
-  const next = () => setCurrent(c => (c + 1) % ADS.length);
+  // Use managed slots when configured, fall back to static ADS
+  const slots = dynamicSlots.length > 0 ? dynamicSlots : ADS;
+
+  useEffect(() => {
+    setCurrent(0);
+  }, [slots.length]);
+
+  useEffect(() => {
+    if (slots.length === 0) return;
+    const t = setInterval(() => setCurrent(c => (c + 1) % slots.length), 4000);
+    return () => clearInterval(t);
+  }, [slots.length]);
+
+  if (slots.length === 0) return null;
+
+  const ad = slots[current] ?? slots[0];
+  const prev = () => setCurrent(c => (c - 1 + slots.length) % slots.length);
+  const next = () => setCurrent(c => (c + 1) % slots.length);
 
   const content = (
     <div className={`relative w-full h-24 bg-gradient-to-r ${ad.bg} rounded-xl overflow-hidden cursor-pointer select-none`}>
@@ -40,7 +57,7 @@ export default function AdBannerCarousel() {
         </div>
       </div>
       <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-1">
-        {ADS.map((_, i) => (
+        {slots.map((_, i) => (
           <button key={i} onClick={e => { e.preventDefault(); e.stopPropagation(); setCurrent(i); }}
             className={`w-1.5 h-1.5 rounded-full transition-all ${i === current ? 'bg-white w-3' : 'bg-white/40'}`} />
         ))}

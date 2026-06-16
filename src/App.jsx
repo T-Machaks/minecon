@@ -10,6 +10,9 @@ import AppShell from '@/components/layout/AppShell';
 import ConsoleShell from '@/components/layout/ConsoleShell';
 import ExhibitorShell from '@/components/layout/ExhibitorShell';
 import ConsoleGuard from '@/components/ConsoleGuard';
+import InstallPromptModal from '@/components/InstallPromptModal';
+import { PWAInstallProvider } from '@/lib/PWAInstallContext';
+import { AppSettingsProvider } from '@/lib/AppSettingsContext';
 
 // Attendee pages
 import Home from '@/pages/Home';
@@ -24,6 +27,7 @@ import Register from '@/pages/Register';
 import AttendeeDashboard from '@/pages/AttendeeDashboard';
 import Sponsors from '@/pages/Sponsors';
 import Magazine from '@/pages/Magazine';
+import ExhibitorDetail from '@/pages/ExhibitorDetail';
 import Connect from '@/pages/Connect';
 import Login from '@/pages/Login';
 import ForgotPassword from '@/pages/ForgotPassword';
@@ -36,6 +40,7 @@ import AdminPanel from '@/pages/AdminPanel';
 import Communications from '@/pages/Communications';
 import UsersPanel from '@/pages/console/UsersPanel';
 import CheckIn from '@/pages/CheckIn';
+import MarketingHub from '@/pages/console/MarketingHub';
 
 // Exhibitor portal pages
 import ExhibitorHome from '@/pages/exhibitor/ExhibitorHome';
@@ -86,6 +91,7 @@ const AuthenticatedApp = () => {
           <Route path="/console/registrations"    element={<AdminPanel />} />
           <Route path="/console/users"            element={<UsersPanel />} />
           <Route path="/console/check-in"         element={<CheckIn />} />
+          <Route path="/console/marketing"        element={<MarketingHub />} />
         </Route>
       </Route>
 
@@ -102,6 +108,7 @@ const AuthenticatedApp = () => {
       <Route element={<AttendeeLayout />}>
         <Route path="/"                   element={<Home />} />
         <Route path="/exhibitors"         element={<Exhibitors />} />
+        <Route path="/exhibitors/:id"     element={<ExhibitorDetail />} />
         <Route path="/site-plan"          element={<SitePlan />} />
         <Route path="/meetings"           element={<Meetings />} />
         <Route path="/schedule"           element={<Schedule />} />
@@ -121,15 +128,20 @@ const AuthenticatedApp = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <ScrollToTop />
-          <AuthenticatedApp />
-        </Router>
-        <Toaster />
-      </QueryClientProvider>
-    </AuthProvider>
+    <PWAInstallProvider>
+      <AuthProvider>
+        <AppSettingsProvider>
+          <QueryClientProvider client={queryClientInstance}>
+            <Router>
+              <ScrollToTop />
+              <AuthenticatedApp />
+            </Router>
+            <Toaster />
+            <InstallPromptModal />
+          </QueryClientProvider>
+        </AppSettingsProvider>
+      </AuthProvider>
+    </PWAInstallProvider>
   );
 }
 

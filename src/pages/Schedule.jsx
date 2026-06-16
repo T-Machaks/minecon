@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Clock, MapPin, Star, Users, Mic } from 'lucide-react';
+import { Clock, MapPin, Star, Users, Mic, Video } from 'lucide-react';
 
 const SCHEDULE = {
   'Day 1': {
@@ -13,7 +13,7 @@ const SCHEDULE = {
       { time: '11:30', title: 'Equipment Live Demonstration — Heavy Machinery', location: 'Outdoor Demo Zone', type: 'demo', duration: '60 min' },
       { time: '13:00', title: 'Networking Lunch Break', location: 'Catering Area', type: 'break', duration: '60 min' },
       { time: '14:00', title: 'Session: Minerals Processing Technology', location: 'Conference Tent', type: 'session', speaker: 'Technical Expert', duration: '45 min' },
-      { time: '15:00', title: 'Sponsored Session: Digital Tools for Mine Management', location: 'Conference Tent', type: 'sponsored', speaker: 'Sponsor Presenter', duration: '30 min' },
+      { time: '15:00', title: 'Sponsored Session: Digital Tools for Mine Management', location: 'Conference Tent', type: 'sponsored', speaker: 'Sponsor Presenter', duration: '30 min', virtual: true, webinar_url: '#' },
       { time: '16:30', title: 'Day 1 Networking Sundowner', location: 'Exhibitor Lounge', type: 'networking', duration: '90 min' },
       { time: '18:00', title: 'Exhibition Closes — Day 1', location: 'All Zones', type: 'logistics', duration: '' },
     ],
@@ -26,7 +26,7 @@ const SCHEDULE = {
       { time: '08:00', title: 'Exhibition Opens — Construction Hall', location: 'Construction Section', type: 'exhibition', duration: 'All Day' },
       { time: '09:30', title: 'Keynote: Infrastructure Investment in Zimbabwe', location: 'Main Stage', type: 'keynote', speaker: 'Government & Industry Leaders', duration: '45 min' },
       { time: '11:00', title: 'Live Demo: Concrete & Structural Solutions', location: 'Outdoor Demo Zone', type: 'demo', duration: '60 min' },
-      { time: '12:00', title: 'Roundtable: Procurement Trends in Construction', location: 'Conference Tent', type: 'panel', speaker: 'Procurement Experts', duration: '60 min' },
+      { time: '12:00', title: 'Roundtable: Procurement Trends in Construction', location: 'Conference Tent', type: 'panel', speaker: 'Procurement Experts', duration: '60 min', virtual: true, webinar_url: '#' },
       { time: '13:00', title: 'Lunch Break', location: 'Catering Area', type: 'break', duration: '60 min' },
       { time: '14:00', title: 'Session: Health & Safety in Construction Environments', location: 'Conference Tent', type: 'session', speaker: 'Safety Officer', duration: '45 min' },
       { time: '15:30', title: 'Exhibitor Speed Networking', location: 'Main Atrium', type: 'networking', duration: '60 min' },
@@ -41,7 +41,7 @@ const SCHEDULE = {
       { time: '08:00', title: 'Exhibition Opens', location: 'All Sections', type: 'exhibition', duration: 'All Day' },
       { time: '09:00', title: 'Session: Supply Chain Challenges in Sub-Saharan Africa', location: 'Conference Tent', type: 'session', speaker: 'Logistics Expert', duration: '45 min' },
       { time: '10:30', title: 'Live Demo: Drill & Blast Equipment', location: 'Outdoor Demo Zone', type: 'demo', duration: '60 min' },
-      { time: '12:00', title: 'Closing Keynote & Industry Awards Recognition', location: 'Main Stage', type: 'keynote', speaker: 'MineCon Organising Committee', duration: '60 min' },
+      { time: '12:00', title: 'Closing Keynote & Industry Awards Recognition', location: 'Main Stage', type: 'keynote', speaker: 'MineCon Organising Committee', duration: '60 min', virtual: true, webinar_url: '#' },
       { time: '13:00', title: 'Lunch & Final Networking', location: 'Catering Area', type: 'break', duration: '90 min' },
       { time: '15:00', title: 'Exhibition Closes — MineCon 2026', location: 'All Zones', type: 'logistics', duration: '' },
     ],
@@ -123,6 +123,16 @@ export default function Schedule() {
                   <MapPin className="w-3 h-3 text-muted-foreground flex-shrink-0" />
                   <p className="text-xs text-muted-foreground">{s.location}</p>
                 </div>
+                {s.virtual && s.webinar_url && (
+                  <a
+                    href={s.webinar_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 mt-2 ml-5 text-[11px] font-semibold text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 px-2.5 py-1 rounded-full hover:bg-violet-100 dark:hover:bg-violet-900/40 transition-colors"
+                  >
+                    <Video className="w-3 h-3" /> Join Online
+                  </a>
+                )}
               </div>
               {cfg.label && <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${cfg.dot} text-white flex-shrink-0`}>{cfg.label}</span>}
             </div>
