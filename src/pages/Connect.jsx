@@ -32,7 +32,7 @@ const MODULES = [
     section: 'Communications & Content',
     items: [
       { label: 'Communications Hub', desc: 'Countdown, announcements, venue notices, and campaign messaging', path: '/communications', icon: MessageSquare, color: 'bg-orange-500' },
-      { label: 'Digital Magazine', desc: '10-page interactive event guide with product spotlights and sponsor ads', path: '/magazine', icon: BookOpen, color: 'bg-indigo-500' },
+      { label: 'Publications', desc: 'Interactive exhibition guide with product spotlights, sponsor ads and videos', path: '/magazine', icon: BookOpen, color: 'bg-indigo-500' },
       { label: 'QR Resources', desc: 'How to use QR codes to access brochures, videos, and contacts', path: '/qr-resources', icon: Zap, color: 'bg-lime-600' },
     ],
   },
