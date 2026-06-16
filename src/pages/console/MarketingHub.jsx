@@ -6,8 +6,9 @@ import {
 import {
   Megaphone, Sparkles, BarChart2, TrendingUp, MousePointerClick,
   Plus, Trash2, Eye, EyeOff, Download, Calendar, Users,
-  ChevronDown, ChevronUp, Layers, BookOpen,
+  ChevronDown, ChevronUp, Layers, BookOpen, Monitor,
 } from 'lucide-react';
+import AdBannerCarousel from '@/components/home/AdBannerCarousel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -213,6 +214,16 @@ export default function MarketingHub() {
           </Button>
         }
       >
+        {/* Live preview */}
+        <div className="border-b border-border bg-muted/30 px-5 py-4">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-1.5">
+            <Monitor className="w-3 h-3" /> Live Attendee Preview
+          </p>
+          <div className="-mx-1">
+            <AdBannerCarousel />
+          </div>
+        </div>
+
         {adSlots.length === 0 ? (
           <EmptyState icon={<Layers className="w-8 h-8 text-muted-foreground" />} label="No ad slots configured" sub="Add a slot to populate the home screen carousel." />
         ) : (
