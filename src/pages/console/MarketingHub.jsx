@@ -6,7 +6,7 @@ import {
 import {
   Megaphone, Sparkles, BarChart2, TrendingUp, MousePointerClick,
   Plus, Trash2, Eye, EyeOff, Download, Calendar, Users,
-  ChevronDown, ChevronUp, Layers,
+  ChevronDown, ChevronUp, Layers, BookOpen,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -274,6 +274,76 @@ export default function MarketingHub() {
             </table>
           </div>
         )}
+      </Section>
+
+      {/* ── Exhibition Guide Ads ── */}
+      <Section
+        id="guide-ads"
+        title="Exhibition Guide Ads"
+        icon={<BookOpen className="w-4 h-4 text-amber" />}
+        expanded={expandedSection === 'guide-ads'}
+        onToggle={() => toggle('guide-ads')}
+      >
+        <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+          {/* SANY Interactive Carousel */}
+          <div className="rounded-xl border border-border overflow-hidden bg-card">
+            <div className="relative h-36 overflow-hidden" style={{ background: '#0a0a0a' }}>
+              <img src="/magazines/sany/excavator.jpg" alt="SANY" className="absolute inset-0 w-full h-full object-cover opacity-80" />
+              <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.82) 100%)' }} />
+              <div className="absolute top-2 left-2">
+                <span className="text-[10px] font-bold text-white px-2 py-0.5 rounded" style={{ background: '#C8102E' }}>SANY</span>
+              </div>
+              <div className="absolute bottom-2 left-3 right-3">
+                <p className="text-white font-black text-sm leading-tight" style={{ fontFamily: 'Barlow Condensed,sans-serif' }}>Quality Changes the World</p>
+              </div>
+            </div>
+            <div className="p-3">
+              <div className="flex items-start justify-between gap-2 mb-1">
+                <p className="font-semibold text-sm">SANY Group</p>
+                <span className="text-[10px] font-bold bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400 px-2 py-0.5 rounded-full flex-shrink-0">Interactive Carousel</span>
+              </div>
+              <p className="text-xs text-muted-foreground">5-product auto-rotating carousel · Exhibition Guide p.4</p>
+              <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+                {['Excavators', 'Pump Trucks', 'Electric', 'Service', '+1'].map(t => (
+                  <span key={t} className="text-[10px] bg-muted px-1.5 py-0.5 rounded">{t}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Jetmaster Video Ad */}
+          <div className="rounded-xl border border-border overflow-hidden bg-card">
+            <div className="relative h-36 overflow-hidden">
+              <img src="/magazines/ads/ad-jetmaster.jpg" alt="Jetmaster" className="absolute inset-0 w-full h-full object-cover" />
+              <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 45%, rgba(0,0,0,0.75) 100%)' }} />
+              <div className="absolute top-2 right-2">
+                <span className="flex items-center gap-1 text-[10px] font-bold text-white px-2 py-0.5 rounded" style={{ background: '#cc0000' }}>
+                  <svg width="10" height="7" viewBox="0 0 24 17" fill="white">
+                    <path d="M23.5 2.7a3 3 0 0 0-2.1-2.1C19.5 0 12 0 12 0S4.5 0 2.6.6A3 3 0 0 0 .5 2.7C0 4.6 0 8.5 0 8.5s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1C4.5 17 12 17 12 17s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8z"/>
+                    <polygon fill="#cc0000" points="9.5,12.5 9.5,4.5 15.8,8.5"/>
+                    <polygon fill="white" points="9.5,12.5 9.5,4.5 15.8,8.5"/>
+                  </svg>
+                  YouTube
+                </span>
+              </div>
+              <div className="absolute bottom-2 left-3">
+                <p className="text-white font-black text-sm leading-tight" style={{ fontFamily: 'Barlow Condensed,sans-serif' }}>Fireplaces &amp; Braais</p>
+              </div>
+            </div>
+            <div className="p-3">
+              <div className="flex items-start justify-between gap-2 mb-1">
+                <p className="font-semibold text-sm">Jetmaster</p>
+                <span className="text-[10px] font-bold bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400 px-2 py-0.5 rounded-full flex-shrink-0">Video Embed</span>
+              </div>
+              <p className="text-xs text-muted-foreground">Ad image + YouTube product video · Exhibition Guide p.7</p>
+              <div className="mt-2">
+                <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded font-mono">youtu.be/onaJrcaNsC4</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </Section>
 
       {/* ── Sponsored Announcements ── */}
