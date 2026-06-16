@@ -18,10 +18,15 @@ const consoleNav = [
   { path: '/console/admin',          label: 'Admin & Security', icon: Shield,                       roles: ['organizer'] },
 ];
 
+const ROLE_LABELS = {
+  organizer:         'Organizer',
+  marketing_partner: 'Marketing Partner',
+};
+
 export default function ConsoleShell() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const isHome = location.pathname === '/console';
 
@@ -30,6 +35,43 @@ export default function ConsoleShell() {
 
   const visibleNav = consoleNav.filter(item =>
     !item.roles || item.roles.includes(user?.role)
+  );
+
+  const handleLogout = () => {
+    setMobileOpen(false);
+    logout();
+    navigate('/login', { replace: true });
+  };
+
+  const UserBlock = () => (
+    <div className="p-3 border-t border-white/10">
+      {/* User info */}
+      <div className="flex items-center gap-2.5 px-2 py-2 mb-1">
+        <div className="w-8 h-8 rounded-full bg-amber flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+          {user?.full_name?.[0]?.toUpperCase() || '?'}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-white text-xs font-semibold truncate">{user?.full_name || 'Console User'}</p>
+          <p className="text-slate-400 text-[10px] truncate">{ROLE_LABELS[user?.role] || user?.role}</p>
+        </div>
+      </div>
+      {/* Actions */}
+      <Link
+        to="/exhibitor"
+        onClick={() => setMobileOpen(false)}
+        className="flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white text-sm rounded-lg hover:bg-white/10 transition-all"
+      >
+        <Users className="w-4 h-4 flex-shrink-0" />
+        Exhibitor Portal
+      </Link>
+      <button
+        onClick={handleLogout}
+        className="w-full flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-red-400 text-sm rounded-lg hover:bg-white/10 transition-all"
+      >
+        <LogOut className="w-4 h-4 flex-shrink-0" />
+        Log out
+      </button>
+    </div>
   );
 
   const NavLinks = () => (
@@ -67,22 +109,7 @@ export default function ConsoleShell() {
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
           <NavLinks />
         </nav>
-        <div className="p-3 border-t border-white/10 space-y-0.5">
-          <Link
-            to="/exhibitor"
-            className="flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white text-sm rounded-lg hover:bg-white/10 transition-all"
-          >
-            <Users className="w-4 h-4" />
-            Exhibitor Portal
-          </Link>
-          <Link
-            to="/"
-            className="flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white text-sm rounded-lg hover:bg-white/10 transition-all"
-          >
-            <LogOut className="w-4 h-4" />
-            Attendee App
-          </Link>
-        </div>
+        <UserBlock />
       </aside>
 
       {/* Mobile sidebar overlay */}
@@ -101,13 +128,7 @@ export default function ConsoleShell() {
             <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
               <NavLinks />
             </nav>
-            <div className="p-3 border-t border-white/10">
-              <Link to="/" onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white text-sm rounded-lg hover:bg-white/10 transition-all">
-                <LogOut className="w-4 h-4" />
-                Attendee App
-              </Link>
-            </div>
+            <UserBlock />
           </div>
           <div className="flex-1 bg-black/50" onClick={() => setMobileOpen(false)} />
         </div>
@@ -133,6 +154,14 @@ export default function ConsoleShell() {
           <MineConLogo />
           <span className="text-amber text-xs font-bold uppercase tracking-widest">Console</span>
           <div className="flex-1" />
+          {/* Logout button in mobile top bar */}
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-white/10 transition-all text-xs"
+            title="Log out"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
           {!isHome && (
             <button onClick={() => setMobileOpen(true)} className="text-white p-1.5 rounded-md hover:bg-white/10 transition-colors">
               <Menu className="w-5 h-5" />

@@ -118,13 +118,13 @@ export default function ExhibitorDetail() {
               </a>
             )}
             {ex.contact_email && (
-              <a href={`mailto:${ex.contact_email}`} className="flex items-center gap-1.5 text-xs border border-border px-3 py-1.5 rounded-lg hover:bg-muted transition-colors">
-                <Mail className="w-3.5 h-3.5" /> {ex.contact_email}
+              <a href={`mailto:${ex.contact_email}`} className="flex items-center gap-1.5 text-xs border border-border px-3 py-1.5 rounded-lg hover:bg-muted active:bg-muted transition-colors min-w-0 max-w-full overflow-hidden">
+                <Mail className="w-3.5 h-3.5 flex-shrink-0" /> <span className="truncate">{ex.contact_email}</span>
               </a>
             )}
             {ex.contact_phone && (
-              <a href={`tel:${ex.contact_phone}`} className="flex items-center gap-1.5 text-xs border border-border px-3 py-1.5 rounded-lg hover:bg-muted transition-colors">
-                <Phone className="w-3.5 h-3.5" /> {ex.contact_phone}
+              <a href={`tel:${ex.contact_phone}`} className="flex items-center gap-1.5 text-xs border border-border px-3 py-1.5 rounded-lg hover:bg-muted active:bg-muted transition-colors">
+                <Phone className="w-3.5 h-3.5 flex-shrink-0" /> {ex.contact_phone}
               </a>
             )}
           </div>
@@ -135,7 +135,7 @@ export default function ExhibitorDetail() {
               to="/meetings"
               state={{ exhibitor: ex }}
               onClick={() => track(ex.id, ex.name, 'meeting_click', 'exhibitor_detail')}
-              className="flex-1 flex items-center justify-center gap-2 bg-amber text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:opacity-90 transition-opacity"
+              className="flex-1 flex items-center justify-center gap-2 bg-amber text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:opacity-90 active:scale-95 transition-all"
             >
               <Calendar className="w-4 h-4" /> Book Meeting
             </Link>
@@ -145,7 +145,7 @@ export default function ExhibitorDetail() {
                 target="_blank"
                 rel="noreferrer"
                 onClick={() => track(ex.id, ex.name, 'webinar_join', 'exhibitor_detail')}
-                className="flex-1 flex items-center justify-center gap-2 bg-violet-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:opacity-90 transition-opacity"
+                className="flex-1 flex items-center justify-center gap-2 bg-violet-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:opacity-90 active:scale-95 transition-all"
               >
                 <Video className="w-4 h-4" /> Join Webinar
               </a>
@@ -231,7 +231,7 @@ export default function ExhibitorDetail() {
               </div>
             ) : (
               <form onSubmit={handleEnquire} className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-xs font-medium text-muted-foreground block mb-1">Name *</label>
                     <input

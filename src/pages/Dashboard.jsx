@@ -1,11 +1,16 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Exhibitor, MeetingRequest, Announcement, VirtualEnquiry } from '@/api/entities';
-import { Users, Calendar, QrCode, BarChart2, TrendingUp, CheckCircle, Clock, XCircle, Globe, ToggleLeft, ToggleRight, MessageSquare } from 'lucide-react';
+import { Users, Calendar, QrCode, BarChart2, TrendingUp, CheckCircle, Clock, XCircle, Globe, ToggleLeft, ToggleRight, MessageSquare, Megaphone, UserCog } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useAppSettings } from '@/lib/AppSettingsContext';
+import { useAuth } from '@/lib/AuthContext';
+import { Link } from 'react-router-dom';
 import { useState } from 'react';
 
 export default function Dashboard() {
+  const { user } = useAuth();
+  const isPartner = user?.role === 'marketing_partner';
+
   const { data: exhibitors = [] } = useQuery({ queryKey: ['exhibitors'], queryFn: () => Exhibitor.list() });
   const { data: meetings = [] } = useQuery({ queryKey: ['meetings'], queryFn: () => MeetingRequest.list() });
   const { data: announcements = [] } = useQuery({ queryKey: ['announcements'], queryFn: () => Announcement.list() });
@@ -44,41 +49,81 @@ export default function Dashboard() {
     <div className="pb-12 px-4 sm:px-6 pt-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="font-heading text-2xl font-bold uppercase tracking-wide">Dashboard</h1>
-          <p className="text-muted-foreground text-sm mt-0.5">MineCon 2026 — Organiser Overview</p>
+          <h1 className="font-heading text-2xl font-bold uppercase tracking-wide">
+            {isPartner ? 'Marketing Dashboard' : 'Dashboard'}
+          </h1>
+          <p className="text-muted-foreground text-sm mt-0.5">
+            Welcome back, <span className="text-foreground font-medium">{user?.full_name || 'Console User'}</span>
+            {' '}— {isPartner ? 'Marketing Partner' : 'Organizer'}
+          </p>
         </div>
         <div className="bg-amber/10 border border-amber/30 text-amber text-xs font-bold px-2.5 py-1.5 rounded-lg">DEMO</div>
       </div>
 
-      {/* Virtual Exhibition control */}
-      <div className={`rounded-xl border p-4 mb-5 flex items-center justify-between gap-4 ${settings.virtualExhibitionOpen ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700' : 'bg-card border-border'}`}>
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${settings.virtualExhibitionOpen ? 'bg-emerald-100 dark:bg-emerald-900/40' : 'bg-muted'}`}>
-            <Globe className={`w-5 h-5 ${settings.virtualExhibitionOpen ? 'text-emerald-600' : 'text-muted-foreground'}`} />
-          </div>
-          <div>
-            <p className="font-semibold text-sm leading-tight">Virtual Exhibition</p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {settings.virtualExhibitionOpen
-                ? 'Open — attendees can browse virtual booths and submit enquiries'
-                : 'Closed — virtual features hidden from attendees'}
-            </p>
-          </div>
+      {/* Marketing Partner quick-access panel */}
+      {isPartner && (
+        <div className="grid grid-cols-2 gap-3 mb-5">
+          <Link to="/console/marketing"
+            className="flex items-center gap-3 p-4 bg-card border border-border rounded-xl hover:border-amber/50 transition-colors">
+            <div className="w-9 h-9 bg-rose-50 dark:bg-rose-900/20 rounded-lg flex items-center justify-center">
+              <Megaphone className="w-5 h-5 text-rose-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold">Marketing Hub</p>
+              <p className="text-xs text-muted-foreground">Ad slots &amp; campaigns</p>
+            </div>
+          </Link>
+          <Link to="/console/analytics"
+            className="flex items-center gap-3 p-4 bg-card border border-border rounded-xl hover:border-amber/50 transition-colors">
+            <div className="w-9 h-9 bg-violet-50 dark:bg-violet-900/20 rounded-lg flex items-center justify-center">
+              <BarChart2 className="w-5 h-5 text-violet-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold">Analytics</p>
+              <p className="text-xs text-muted-foreground">Traffic &amp; engagement</p>
+            </div>
+          </Link>
         </div>
-        <button
-          onClick={handleVirtualToggle}
-          disabled={toggling}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex-shrink-0 ${
-            settings.virtualExhibitionOpen
-              ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-              : 'bg-steel hover:bg-steel/90 text-white'
-          } disabled:opacity-60`}
-        >
+      )}
+
+      {/* Virtual Exhibition control — organizers only */}
+      {!isPartner && (
+      <div className={`rounded-xl border p-4 mb-5 ${settings.virtualExhibitionOpen ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700' : 'bg-card border-border'}`}>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${settings.virtualExhibitionOpen ? 'bg-emerald-100 dark:bg-emerald-900/40' : 'bg-muted'}`}>
+              <Globe className={`w-5 h-5 ${settings.virtualExhibitionOpen ? 'text-emerald-600' : 'text-muted-foreground'}`} />
+            </div>
+            <div className="min-w-0">
+              <p className="font-semibold text-sm leading-tight">Virtual Exhibition</p>
+              <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
+                {settings.virtualExhibitionOpen
+                  ? 'Open — attendees can browse virtual booths and submit enquiries'
+                  : 'Closed — virtual features hidden from attendees'}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleVirtualToggle}
+            disabled={toggling}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex-shrink-0 active:scale-95 ${
+              settings.virtualExhibitionOpen
+                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                : 'bg-steel hover:bg-steel/90 text-white'
+            } disabled:opacity-60`}
+          >
+            {settings.virtualExhibitionOpen
+              ? <><ToggleRight className="w-4 h-4" /> Open</>
+              : <><ToggleLeft className="w-4 h-4" /> Closed</>}
+          </button>
+        </div>
+        <p className="text-xs text-muted-foreground mt-2 sm:hidden">
           {settings.virtualExhibitionOpen
-            ? <><ToggleRight className="w-4 h-4" /> Open</>
-            : <><ToggleLeft className="w-4 h-4" /> Closed</>}
-        </button>
+            ? 'Open — attendees can browse virtual booths and submit enquiries'
+            : 'Closed — virtual features hidden from attendees'}
+        </p>
       </div>
+      )}
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
