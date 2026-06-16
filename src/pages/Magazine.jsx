@@ -193,59 +193,44 @@ function ContentsPage() {
 function SANYCarouselAd() {
   const slides = [
     {
+      img: '/magazines/sany/excavator.jpg',
+      imgPos: 'center center',
       category: 'Excavators',
-      model: 'SY365H',
-      stat: '36,500 kg',
-      statLabel: 'Operating Weight',
-      headline: 'Built for African Ground',
-      specs: [['Engine', '205 kW'], ['Bucket', '1.8 m³'], ['Dig Depth', '7.17 m']],
+      model: 'SY135C',
+      headline: 'Built for Every Job Site',
+      specs: [['Op. Weight', '13,800 kg'], ['Engine', '70.5 kW'], ['Bucket', '0.52 m³']],
       accent: '#C8102E',
-      icon: '⛏️',
-      tag: '#1 Globally',
-    },
-    {
-      category: 'Crawler Cranes',
-      model: 'SCC800A',
-      stat: '80 t',
-      statLabel: 'Max Lift Capacity',
-      headline: 'Lifting Africa\'s Future',
-      specs: [['Main Boom', '72 m'], ['Jib', '36 m'], ['Engine', '261 kW']],
-      accent: '#1d4ed8',
-      icon: '🏗️',
-      tag: 'Mine Ready',
-    },
-    {
-      category: 'Concrete Pump Trucks',
-      model: 'SYG5445THB',
-      stat: '66 m',
-      statLabel: 'Boom Reach',
-      headline: 'The World Pump King',
-      specs: [['Output', '180 m³/h'], ['Pressure', '8.7 MPa'], ['Sections', '6-fold']],
-      accent: '#15803d',
-      icon: '🔩',
       tag: 'World #1',
     },
     {
-      category: 'Motor Graders',
-      model: 'SMG200C-8',
-      stat: '164 kW',
-      statLabel: 'Engine Power',
-      headline: 'Mine Roads. Any Terrain.',
-      specs: [['Blade', '4,267 mm'], ['Weight', '17,200 kg'], ['Drive', 'All-Wheel']],
-      accent: '#b45309',
-      icon: '🛣️',
-      tag: 'AWD',
+      img: '/magazines/sany/concrete-pump.jpg',
+      imgPos: 'center 40%',
+      category: 'Concrete Pump Trucks',
+      model: 'SYG5445THB',
+      headline: 'The World Pump King',
+      specs: [['Boom Reach', '66 m'], ['Output', '180 m³/h'], ['Sections', '6-fold']],
+      accent: '#dc2626',
+      tag: 'World #1',
     },
     {
-      category: 'Rotary Drilling Rigs',
-      model: 'SR285R',
-      stat: '285 kN·m',
-      statLabel: 'Max Torque',
-      headline: 'Drill Deeper, Faster',
-      specs: [['Depth', '104 m'], ['Diameter', '3,000 mm'], ['Engine', '447 kW']],
-      accent: '#6d28d9',
-      icon: '🔩',
-      tag: 'Piling',
+      img: '/magazines/sany/electric-truck.jpg',
+      imgPos: 'center center',
+      category: 'Electric Trucks',
+      model: 'SANY 350kWh',
+      headline: 'Build a Lower-Carbon World',
+      specs: [['Battery', '350 kWh'], ['Range', '300+ km'], ['Payload', '31 t']],
+      accent: '#0ea5e9',
+      tag: 'Zero Emission',
+    },
+    {
+      img: '/magazines/sany/service.png',
+      imgPos: 'center center',
+      category: 'After-Sales Service',
+      model: 'Go with SANY',
+      headline: 'No More Waiting',
+      specs: [['Response', 'Same Day'], ['Parts', 'Rapid Ship'], ['Uptime', '99%+']],
+      accent: '#f59e0b',
+      tag: 'Africa-wide',
     },
   ];
 
@@ -256,7 +241,7 @@ function SANYCarouselAd() {
 
   useEffect(() => {
     if (paused) return;
-    const t = setTimeout(() => setIdx(i => (i + 1) % total), 3800);
+    const t = setTimeout(() => setIdx(i => (i + 1) % total), 4000);
     return () => clearTimeout(t);
   }, [idx, paused]);
 
@@ -271,73 +256,64 @@ function SANYCarouselAd() {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      {/* SANY red top bar */}
+      {/* SANY red header */}
       <div className="flex items-center justify-between px-4 py-1.5 shrink-0" style={{ background: '#C8102E' }}>
-        <span className="text-white font-black tracking-[0.15em]" style={{ fontSize: 13, fontFamily: 'Barlow Condensed,sans-serif' }}>SANY</span>
+        <span className="text-white font-black tracking-[0.2em]" style={{ fontSize: 14, fontFamily: 'Barlow Condensed,sans-serif' }}>SANY</span>
         <span className="text-white font-bold" style={{ fontSize: 7.5 }}>MineCon 2026 · Booth A07</span>
       </div>
 
-      {/* Coloured accent band */}
-      <div className="shrink-0" style={{ height: 3, background: s.accent, transition: 'background 0.5s' }} />
-
-      {/* Main slide area */}
-      <div className="flex-1 flex flex-col px-4 pt-3 pb-2 gap-2 overflow-hidden">
-
-        {/* Category tag + icon */}
-        <div className="flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="rounded px-2 py-0.5 font-bold text-white uppercase tracking-wide" style={{ background: s.accent, fontSize: 7 }}>{s.category}</div>
-            <div className="rounded px-1.5 py-0.5 font-bold uppercase tracking-wide" style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)', fontSize: 7 }}>{s.tag}</div>
+      {/* Product image — top ~48% */}
+      <div className="relative shrink-0 overflow-hidden" style={{ height: '48%' }}>
+        <img
+          key={s.img}
+          src={s.img}
+          alt={s.model}
+          className="absolute inset-0 w-full h-full"
+          style={{ objectFit: 'cover', objectPosition: s.imgPos }}
+          draggable={false}
+        />
+        {/* Dark gradient overlay at bottom for text legibility */}
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.75) 100%)' }} />
+        {/* Category + model over image */}
+        <div className="absolute bottom-2 left-3 right-3">
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <span className="rounded px-1.5 py-0.5 text-white font-bold uppercase" style={{ background: s.accent, fontSize: 6.5 }}>{s.category}</span>
+            <span className="rounded px-1.5 py-0.5 font-bold uppercase" style={{ background: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.8)', fontSize: 6.5 }}>{s.tag}</span>
           </div>
-          <span style={{ fontSize: 22 }}>{s.icon}</span>
+          <div className="font-black text-white leading-none" style={{ fontFamily: 'Barlow Condensed,sans-serif', fontSize: 22, lineHeight: 1, textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>{s.model}</div>
+          <div className="font-semibold mt-0.5" style={{ fontSize: 9, color: s.accent, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>{s.headline}</div>
         </div>
+        {/* Prev / Next arrows on image */}
+        <button style={{ position: 'absolute', left: 6, top: '50%', transform: 'translateY(-50%)', width: 24, height: 24, borderRadius: '50%', background: 'rgba(0,0,0,0.45)', border: '1px solid rgba(255,255,255,0.25)', color: '#fff', fontSize: 15, cursor: 'pointer' }} onMouseDown={stop} onTouchStart={stop} onClick={prev}>‹</button>
+        <button style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', width: 24, height: 24, borderRadius: '50%', background: 'rgba(0,0,0,0.45)', border: '1px solid rgba(255,255,255,0.25)', color: '#fff', fontSize: 15, cursor: 'pointer' }} onMouseDown={stop} onTouchStart={stop} onClick={next}>›</button>
+      </div>
 
-        {/* Model name */}
-        <div className="shrink-0">
-          <div className="font-black text-white leading-none" style={{ fontFamily: 'Barlow Condensed,sans-serif', fontSize: 30, lineHeight: 1 }}>{s.model}</div>
-          <div className="font-semibold mt-0.5" style={{ fontSize: 10, color: s.accent }}>{s.headline}</div>
-        </div>
+      {/* Accent line */}
+      <div className="shrink-0" style={{ height: 3, background: s.accent, transition: 'background 0.4s' }} />
 
-        {/* Hero stat */}
-        <div className="rounded-xl flex flex-col items-center justify-center shrink-0 py-3" style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${s.accent}55` }}>
-          <div className="font-black text-white" style={{ fontFamily: 'Barlow Condensed,sans-serif', fontSize: 38, lineHeight: 1 }}>{s.stat}</div>
-          <div className="uppercase tracking-widest mt-0.5" style={{ fontSize: 7, color: s.accent }}>{s.statLabel}</div>
-        </div>
-
-        {/* Specs row */}
+      {/* Specs + nav */}
+      <div className="flex-1 flex flex-col justify-between px-4 py-2.5 overflow-hidden">
         <div className="grid grid-cols-3 gap-1.5 shrink-0">
           {s.specs.map(([label, val]) => (
-            <div key={label} className="rounded-lg text-center py-2" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <div className="font-black text-white" style={{ fontFamily: 'Barlow Condensed,sans-serif', fontSize: 12, lineHeight: 1 }}>{val}</div>
+            <div key={label} className="rounded-lg text-center py-2" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)' }}>
+              <div className="font-black text-white" style={{ fontFamily: 'Barlow Condensed,sans-serif', fontSize: 13, lineHeight: 1 }}>{val}</div>
               <div className="mt-0.5" style={{ fontSize: 6.5, color: 'rgba(255,255,255,0.4)' }}>{label}</div>
             </div>
           ))}
         </div>
 
-        {/* Nav row */}
-        <div className="flex items-center justify-between shrink-0 mt-auto">
-          <button
-            style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(200,16,46,0.2)', border: '1px solid rgba(200,16,46,0.4)', color: '#fff', fontSize: 16, cursor: 'pointer' }}
-            onMouseDown={stop} onTouchStart={stop} onClick={prev}
-          >‹</button>
-          <div className="flex gap-1.5 items-center">
-            {slides.map((_, i) => (
-              <div
-                key={i}
-                onClick={e => { stop(e); setPaused(true); setIdx(i); }}
-                style={{ height: 5, borderRadius: 3, cursor: 'pointer', transition: 'all 0.3s', width: i === idx ? 16 : 5, background: i === idx ? s.accent : 'rgba(255,255,255,0.2)' }}
-              />
-            ))}
-          </div>
-          <button
-            style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(200,16,46,0.2)', border: '1px solid rgba(200,16,46,0.4)', color: '#fff', fontSize: 16, cursor: 'pointer' }}
-            onMouseDown={stop} onTouchStart={stop} onClick={next}
-          >›</button>
+        {/* Dot indicators */}
+        <div className="flex items-center justify-center gap-2">
+          {slides.map((_, i) => (
+            <div
+              key={i}
+              onClick={e => { stop(e); setPaused(true); setIdx(i); }}
+              style={{ height: 5, borderRadius: 3, cursor: 'pointer', transition: 'all 0.3s', width: i === idx ? 18 : 5, background: i === idx ? s.accent : 'rgba(255,255,255,0.2)' }}
+            />
+          ))}
         </div>
-      </div>
 
-      {/* CTA footer */}
-      <div className="shrink-0 px-4 py-2" style={{ background: 'rgba(200,16,46,0.12)', borderTop: '1px solid rgba(200,16,46,0.3)' }}>
+        {/* CTA */}
         <AdLink href="https://www.sanyglobal.com" bg="#C8102E" color="#fff">
           <ExternalLink size={11} /> sanyglobal.com — Quality Changes the World ↗
         </AdLink>
