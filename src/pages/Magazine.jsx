@@ -396,7 +396,7 @@ function JetmasterAdPage() {
         onMouseDown={stop} onTouchStart={stop} onPointerDown={stop} onClick={stop}
       >
         <video
-          src="https://minecon.s3.af-south-1.amazonaws.com/UniGrill+47_+Stainless+steel+built+in+grill.mp4"
+          src="https://minecon.s3.af-south-1.amazonaws.com/UniGrill%2B47_%2BStainless%2Bsteel%2Bbuilt%2Bin%2Bgrill.mp4"
           controls
           preload="metadata"
           className="w-full h-full"
@@ -642,6 +642,11 @@ function GuideViewer({ onBack, isMobile }) {
   }, [isMobile]);
 
   const onFlip = useCallback(e => setCurrentPage(e.data), []);
+
+  useEffect(() => {
+    document.querySelectorAll('video').forEach(v => v.pause());
+  }, [currentPage]);
+
   const flipPrev = () => bookRef.current?.pageFlip().flipPrev();
   const flipNext = () => bookRef.current?.pageFlip().flipNext();
 

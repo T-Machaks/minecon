@@ -7,45 +7,48 @@ export default function InstallPromptModal() {
   const [open, setOpen] = useState(false);
   const [installing, setInstalling] = useState(false);
 
-  // Small delay so the page renders first
   useEffect(() => {
     if (!showPopup) return;
     const t = setTimeout(() => setOpen(true), 800);
     return () => clearTimeout(t);
   }, [showPopup]);
 
+  useEffect(() => {
+    if (!showPopup) setOpen(false);
+  }, [showPopup]);
+
   if (!open) return null;
 
-  const close = () => {
+  const dismiss = () => {
     setOpen(false);
     markSeen();
   };
 
   const handleInstall = async () => {
-    if (hasBrowserPrompt) {
-      setInstalling(true);
-      await promptInstall();
-      setInstalling(false);
-      close();
-    }
+    if (!hasBrowserPrompt) return;
+    setInstalling(true);
+    await promptInstall();
+    setInstalling(false);
+    setOpen(false);
+    markSeen();
   };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={close}
-      />
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={dismiss} />
 
       {/* Card */}
-      <div className="relative w-full max-w-sm rounded-2xl bg-[#1a1f2e] border border-white/10 shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
+      <div
+        className={`relative w-full max-w-sm rounded-2xl bg-[#1a1f2e] border border-white/10 shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300 ${hasBrowserPrompt && !isIOS ? 'cursor-pointer' : ''}`}
+        onClick={hasBrowserPrompt && !isIOS ? handleInstall : undefined}
+      >
         {/* Amber top stripe */}
         <div className="h-1 w-full bg-gradient-to-r from-amber via-amber/80 to-amber/40" />
 
         {/* Close */}
         <button
-          onClick={close}
+          onClick={e => { e.stopPropagation(); dismiss(); }}
           className="absolute top-3 right-3 text-slate-500 hover:text-white transition-colors p-1 rounded-full hover:bg-white/10"
         >
           <X className="w-4 h-4" />
@@ -89,7 +92,7 @@ export default function InstallPromptModal() {
             </div>
           )}
 
-          {/* Desktop fallback — no native prompt yet */}
+          {/* Desktop fallback — no native prompt */}
           {!isIOS && !hasBrowserPrompt && (
             <div className="bg-white/5 rounded-xl p-4 mb-5 flex items-start gap-3">
               <Smartphone className="w-5 h-5 text-amber flex-shrink-0 mt-0.5" />
@@ -100,8 +103,8 @@ export default function InstallPromptModal() {
           )}
 
           {/* Action buttons */}
-          <div className="flex flex-col gap-2">
-            {hasBrowserPrompt && (
+          <div className="flex flex-col gap-2" onClick={e => e.stopPropagation()}>
+            {hasBrowserPrompt && !isIOS && (
               <button
                 onClick={handleInstall}
                 disabled={installing}
@@ -113,14 +116,14 @@ export default function InstallPromptModal() {
             )}
             {isIOS && (
               <button
-                onClick={close}
+                onClick={dismiss}
                 className="w-full flex items-center justify-center gap-2 bg-amber hover:bg-amber/90 text-white font-semibold rounded-xl py-3 text-sm transition-colors"
               >
                 Got it
               </button>
             )}
             <button
-              onClick={close}
+              onClick={dismiss}
               className="w-full text-sm text-slate-500 hover:text-slate-300 py-2 transition-colors"
             >
               Maybe later
