@@ -12,6 +12,7 @@ import adslots from './routes/adslots.js';
 import appSettings from './routes/app-settings.js';
 import upload from './routes/upload.js';
 import guidePages from './routes/guide-pages.js';
+import magazinePages from './routes/magazine-pages.js';
 
 const app = express();
 app.use(express.json({ limit: '2mb' }));
@@ -29,6 +30,7 @@ app.use('/api/adslots',           adslots);
 app.use('/api/app-settings',      appSettings);
 app.use('/api/upload',            upload);
 app.use('/api/guide-pages',       guidePages);
+app.use('/api/magazine-pages',    magazinePages);
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
