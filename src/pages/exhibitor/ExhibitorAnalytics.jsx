@@ -199,13 +199,13 @@ export default function ExhibitorAnalytics() {
 
       {/* Header */}
       <div>
-        <div className="flex items-center gap-3 mb-1">
+        <div className="flex items-center gap-3 mb-1 min-w-0">
           {myBooth.logo_url && (
             <div className="w-8 h-8 bg-white border border-border rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0">
               <img src={myBooth.logo_url} alt={myBooth.name} className="w-7 h-7 object-contain" />
             </div>
           )}
-          <h1 className="font-heading text-2xl font-bold uppercase tracking-wide">{myBooth.name}</h1>
+          <h1 className="font-heading text-xl sm:text-2xl font-bold uppercase tracking-wide truncate min-w-0">{myBooth.name}</h1>
         </div>
         <p className="text-muted-foreground text-sm">
           Engagement analytics · Booth {myBooth.booth} · {myBooth.section}
@@ -388,7 +388,7 @@ export default function ExhibitorAnalytics() {
 
       {/* Exhibition Guide Performance */}
       <div className="bg-card border border-border rounded-xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-4">
+        <div className="px-5 py-4 border-b border-border flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-amber" />
             <div>
@@ -497,16 +497,16 @@ export default function ExhibitorAnalytics() {
                 ? new Date(ev.created_date).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
                 : '';
               return (
-                <div key={ev.id} className="flex items-center gap-3 py-2 border-b border-border last:border-0">
-                  <div className="w-7 h-7 rounded-full bg-amber/10 flex items-center justify-center flex-shrink-0">
+                <div key={ev.id} className="flex items-start gap-3 py-2 border-b border-border last:border-0">
+                  <div className="w-7 h-7 rounded-full bg-amber/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <Icon className="w-3.5 h-3.5 text-amber" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className="text-sm font-medium">{TYPE_LABEL[ev.type] ?? ev.type}</span>
-                    <span className="text-muted-foreground text-xs mx-1.5">·</span>
-                    <span className="text-muted-foreground text-xs">{SOURCE_LABEL[ev.source] ?? ev.source}</span>
+                    <p className="text-sm font-medium leading-snug">{TYPE_LABEL[ev.type] ?? ev.type}</p>
+                    <p className="text-muted-foreground text-xs mt-0.5 truncate">{SOURCE_LABEL[ev.source] ?? ev.source}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5 sm:hidden">{ts}</p>
                   </div>
-                  <span className="text-[10px] text-muted-foreground flex-shrink-0">{ts}</span>
+                  <span className="text-[10px] text-muted-foreground flex-shrink-0 hidden sm:block">{ts}</span>
                 </div>
               );
             })}
@@ -516,7 +516,7 @@ export default function ExhibitorAnalytics() {
 
       {/* Lead Export */}
       <div className="bg-card border border-border rounded-xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-4">
+        <div className="px-5 py-4 border-b border-border flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-amber" />
             <div>

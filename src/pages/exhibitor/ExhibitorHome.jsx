@@ -29,6 +29,7 @@ export default function ExhibitorHome() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState({});
   const [uploadingImage, setUploadingImage] = useState(false);
   const [upgradeDismissed, setUpgradeDismissed] = useState(false);
 
@@ -65,6 +66,22 @@ export default function ExhibitorHome() {
     mutationFn: (imageUrl) => Exhibitor.update(myBooth.id, { booth_image_url: imageUrl }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['exhibitors-all'] }),
   });
+
+  const updateBooth = useMutation({
+    mutationFn: (data) => Exhibitor.update(myBooth.id, data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['exhibitors-all'] }); setEditOpen(false); },
+  });
+
+  const handleEditOpen = () => {
+    if (!editOpen) setEditForm({
+      name: myBooth.name || '',
+      description: myBooth.description || '',
+      contact_email: myBooth.contact_email || '',
+      phone: myBooth.phone || '',
+      website: myBooth.website || '',
+    });
+    setEditOpen(o => !o);
+  };
 
   const handleBoothImageUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -115,17 +132,17 @@ export default function ExhibitorHome() {
 
       {/* Booth card */}
       <div className="bg-card border border-border rounded-2xl overflow-hidden">
-        <div className="bg-steel px-6 py-5 flex items-start justify-between gap-4">
-          <div className="flex items-center gap-4">
+        <div className="bg-steel px-4 sm:px-6 py-5 flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
             <div className="w-14 h-14 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0">
               {myBooth.logo_url
                 ? <img src={myBooth.logo_url} alt={myBooth.name} className="w-12 h-12 object-contain" />
                 : <span className="font-heading text-2xl font-bold text-white">{myBooth.name?.[0]}</span>
               }
             </div>
-            <div>
-              <h1 className="font-heading text-xl font-bold text-white tracking-wide">{myBooth.name}</h1>
-              <div className="flex items-center gap-2 mt-1">
+            <div className="min-w-0">
+              <h1 className="font-heading text-lg sm:text-xl font-bold text-white tracking-wide truncate">{myBooth.name}</h1>
+              <div className="flex items-center flex-wrap gap-2 mt-1">
                 {myBooth.tier && (
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber text-white">{myBooth.tier}</span>
                 )}
@@ -141,10 +158,11 @@ export default function ExhibitorHome() {
             </div>
           </div>
           <button
-            onClick={() => setEditOpen(!editOpen)}
-            className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white border border-white/20 hover:border-white/40 px-3 py-1.5 rounded-lg transition-all duration-150 active:scale-95 flex-shrink-0"
+            onClick={handleEditOpen}
+            className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white border border-white/20 hover:border-white/40 px-2.5 sm:px-3 py-1.5 rounded-lg transition-all duration-150 active:scale-95 flex-shrink-0 touch-manipulation"
           >
-            <Edit className="w-3.5 h-3.5" /> Edit Profile
+            <Edit className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Edit Profile</span>
           </button>
         </div>
 
@@ -169,9 +187,56 @@ export default function ExhibitorHome() {
           )}
         </div>
 
-        {myBooth.description && (
-          <div className="px-6 pb-4 border-t border-border pt-4">
+        {myBooth.description && !editOpen && (
+          <div className="px-4 sm:px-6 pb-4 border-t border-border pt-4">
             <p className="text-sm text-muted-foreground leading-relaxed">{myBooth.description}</p>
+          </div>
+        )}
+
+        {editOpen && (
+          <div className="px-4 sm:px-6 py-5 border-t border-border space-y-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Edit Company Info</p>
+            {[
+              { key: 'name', label: 'Company Name', type: 'text' },
+              { key: 'contact_email', label: 'Contact Email', type: 'email' },
+              { key: 'phone', label: 'Phone', type: 'tel' },
+              { key: 'website', label: 'Website', type: 'url', placeholder: 'https://' },
+            ].map(({ key, label, type, placeholder }) => (
+              <div key={key}>
+                <label className="text-xs text-muted-foreground font-medium block mb-1">{label}</label>
+                <input
+                  type={type}
+                  value={editForm[key] || ''}
+                  placeholder={placeholder}
+                  onChange={e => setEditForm(f => ({ ...f, [key]: e.target.value }))}
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-amber/50"
+                />
+              </div>
+            ))}
+            <div>
+              <label className="text-xs text-muted-foreground font-medium block mb-1">Description</label>
+              <textarea
+                rows={3}
+                value={editForm.description || ''}
+                onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))}
+                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-amber/50 resize-none"
+              />
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={() => updateBooth.mutate(editForm)}
+                disabled={updateBooth.isPending}
+                className="flex-1 sm:flex-none px-4 py-2 text-sm font-semibold bg-amber text-white rounded-lg hover:bg-amber/90 active:scale-95 transition-all disabled:opacity-60 touch-manipulation"
+              >
+                {updateBooth.isPending ? 'Saving…' : 'Save Changes'}
+              </button>
+              <button
+                onClick={() => setEditOpen(false)}
+                className="flex-1 sm:flex-none px-4 py-2 text-sm font-semibold border border-border rounded-lg hover:bg-muted active:scale-95 transition-all touch-manipulation"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         )}
       </div>
