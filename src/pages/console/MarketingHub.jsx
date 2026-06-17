@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  AdSlot, Announcement, Exhibitor, EngagementEvent, MeetingRequest,
+  AdSlot, Announcement, Exhibitor, EngagementEvent, MeetingRequest, GuidePage,
 } from '@/api/entities';
+import { resizeImageToBlob } from '@/lib/imageUtils';
 import {
   Megaphone, Sparkles, BarChart2, TrendingUp, MousePointerClick,
-  Plus, Trash2, Download, ExternalLink,
-  ChevronDown, ChevronUp, Layers, BookOpen, Monitor,
+  Plus, Trash2, Download, ExternalLink, Upload, ImageIcon, Link2, Check, Play,
+  ChevronDown, ChevronUp, Layers, BookOpen, Monitor, FileEdit,
 } from 'lucide-react';
 import AdBannerCarousel from '@/components/home/AdBannerCarousel';
 import { useAuth } from '@/lib/AuthContext';
@@ -21,6 +22,44 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+
+function StatRow({ icon, color, label, value, empty }) {
+  return (
+    <div className="rounded-lg border border-border bg-card p-3">
+      <div className="flex items-center gap-3">
+        <div className={`w-7 h-7 ${color} rounded-lg flex items-center justify-center flex-shrink-0`}>
+          {icon}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-heading text-lg font-bold leading-none">{value}</p>
+          <p className="text-[10px] text-muted-foreground">{label}</p>
+        </div>
+        {value === 0 && empty && (
+          <p className="text-[10px] text-muted-foreground text-right leading-tight max-w-[120px]">{empty}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const ALL_MAGAZINE_PAGES = [
+  { num: '1',  type: 'editorial', title: 'Cover',              defaultImage: null },
+  { num: '2',  type: 'editorial', title: 'Welcome',            defaultImage: null },
+  { num: '3',  type: 'editorial', title: 'Contents',           defaultImage: null },
+  { num: '4',  type: 'interactive', advertiser: 'SANY Group',       defaultImage: '/magazines/sany/excavator.jpg',   desc: 'Auto-rotating product carousel' },
+  { num: '5',  type: 'editorial', title: 'Event Overview',     defaultImage: null },
+  { num: '6',  type: 'image',     advertiser: 'Elimobil',          defaultImage: '/magazines/ads/ad-elimobil.jpg',  desc: 'Full-page image ad' },
+  { num: '7',  type: 'video',     advertiser: 'Jetmaster',         defaultImage: '/magazines/ads/ad-jetmaster.jpg', desc: 'Image + video embed' },
+  { num: '8',  type: 'editorial', title: 'Site Plan',          defaultImage: null },
+  { num: '9',  type: 'editorial', title: 'Industry Insight',   defaultImage: null },
+  { num: '10', type: 'image',     advertiser: 'Zambezi Gas & Coal', defaultImage: '/magazines/ads/ad-zambezi.jpg',   desc: 'Full-page image ad' },
+  { num: '11', type: 'editorial', title: 'Exhibitor Dir.',     defaultImage: null },
+  { num: '12', type: 'image',     advertiser: 'Zimtile',           defaultImage: '/magazines/ads/ad-zimtile.jpg',   desc: 'Full-page image ad' },
+  { num: '13', type: 'image',     advertiser: 'Woodlot Timbers',   defaultImage: '/magazines/ads/ad-woodlot.jpg',   desc: 'Half-page image ad' },
+  { num: '14', type: 'editorial', title: 'Why Attend?',        defaultImage: null },
+  { num: '15', type: 'editorial', title: 'Back Cover',         defaultImage: null },
+];
+const AD_PAGES = ALL_MAGAZINE_PAGES.filter(p => p.type !== 'editorial');
 
 const TIER_COLORS = {
   Diamond: 'bg-sky-100 text-sky-700 dark:bg-sky-950/40 dark:text-sky-400',
@@ -71,6 +110,12 @@ export default function MarketingHub() {
   const [deletePostId, setDeletePostId] = useState(null);
   const [expandedSection, setExpandedSection] = useState('magazine');
 
+  // Magazine editor state
+  const [selectedAdPage, setSelectedAdPage] = useState(null);
+  const [editUrl, setEditUrl] = useState('');
+  const [uploadingMagPage, setUploadingMagPage] = useState(false);
+  const magFileInputRef = useRef(null);
+
   // Data queries
   const { data: adSlots = [] } = useQuery({
     queryKey: ['adslots'],
@@ -97,6 +142,30 @@ export default function MarketingHub() {
     queryFn: () => MeetingRequest.list('-created_date'),
   });
 
+  const { data: guidePageConfigs = [] } = useQuery({
+    queryKey: ['guide-pages'],
+    queryFn: () => GuidePage.list(),
+  });
+
+  // Guide derived data
+  const pageConfigMap = Object.fromEntries(guidePageConfigs.map(p => [String(p.page_num), p]));
+  const guideClicks = events.filter(e => e.source === 'magazine' && e.type === 'ad_click');
+  const guideClicksByAdvertiser = {};
+  guideClicks.forEach(e => {
+    const name = e.exhibitor_name || 'Unknown';
+    guideClicksByAdvertiser[name] = (guideClicksByAdvertiser[name] || 0) + 1;
+  });
+  const guideVideoPlays      = events.filter(e => e.source === 'magazine' && e.type === 'video_play').length;
+  const guideVideoCompletes  = events.filter(e => e.source === 'magazine' && e.type === 'video_complete').length;
+  const guideCarouselViews   = events.filter(e => e.source === 'magazine' && e.type === 'carousel_view' && e.exhibitor_name === 'SANY Group').length;
+
+  // Sync URL input when selected page changes
+  useEffect(() => {
+    if (selectedAdPage) {
+      setEditUrl(pageConfigMap[selectedAdPage]?.click_url || '');
+    }
+  }, [selectedAdPage]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Derived data
   const sponsoredPosts = announcements.filter(a => a.sponsored);
   const activeSlots = adSlots.filter(s => s.active !== false);
@@ -116,6 +185,35 @@ export default function MarketingHub() {
   const topExhibitors = Object.entries(clicksByExhibitor)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 8);
+
+  // Mutations — Guide pages
+  const updatePageMutation = useMutation({
+    mutationFn: ({ pageNum, data }) => GuidePage.update(pageNum, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['guide-pages'] }),
+  });
+
+  const handleGuideImageUpload = async (file) => {
+    if (!selectedAdPage || !file) return;
+    setUploadingMagPage(true);
+    try {
+      const blob = await resizeImageToBlob(file);
+      const oldImageUrl = pageConfigMap[selectedAdPage]?.image_url || null;
+      const { uploadUrl, publicUrl } = await GuidePage.getUploadUrl(selectedAdPage, oldImageUrl);
+      const res = await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': 'image/jpeg' }, body: blob });
+      if (!res.ok) throw new Error(`S3 upload failed: ${res.status}`);
+      await updatePageMutation.mutateAsync({ pageNum: selectedAdPage, data: { image_url: publicUrl, click_url: editUrl } });
+    } catch (e) {
+      alert(`Upload failed: ${e.message}`);
+    } finally {
+      setUploadingMagPage(false);
+    }
+  };
+
+  const handleSavePageUrl = () => {
+    if (!selectedAdPage) return;
+    const existing = pageConfigMap[selectedAdPage] || {};
+    updatePageMutation.mutate({ pageNum: selectedAdPage, data: { ...existing, click_url: editUrl } });
+  };
 
   // Mutations — AdSlot
   const createSlot = useMutation({
@@ -169,11 +267,28 @@ export default function MarketingHub() {
     );
   };
 
+  const exportGuideReport = () => {
+    const date = new Date().toISOString().slice(0, 10);
+    exportCSV(
+      AD_PAGES.map(p => {
+        const clicks = guideClicksByAdvertiser[p.advertiser] || 0;
+        const vPlays = p.num === '7' ? guideVideoPlays : '';
+        const vCompletes = p.num === '7' ? guideVideoCompletes : '';
+        const completionRate = p.num === '7' && guideVideoPlays > 0
+          ? `${Math.round((guideVideoCompletes / guideVideoPlays) * 100)}%` : '';
+        const carousel = p.num === '4' ? guideCarouselViews : '';
+        return [p.advertiser, `pg${p.num}`, p.desc || p.type, clicks, vPlays, vCompletes, completionRate, carousel];
+      }),
+      `minecon_guide_report_${date}.csv`,
+      ['Advertiser', 'Page', 'Ad Type', 'Ad Clicks', 'Video Plays', 'Video Completes', 'Completion Rate', 'Carousel Views'],
+    );
+  };
+
   const kpis = [
-    { label: 'Active Ad Slots',     value: activeSlots.length,      icon: Layers,            bg: 'bg-amber-50 dark:bg-amber-950/30',   color: 'text-amber' },
-    { label: 'Sponsored Posts',     value: sponsoredPosts.length,   icon: Sparkles,          bg: 'bg-violet-50 dark:bg-violet-950/30', color: 'text-violet-500' },
-    { label: 'Total Ad Clicks',     value: adClicks.length,         icon: MousePointerClick, bg: 'bg-emerald-50 dark:bg-emerald-950/30', color: 'text-emerald-500' },
-    { label: 'Total Engagements',   value: totalEngagements,        icon: BarChart2,         bg: 'bg-blue-50 dark:bg-blue-950/30',     color: 'text-blue-500' },
+    { label: 'Active Ad Slots',   value: activeSlots.length,    icon: Layers,            bg: 'bg-amber-50 dark:bg-amber-950/30',     color: 'text-amber' },
+    { label: 'Sponsored Posts',   value: sponsoredPosts.length, icon: Sparkles,          bg: 'bg-violet-50 dark:bg-violet-950/30',   color: 'text-violet-500' },
+    { label: 'Guide Ad Clicks',   value: guideClicks.length,    icon: MousePointerClick, bg: 'bg-emerald-50 dark:bg-emerald-950/30', color: 'text-emerald-500' },
+    { label: 'Total Engagements', value: totalEngagements,      icon: BarChart2,         bg: 'bg-blue-50 dark:bg-blue-950/30',       color: 'text-blue-500' },
   ];
 
   const toggle = (section) => setExpandedSection(v => v === section ? null : section);
@@ -208,81 +323,302 @@ export default function MarketingHub() {
         ))}
       </div>
 
-      {/* ── MineCon Magazine ── */}
+      {/* ── Exhibition Guide ── */}
       <Section
         id="magazine"
-        title="MineCon Magazine"
+        title="Exhibition Guide"
         icon={<BookOpen className="w-4 h-4 text-amber" />}
         expanded={expandedSection === 'magazine'}
         onToggle={() => toggle('magazine')}
         action={
-          <Link
-            to="/magazine"
-            onClick={e => e.stopPropagation()}
-            className="flex items-center gap-1.5 text-xs bg-amber text-white font-semibold px-3 py-1.5 rounded-lg hover:bg-amber/90 transition-colors"
-          >
-            <ExternalLink className="w-3 h-3" /> Open
-          </Link>
-        }
-      >
-        <div className="p-5 flex flex-col sm:flex-row gap-6 items-start">
-          {/* Flipbook stub — fanned book cover */}
-          <div className="relative flex-shrink-0 mx-auto sm:mx-0" style={{ width: 140, height: 184 }}>
-            <div className="absolute inset-0 rounded-r-lg" style={{ background: 'linear-gradient(160deg,#0f172a,#1e293b)', transform: 'rotate(4deg) translateX(5px)', zIndex: 0 }} />
-            <div className="absolute inset-0 rounded-r-lg" style={{ background: 'linear-gradient(160deg,#0f172a,#1e293b)', transform: 'rotate(2deg) translateX(2px)', zIndex: 1 }} />
-            <div className="absolute inset-0 rounded-r-lg overflow-hidden shadow-2xl" style={{ background: 'linear-gradient(160deg,#080f1e 0%,#1e293b 60%,#080f1e 100%)', zIndex: 2 }}>
-              <div className="absolute inset-y-0 left-0 w-2.5" style={{ background: '#f59e0b' }} />
-              <div className="absolute top-0 inset-x-0 h-5 flex items-center justify-between px-3" style={{ background: '#f59e0b' }}>
-                <span className="font-black uppercase text-slate-900 tracking-widest" style={{ fontSize: 6.5 }}>Official Exhibition Guide</span>
-                <span className="font-bold text-slate-900" style={{ fontSize: 6.5 }}>Oct 2026</span>
-              </div>
-              <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(circle,#f59e0b 1.5px,transparent 1.5px)', backgroundSize: '16px 16px' }} />
-              <div className="absolute top-8 inset-x-0 flex flex-col items-center px-3 gap-1">
-                <img src="/minecon-logo.png" alt="" className="w-10 h-10 object-contain" />
-                <p className="text-white font-black uppercase tracking-widest" style={{ fontSize: 9.5 }}>MineCon</p>
-                <p className="font-bold uppercase tracking-widest" style={{ fontSize: 8, color: '#f59e0b' }}>2026</p>
-              </div>
-              <div className="absolute bottom-4 inset-x-3 space-y-0.5">
-                <p className="text-white font-black uppercase leading-none" style={{ fontSize: 7.5, letterSpacing: '0.08em' }}>Southern Africa's</p>
-                <p className="font-black uppercase leading-none" style={{ fontSize: 10, color: '#f59e0b', letterSpacing: '0.04em' }}>Mining Exhibition</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Magazine metadata */}
-          <div className="flex-1 space-y-4 min-w-0">
-            <div>
-              <h3 className="font-heading font-bold text-base">MineCon 2026 Exhibition Guide</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">Official digital magazine · October 2026 Edition</p>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { label: 'Pages',       value: '8' },
-                { label: 'Ad Slots',    value: '2' },
-                { label: 'Video Embeds', value: '1' },
-              ].map(({ label, value }) => (
-                <div key={label} className="bg-muted/60 rounded-lg p-2.5 text-center">
-                  <p className="font-heading text-xl font-bold">{value}</p>
-                  <p className="text-[10px] text-muted-foreground">{label}</p>
-                </div>
-              ))}
-            </div>
-
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-1.5">Contents</p>
-              <div className="flex flex-wrap gap-1.5">
-                {['Cover', 'Welcome', 'Exhibitor Directory', 'SANY Feature', 'Floor Plan', 'Jetmaster Ad', 'Schedule', 'Back Cover'].map(s => (
-                  <span key={s} className="text-[10px] bg-muted border border-border px-2 py-0.5 rounded-full">{s}</span>
-                ))}
-              </div>
-            </div>
-
+          <div className="flex items-center gap-2">
+            <button
+              onClick={exportGuideReport}
+              className="flex items-center gap-1.5 text-xs border border-border text-foreground/70 font-semibold px-3 py-1.5 rounded-lg hover:bg-muted transition-colors"
+              title="Download guide analytics CSV"
+            >
+              <Download className="w-3 h-3" /> Report
+            </button>
             <Link
               to="/magazine"
-              className="inline-flex items-center gap-2 text-sm bg-amber text-white font-semibold px-4 py-2.5 rounded-xl hover:bg-amber/90 active:scale-95 transition-all duration-150"
+              onClick={e => e.stopPropagation()}
+              className="flex items-center gap-1.5 text-xs bg-amber text-white font-semibold px-3 py-1.5 rounded-lg hover:bg-amber/90 transition-colors"
             >
-              <BookOpen className="w-4 h-4" /> Read Full Magazine
+              <ExternalLink className="w-3 h-3" /> Open
+            </Link>
+          </div>
+        }
+      >
+        {/* Stats row */}
+        <div className="grid grid-cols-3 gap-px bg-border border-b border-border">
+          {[
+            { label: 'Ad Pages',     value: AD_PAGES.length },
+            { label: 'Guide Clicks', value: guideClicks.length },
+            { label: 'Advertisers',  value: AD_PAGES.length },
+          ].map(({ label, value }) => (
+            <div key={label} className="bg-card px-4 py-3 text-center">
+              <p className="font-heading text-2xl font-bold">{value}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="p-4">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-3">
+            All Pages — click an <span className="text-amber">ad page</span> to edit
+          </p>
+
+          {/* 15-page thumbnail grid */}
+          <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(52px, 1fr))' }}>
+            {ALL_MAGAZINE_PAGES.map(page => {
+              const config = pageConfigMap[page.num];
+              const isAd = page.type !== 'editorial';
+              const isSelected = selectedAdPage === page.num;
+              const clicks = guideClicksByAdvertiser[page.advertiser] || 0;
+              const thumbSrc = isAd ? (config?.image_url || page.defaultImage) : null;
+
+              return (
+                <button
+                  key={page.num}
+                  disabled={!isAd}
+                  onClick={() => isAd && setSelectedAdPage(n => n === page.num ? null : page.num)}
+                  className={`relative rounded-lg overflow-hidden border-2 transition-all duration-150 ${
+                    !isAd
+                      ? 'border-border opacity-40 cursor-default'
+                      : isSelected
+                        ? 'border-amber shadow-md shadow-amber/20 scale-105'
+                        : 'border-amber/30 hover:border-amber cursor-pointer hover:scale-105'
+                  }`}
+                  style={{ aspectRatio: '3/4' }}
+                >
+                  {thumbSrc ? (
+                    <img src={thumbSrc} alt={page.advertiser} className="absolute inset-0 w-full h-full object-cover" />
+                  ) : (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 px-1">
+                      <span className="text-slate-400 font-semibold text-center leading-tight" style={{ fontSize: 6 }}>{page.title}</span>
+                    </div>
+                  )}
+                  {/* Page number */}
+                  <div className="absolute top-0.5 left-0.5 rounded px-1 text-white font-bold leading-none" style={{ fontSize: 6, background: 'rgba(0,0,0,0.65)' }}>
+                    {page.num}
+                  </div>
+                  {/* Ad dot */}
+                  {isAd && <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-amber" />}
+                  {/* Click count */}
+                  {isAd && clicks > 0 && (
+                    <div className="absolute bottom-0.5 right-0.5 rounded px-1 text-white font-bold leading-none" style={{ fontSize: 6, background: '#f59e0b' }}>
+                      {clicks}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Hidden file input for magazine image upload */}
+          <input
+            ref={magFileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={e => { const f = e.target.files?.[0]; if (f) { handleGuideImageUpload(f); e.target.value = ''; } }}
+          />
+
+          {/* Ad page edit panel */}
+          {selectedAdPage && (() => {
+            const page = ALL_MAGAZINE_PAGES.find(p => p.num === selectedAdPage);
+            const config = pageConfigMap[selectedAdPage] || {};
+            const imageUrl = config.image_url || page?.defaultImage;
+            const clicks = guideClicksByAdvertiser[page?.advertiser] || 0;
+            const isSaving = updatePageMutation.isPending;
+
+            return (
+              <div className="mt-4 rounded-xl border border-amber/40 bg-amber/5 overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-amber/20">
+                  <div className="flex items-center gap-2">
+                    <FileEdit className="w-4 h-4 text-amber" />
+                    <span className="font-semibold text-sm">Page {selectedAdPage} — {page?.advertiser}</span>
+                    <span className="text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded-full capitalize">{page?.desc}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {clicks > 0 && (
+                      <span className="flex items-center gap-1 text-xs font-semibold text-amber">
+                        <MousePointerClick className="w-3 h-3" />{clicks} clicks
+                      </span>
+                    )}
+                    <button onClick={() => setSelectedAdPage(null)} className="text-muted-foreground hover:text-foreground text-xs px-2 py-1 rounded hover:bg-muted transition-colors">
+                      Close
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4 p-4">
+                  {/* Image upload */}
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-2">Ad Image</p>
+                    <div className="relative rounded-xl overflow-hidden border border-border bg-muted" style={{ aspectRatio: '3/4', maxHeight: 240 }}>
+                      {imageUrl ? (
+                        <img src={imageUrl} alt={page?.advertiser} className="absolute inset-0 w-full h-full object-cover" />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                          <ImageIcon className="w-8 h-8" />
+                        </div>
+                      )}
+                      {config.image_url && (
+                        <div className="absolute top-2 left-2 rounded px-1.5 py-0.5 text-white text-[9px] font-bold" style={{ background: '#f59e0b' }}>Custom</div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => magFileInputRef.current?.click()}
+                      disabled={uploadingMagPage}
+                      className="mt-2 w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-dashed border-amber/40 hover:border-amber text-xs font-semibold text-amber hover:bg-amber/10 transition-all disabled:opacity-50"
+                    >
+                      {uploadingMagPage
+                        ? <><div className="w-3 h-3 border-2 border-amber/30 border-t-amber rounded-full animate-spin" /> Uploading…</>
+                        : <><Upload className="w-3 h-3" /> {config.image_url ? 'Replace Image' : 'Upload Image'}</>
+                      }
+                    </button>
+                    <p className="text-[10px] text-muted-foreground mt-1">JPEG/PNG · max 5 MB · auto-resized to 1200px</p>
+                  </div>
+
+                  {/* URL + analytics */}
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-2">Click URL</p>
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <Link2 className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                          <input
+                            type="url"
+                            placeholder="https://advertiser.com"
+                            value={editUrl}
+                            onChange={e => setEditUrl(e.target.value)}
+                            className="w-full pl-8 pr-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-amber"
+                          />
+                        </div>
+                        <button
+                          onClick={handleSavePageUrl}
+                          disabled={isSaving}
+                          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber text-white text-xs font-semibold hover:opacity-90 disabled:opacity-50 transition-opacity"
+                        >
+                          {isSaving ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                          Save
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-1">Visitors will be taken to this URL when they click the ad image.</p>
+                    </div>
+
+                    {/* Analytics */}
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Analytics</p>
+
+                      {/* SANY pg4 — link clicks + carousel views */}
+                      {page?.num === '4' && (
+                        <>
+                          <StatRow
+                            icon={<MousePointerClick className="w-3.5 h-3.5 text-amber" />}
+                            color="bg-amber/10"
+                            label="Website link clicks"
+                            value={clicks}
+                            empty="Tracked when readers tap the sanyglobal.com CTA."
+                          />
+                          <StatRow
+                            icon={<BarChart2 className="w-3.5 h-3.5 text-violet-500" />}
+                            color="bg-violet-500/10"
+                            label="Carousel slide views"
+                            value={guideCarouselViews}
+                            empty="Tracked each time a reader navigates between product slides."
+                          />
+                        </>
+                      )}
+
+                      {/* Jetmaster pg7 — image clicks + video */}
+                      {page?.num === '7' && (
+                        <>
+                          <StatRow
+                            icon={<MousePointerClick className="w-3.5 h-3.5 text-amber" />}
+                            color="bg-amber/10"
+                            label="Image clicks"
+                            value={clicks}
+                            empty="Set a click URL above to make the image tappable."
+                          />
+                          <div className="rounded-lg border border-border bg-card p-3 space-y-2">
+                            <div className="flex items-center gap-3">
+                              <div className="w-7 h-7 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <Play className="w-3.5 h-3.5 text-blue-500" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-heading text-lg font-bold leading-none">{guideVideoPlays}</p>
+                                <p className="text-[10px] text-muted-foreground">video plays</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-heading text-lg font-bold leading-none">{guideVideoCompletes}</p>
+                                <p className="text-[10px] text-muted-foreground">completed</p>
+                              </div>
+                            </div>
+                            {guideVideoPlays > 0 ? (
+                              <>
+                                <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                                  <span>Completion rate</span>
+                                  <span className="font-semibold">{Math.round((guideVideoCompletes / guideVideoPlays) * 100)}%</span>
+                                </div>
+                                <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${(guideVideoCompletes / guideVideoPlays) * 100}%` }} />
+                                </div>
+                              </>
+                            ) : (
+                              <p className="text-[10px] text-muted-foreground">Tracked when readers press play.</p>
+                            )}
+                          </div>
+                        </>
+                      )}
+
+                      {/* All other ad pages — image clicks only */}
+                      {page?.num !== '4' && page?.num !== '7' && (
+                        <StatRow
+                          icon={<MousePointerClick className="w-3.5 h-3.5 text-amber" />}
+                          color="bg-amber/10"
+                          label="Image clicks"
+                          value={clicks}
+                          empty="Set a click URL above to make the ad tappable."
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* All-advertiser click breakdown */}
+          {guideClicks.length > 0 && (
+            <div className="mt-4">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-2">All Ad Clicks — Magazine</p>
+              <div className="space-y-2">
+                {AD_PAGES.map(page => {
+                  const clicks = guideClicksByAdvertiser[page.advertiser] || 0;
+                  const maxClicks = Math.max(...AD_PAGES.map(p => guideClicksByAdvertiser[p.advertiser] || 0), 1);
+                  return (
+                    <div key={page.num} className="flex items-center gap-3">
+                      <span className="text-xs text-muted-foreground w-4 text-right flex-shrink-0">{page.num}</span>
+                      <span className="text-xs font-medium flex-shrink-0 w-36 truncate">{page.advertiser}</span>
+                      <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div className="h-full bg-amber rounded-full transition-all" style={{ width: `${(clicks / maxClicks) * 100}%` }} />
+                      </div>
+                      <span className="text-xs font-bold tabular-nums w-6 text-right flex-shrink-0">{clicks}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <div className="mt-4 flex justify-end">
+            <Link
+              to="/magazine"
+              className="inline-flex items-center gap-2 text-sm bg-card border border-border font-semibold px-4 py-2 rounded-xl hover:bg-muted transition-colors"
+            >
+              <BookOpen className="w-4 h-4" /> Preview Magazine
             </Link>
           </div>
         </div>
@@ -372,76 +708,6 @@ export default function MarketingHub() {
             </table>
           </div>
         )}
-      </Section>
-
-      {/* ── Exhibition Guide Ads ── */}
-      <Section
-        id="guide-ads"
-        title="Exhibition Guide Ads"
-        icon={<BookOpen className="w-4 h-4 text-amber" />}
-        expanded={expandedSection === 'guide-ads'}
-        onToggle={() => toggle('guide-ads')}
-      >
-        <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-          {/* SANY Interactive Carousel */}
-          <div className="rounded-xl border border-border overflow-hidden bg-card">
-            <div className="relative h-36 overflow-hidden" style={{ background: '#0a0a0a' }}>
-              <img src="/magazines/sany/excavator.jpg" alt="SANY" className="absolute inset-0 w-full h-full object-cover opacity-80" />
-              <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.82) 100%)' }} />
-              <div className="absolute top-2 left-2">
-                <span className="text-[10px] font-bold text-white px-2 py-0.5 rounded" style={{ background: '#C8102E' }}>SANY</span>
-              </div>
-              <div className="absolute bottom-2 left-3 right-3">
-                <p className="text-white font-black text-sm leading-tight" style={{ fontFamily: 'Barlow Condensed,sans-serif' }}>Quality Changes the World</p>
-              </div>
-            </div>
-            <div className="p-3">
-              <div className="flex items-start justify-between gap-2 mb-1">
-                <p className="font-semibold text-sm">SANY Group</p>
-                <span className="text-[10px] font-bold bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400 px-2 py-0.5 rounded-full flex-shrink-0">Interactive Carousel</span>
-              </div>
-              <p className="text-xs text-muted-foreground">5-product auto-rotating carousel · Exhibition Guide p.4</p>
-              <div className="mt-2 flex items-center gap-1.5 flex-wrap">
-                {['Excavators', 'Pump Trucks', 'Electric', 'Service', '+1'].map(t => (
-                  <span key={t} className="text-[10px] bg-muted px-1.5 py-0.5 rounded">{t}</span>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Jetmaster Video Ad */}
-          <div className="rounded-xl border border-border overflow-hidden bg-card">
-            <div className="relative h-36 overflow-hidden">
-              <img src="/magazines/ads/ad-jetmaster.jpg" alt="Jetmaster" className="absolute inset-0 w-full h-full object-cover" />
-              <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 45%, rgba(0,0,0,0.75) 100%)' }} />
-              <div className="absolute top-2 right-2">
-                <span className="flex items-center gap-1 text-[10px] font-bold text-white px-2 py-0.5 rounded" style={{ background: '#cc0000' }}>
-                  <svg width="10" height="7" viewBox="0 0 24 17" fill="white">
-                    <path d="M23.5 2.7a3 3 0 0 0-2.1-2.1C19.5 0 12 0 12 0S4.5 0 2.6.6A3 3 0 0 0 .5 2.7C0 4.6 0 8.5 0 8.5s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1C4.5 17 12 17 12 17s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8z"/>
-                    <polygon fill="#cc0000" points="9.5,12.5 9.5,4.5 15.8,8.5"/>
-                    <polygon fill="white" points="9.5,12.5 9.5,4.5 15.8,8.5"/>
-                  </svg>
-                  YouTube
-                </span>
-              </div>
-              <div className="absolute bottom-2 left-3">
-                <p className="text-white font-black text-sm leading-tight" style={{ fontFamily: 'Barlow Condensed,sans-serif' }}>Fireplaces &amp; Braais</p>
-              </div>
-            </div>
-            <div className="p-3">
-              <div className="flex items-start justify-between gap-2 mb-1">
-                <p className="font-semibold text-sm">Jetmaster</p>
-                <span className="text-[10px] font-bold bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400 px-2 py-0.5 rounded-full flex-shrink-0">Video Embed</span>
-              </div>
-              <p className="text-xs text-muted-foreground">Ad image + YouTube product video · Exhibition Guide p.7</p>
-              <div className="mt-2">
-                <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded font-mono">youtu.be/onaJrcaNsC4</span>
-              </div>
-            </div>
-          </div>
-
-        </div>
       </Section>
 
       {/* ── Sponsored Announcements ── */}

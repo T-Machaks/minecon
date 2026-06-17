@@ -1,6 +1,9 @@
 import HTMLFlipBook from 'react-pageflip';
 import { forwardRef, useRef, useState, useEffect, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight, ExternalLink, Play, BookOpen, ArrowLeft, FileText } from 'lucide-react';
+import { GuidePage as GuidePageData } from '@/api/entities';
+import { track } from '@/lib/tracking';
 
 // ── Page wrapper required by react-pageflip ──────────────────────────────────
 const MagazinePage = forwardRef(function MagazinePage({ children }, ref) {
@@ -28,7 +31,7 @@ function PNum({ n, right }) {
   );
 }
 
-function AdLink({ href, children, bg = '#fff', color = '#0f172a' }) {
+function AdLink({ href, children, bg = '#fff', color = '#0f172a', onAdClick }) {
   return (
     <a
       href={href}
@@ -38,10 +41,40 @@ function AdLink({ href, children, bg = '#fff', color = '#0f172a' }) {
       style={{ background: bg, color, fontSize: 11, textDecoration: 'none' }}
       onMouseDown={e => e.stopPropagation()}
       onTouchStart={e => e.stopPropagation()}
-      onClick={e => e.stopPropagation()}
+      onClick={e => { e.stopPropagation(); onAdClick?.(); }}
     >
       {children}
     </a>
+  );
+}
+
+function ManagedImageAd({ config, defaultSrc, advertiser, contain = false }) {
+  const imageUrl = config?.image_url || defaultSrc;
+  const clickUrl = config?.click_url;
+  const stop = e => e.stopPropagation();
+  const imgStyle = { objectFit: contain ? 'contain' : 'fill' };
+  const imgClass = contain ? 'w-full select-none' : 'absolute inset-0 w-full h-full select-none';
+  const wrapper = contain ? 'absolute inset-0 bg-white flex flex-col items-center justify-center' : 'absolute inset-0';
+
+  if (clickUrl) {
+    return (
+      <a
+        href={clickUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`block ${wrapper}`}
+        onMouseDown={stop}
+        onTouchStart={stop}
+        onClick={e => { stop(e); track('', advertiser, 'ad_click', 'magazine'); }}
+      >
+        <img src={imageUrl} alt={advertiser} className={imgClass} style={imgStyle} draggable={false} />
+      </a>
+    );
+  }
+  return (
+    <div className={wrapper}>
+      <img src={imageUrl} alt={advertiser} className={imgClass} style={imgStyle} draggable={false} />
+    </div>
   );
 }
 
@@ -190,7 +223,7 @@ function ContentsPage() {
 }
 
 // ── PAGE 4: SANY Ad (CLICKABLE) ───────────────────────────────────────────────
-function SANYCarouselAd() {
+function SANYCarouselAd({ config }) {
   const slides = [
     {
       img: '/magazines/sany/excavator.jpg',
@@ -238,6 +271,12 @@ function SANYCarouselAd() {
   const [paused, setPaused] = useState(false);
   const total = slides.length;
   const s = slides[idx];
+  const firstRender = useRef(true);
+
+  useEffect(() => {
+    if (firstRender.current) { firstRender.current = false; return; }
+    track('', 'SANY Group', 'carousel_view', 'magazine');
+  }, [idx]);
 
   useEffect(() => {
     if (paused) return;
@@ -314,7 +353,12 @@ function SANYCarouselAd() {
         </div>
 
         {/* CTA */}
-        <AdLink href="https://www.sanyglobal.com" bg="#C8102E" color="#fff">
+        <AdLink
+          href={config?.click_url || 'https://www.sanyglobal.com'}
+          bg="#C8102E"
+          color="#fff"
+          onAdClick={() => track('', 'SANY Group', 'ad_click', 'magazine')}
+        >
           <ExternalLink size={11} /> sanyglobal.com — Quality Changes the World ↗
         </AdLink>
       </div>
@@ -372,23 +416,44 @@ function EventOverviewPage() {
   );
 }
 
-// ── PAGE 6: Elimobil ─────────────────────────────────────────────────────────
-function ElimobilAdPage() {
-  return (
-    <div className="absolute inset-0">
-      <img src="/magazines/ads/ad-elimobil.jpg" alt="Elimobil" className="absolute inset-0 w-full h-full select-none" style={{ objectFit: 'fill' }} draggable={false} />
-    </div>
-  );
-}
-
 // ── PAGE 7: Jetmaster ────────────────────────────────────────────────────────
-function JetmasterAdPage() {
+function JetmasterAdPage({ config }) {
+  const imageUrl = config?.image_url || '/magazines/ads/ad-jetmaster.jpg';
+  const videoSrc = config?.video_url || 'https://minecon.s3.af-south-1.amazonaws.com/videos/jetmaster-grill.mp4';
   const stop = e => { e.stopPropagation(); };
+  const playTracked = useRef(false);
+
+  const handlePlay = () => {
+    if (playTracked.current) return;
+    playTracked.current = true;
+    track('', 'Jetmaster', 'video_play', 'magazine');
+  };
+
+  const handleEnded = () => {
+    track('', 'Jetmaster', 'video_complete', 'magazine');
+    // Allow re-tracking if the video is watched again from the start
+    playTracked.current = false;
+  };
+
   return (
     <div className="absolute inset-0 flex flex-col overflow-hidden" style={{ background: '#000' }}>
-      {/* Ad image — top 56% */}
+      {/* Ad image — top 56%, optionally clickable */}
       <div className="shrink-0" style={{ height: '56%' }}>
-        <img src="/magazines/ads/ad-jetmaster.jpg" alt="Jetmaster Fireplaces & Braais" className="w-full h-full select-none" style={{ objectFit: 'fill' }} draggable={false} />
+        {config?.click_url ? (
+          <a
+            href={config.click_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full h-full"
+            onMouseDown={stop}
+            onTouchStart={stop}
+            onClick={e => { stop(e); track('', 'Jetmaster', 'ad_click', 'magazine'); }}
+          >
+            <img src={imageUrl} alt="Jetmaster Fireplaces & Braais" className="w-full h-full select-none" style={{ objectFit: 'fill' }} draggable={false} />
+          </a>
+        ) : (
+          <img src={imageUrl} alt="Jetmaster Fireplaces & Braais" className="w-full h-full select-none" style={{ objectFit: 'fill' }} draggable={false} />
+        )}
       </div>
       {/* Video — bottom 44% */}
       <div
@@ -396,11 +461,14 @@ function JetmasterAdPage() {
         onMouseDown={stop} onTouchStart={stop} onPointerDown={stop} onClick={stop}
       >
         <video
-          src="https://minecon.s3.af-south-1.amazonaws.com/UniGrill%2B47_%2BStainless%2Bsteel%2Bbuilt%2Bin%2Bgrill.mp4"
+          src={videoSrc}
           controls
+          playsInline
           preload="metadata"
           className="w-full h-full"
           style={{ background: '#000', display: 'block' }}
+          onPlay={handlePlay}
+          onEnded={handleEnded}
         />
       </div>
     </div>
@@ -489,14 +557,6 @@ function IndustryInsightPage() {
   );
 }
 
-// ── PAGE 10: Zambezi Gas & Coal ──────────────────────────────────────────────
-function ZambeziCoalAdPage() {
-  return (
-    <div className="absolute inset-0">
-      <img src="/magazines/ads/ad-zambezi.jpg" alt="Zambezi Gas & Coal Mine" className="absolute inset-0 w-full h-full select-none" style={{ objectFit: 'fill' }} draggable={false} />
-    </div>
-  );
-}
 
 // ── PAGE 11: Exhibitor Directory ──────────────────────────────────────────────
 function ExhibitorDirectoryPage() {
@@ -535,23 +595,6 @@ function ExhibitorDirectoryPage() {
   );
 }
 
-// ── PAGE 12: Zimtile ─────────────────────────────────────────────────────────
-function ZimtileAdPage() {
-  return (
-    <div className="absolute inset-0">
-      <img src="/magazines/ads/ad-zimtile.jpg" alt="Zimtile" className="absolute inset-0 w-full h-full select-none" style={{ objectFit: 'fill' }} draggable={false} />
-    </div>
-  );
-}
-
-// ── PAGE 13: Woodlot Timbers (half-page ad) ───────────────────────────────────
-function WoodlotAdPage() {
-  return (
-    <div className="absolute inset-0 bg-white flex flex-col items-center justify-center">
-      <img src="/magazines/ads/ad-woodlot.jpg" alt="Woodlot Timbers" className="w-full select-none" style={{ objectFit: 'contain' }} draggable={false} />
-    </div>
-  );
-}
 
 // ── PAGE 13: Why Attend ───────────────────────────────────────────────────────
 function WhyAttendPage() {
@@ -637,6 +680,13 @@ function GuideViewer({ onBack, isMobile }) {
   const [bookKey, setBookKey] = useState(isMobile ? 'mb' : 'dk');
   const [currentPage, setCurrentPage] = useState(0);
 
+  const { data: guidePageData = [] } = useQuery({
+    queryKey: ['guide-pages'],
+    queryFn: () => GuidePageData.list(),
+    staleTime: 60_000,
+  });
+  const cfg = Object.fromEntries(guidePageData.map(p => [String(p.page_num), p]));
+
   useEffect(() => {
     setBookKey(isMobile ? 'mb' : 'dk');
   }, [isMobile]);
@@ -693,16 +743,16 @@ function GuideViewer({ onBack, isMobile }) {
           <MagazinePage key="p1"><CoverPage /></MagazinePage>
           <MagazinePage key="p2"><WelcomePage /></MagazinePage>
           <MagazinePage key="p3"><ContentsPage /></MagazinePage>
-          <MagazinePage key="p4"><SANYCarouselAd /></MagazinePage>
+          <MagazinePage key="p4"><SANYCarouselAd config={cfg['4']} /></MagazinePage>
           <MagazinePage key="p5"><EventOverviewPage /></MagazinePage>
-          <MagazinePage key="p6"><ElimobilAdPage /></MagazinePage>
-          <MagazinePage key="p7"><JetmasterAdPage /></MagazinePage>
+          <MagazinePage key="p6"><ManagedImageAd config={cfg['6']} defaultSrc="/magazines/ads/ad-elimobil.jpg" advertiser="Elimobil" /></MagazinePage>
+          <MagazinePage key="p7"><JetmasterAdPage config={cfg['7']} /></MagazinePage>
           <MagazinePage key="p8"><SitePlanPage /></MagazinePage>
           <MagazinePage key="p9"><IndustryInsightPage /></MagazinePage>
-          <MagazinePage key="p10"><ZambeziCoalAdPage /></MagazinePage>
+          <MagazinePage key="p10"><ManagedImageAd config={cfg['10']} defaultSrc="/magazines/ads/ad-zambezi.jpg" advertiser="Zambezi Gas & Coal" /></MagazinePage>
           <MagazinePage key="p11"><ExhibitorDirectoryPage /></MagazinePage>
-          <MagazinePage key="p12"><ZimtileAdPage /></MagazinePage>
-          <MagazinePage key="p13"><WoodlotAdPage /></MagazinePage>
+          <MagazinePage key="p12"><ManagedImageAd config={cfg['12']} defaultSrc="/magazines/ads/ad-zimtile.jpg" advertiser="Zimtile" /></MagazinePage>
+          <MagazinePage key="p13"><ManagedImageAd config={cfg['13']} defaultSrc="/magazines/ads/ad-woodlot.jpg" advertiser="Woodlot Timbers" contain /></MagazinePage>
           <MagazinePage key="p14"><WhyAttendPage /></MagazinePage>
           <MagazinePage key="p15"><BackCoverPage /></MagazinePage>
         </HTMLFlipBook>
@@ -839,6 +889,80 @@ function ADMAFlipBook({ onBack, isMobile }) {
   );
 }
 
+// ── MineCon Magazine (stubbed — cover only) ───────────────────────────────────
+function MineConMagazineCover() {
+  return (
+    <div className="absolute inset-0 flex flex-col" style={{ background: '#080c14' }}>
+      {/* Masthead */}
+      <div className="shrink-0 px-4 py-2 flex items-center justify-between" style={{ background: '#f59e0b' }}>
+        <span className="font-black uppercase tracking-[0.15em] text-slate-900" style={{ fontSize: 17, fontFamily: 'Barlow Condensed,sans-serif' }}>MINECON</span>
+        <span className="font-black uppercase tracking-widest text-slate-900" style={{ fontSize: 8 }}>MAGAZINE</span>
+      </div>
+      {/* Issue line */}
+      <div className="px-4 py-1.5 shrink-0 flex justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <span className="text-slate-500" style={{ fontSize: 7.5 }}>Issue 1 · October 2026</span>
+        <span className="text-slate-500" style={{ fontSize: 7.5 }}>minecon.global</span>
+      </div>
+      {/* Hero */}
+      <div className="flex-1 relative overflow-hidden" style={{ background: 'linear-gradient(175deg,#0d1829 0%,#162140 50%,#0b1322 100%)' }}>
+        <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(circle,#f59e0b 1px,transparent 1px)', backgroundSize: '18px 18px' }} />
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 70% 50% at 50% 90%,rgba(245,158,11,0.10) 0%,transparent 70%)' }} />
+        <div className="absolute top-5 inset-x-5">
+          <div className="text-amber-400 font-bold uppercase tracking-[0.2em] mb-2" style={{ fontSize: 7.5 }}>Cover Feature</div>
+          <div className="text-white font-black leading-none" style={{ fontSize: 24, fontFamily: 'Barlow Condensed,sans-serif', lineHeight: 1 }}>
+            ZIMBABWE'S<br />MINING<br />RENAISSANCE
+          </div>
+          <div className="h-0.5 w-10 mt-3" style={{ background: '#f59e0b' }} />
+          <div className="text-slate-400 mt-2.5 leading-relaxed" style={{ fontSize: 8 }}>
+            Critical minerals, new investment &amp;<br />the technology reshaping our sector
+          </div>
+        </div>
+        <div className="absolute inset-x-0 bottom-0 flex justify-center pb-12 opacity-[0.08]">
+          <img src="/minecon-logo.png" alt="" className="w-20 h-20 object-contain" />
+        </div>
+        <div className="absolute bottom-3 inset-x-5 space-y-1.5">
+          {['Lithium Rush: What It Means for Zimbabwe','Top 20 Mining Companies to Watch 2026','Technology Special: AI on the Mine Floor'].map(line => (
+            <div key={line} className="flex items-start gap-1.5">
+              <span className="text-amber-400 font-bold leading-tight flex-shrink-0" style={{ fontSize: 7.5 }}>▸</span>
+              <span className="text-slate-300 leading-tight" style={{ fontSize: 7.5 }}>{line}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Footer */}
+      <div className="px-4 py-2 shrink-0 flex items-center justify-between" style={{ background: '#05080f', borderTop: '2px solid #f59e0b' }}>
+        <span className="text-amber-400 font-bold uppercase tracking-wide" style={{ fontSize: 8 }}>Inaugural Edition</span>
+        <span className="text-slate-500" style={{ fontSize: 7.5 }}>October 2026</span>
+      </div>
+    </div>
+  );
+}
+
+function MineConMagazineViewer({ onBack }) {
+  return (
+    <div className="pb-24 pt-2">
+      <div className="px-4 mb-4 flex items-center gap-3">
+        <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Publications
+        </button>
+        <span className="text-muted-foreground">/</span>
+        <span className="text-sm font-semibold">MineCon Magazine — Issue 1</span>
+      </div>
+      <div className="flex flex-col items-center px-4">
+        <div className="relative rounded-xl overflow-hidden shadow-2xl w-full" style={{ maxWidth: 300, aspectRatio: '3/4' }}>
+          <MineConMagazineCover />
+        </div>
+        <div className="mt-6 max-w-xs text-center space-y-1">
+          <p className="text-sm font-semibold">First Edition — Coming Soon</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            The MineCon Magazine is under production. The inaugural issue will feature industry interviews, product spotlights, and in-depth mining sector analysis.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Magazine library (home screen) ───────────────────────────────────────────
 function MagazineLibrary({ onSelect }) {
   const publications = [
@@ -887,6 +1011,14 @@ function MagazineLibrary({ onSelect }) {
           </div>
         </div>
       ),
+    },
+    {
+      id: 'minecon-magazine',
+      title: 'MineCon Magazine',
+      subtitle: 'Industry Publication',
+      tag: 'Coming Soon · Issue 1 · Oct 2026',
+      type: 'magazine',
+      cover: <MineConMagazineCover />,
     },
     {
       id: 'adma',
@@ -953,7 +1085,8 @@ export default function Magazine() {
     return () => window.removeEventListener('resize', handler);
   }, []);
 
-  if (view === 'guide') return <GuideViewer  onBack={() => setView(null)} isMobile={isMobile} />;
-  if (view === 'adma')  return <ADMAFlipBook onBack={() => setView(null)} isMobile={isMobile} />;
+  if (view === 'guide')            return <GuideViewer           onBack={() => setView(null)} isMobile={isMobile} />;
+  if (view === 'minecon-magazine') return <MineConMagazineViewer onBack={() => setView(null)} />;
+  if (view === 'adma')             return <ADMAFlipBook          onBack={() => setView(null)} isMobile={isMobile} />;
   return <MagazineLibrary onSelect={setView} />;
 }

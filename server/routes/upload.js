@@ -23,4 +23,23 @@ r.post('/booth-image-url', async (req, res) => {
   }
 });
 
+r.post('/guide-image-url', async (req, res) => {
+  try {
+    const { pageNum, oldImageUrl } = req.body;
+    if (!pageNum) return res.status(400).json({ error: 'pageNum required' });
+
+    if (oldImageUrl) {
+      const url = new URL(oldImageUrl);
+      const key = decodeURIComponent(url.pathname.slice(1));
+      await deleteS3Object(key);
+    }
+
+    const key = `guide-images/page-${pageNum}-${Date.now()}.jpg`;
+    const { uploadUrl, publicUrl } = await createPresignedPut(key, 'image/jpeg');
+    res.json({ uploadUrl, publicUrl });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 export default r;

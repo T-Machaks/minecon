@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/AuthContext';
 import {
   Eye, Calendar, Megaphone, TrendingUp,
   MousePointerClick, Star, BarChart2, QrCode, UserCheck,
-  Download, Lock, Users, X, ArrowRight,
+  Download, Lock, Users, X, ArrowRight, BookOpen, Play,
 } from 'lucide-react';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
@@ -53,6 +53,25 @@ function getLast14Days() {
 function dayLabel(iso) {
   const d = new Date(iso + 'T00:00:00');
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
+
+function exportGuideAnalyticsCSV(stats, boothName) {
+  const date = new Date().toISOString().slice(0, 10);
+  const rows = [
+    ['Ad Clicks (Exhibition Guide)', stats.adClicks],
+    ['Carousel Slide Views', stats.carouselViews],
+    ['Video Plays', stats.videoPlays],
+    ['Video Completes', stats.videoCompletes],
+    ['Video Completion Rate', stats.videoPlays > 0 ? `${Math.round((stats.videoCompletes / stats.videoPlays) * 100)}%` : '—'],
+  ];
+  const csv = [['Metric', 'Count'], ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${boothName.replace(/\s+/g, '_')}_guide_analytics_${date}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function exportLeadsCSV(leads, boothName) {
@@ -154,6 +173,14 @@ export default function ExhibitorAnalytics() {
   const recent = [...events]
     .sort((a, b) => b.created_date?.localeCompare(a.created_date ?? '') ?? 0)
     .slice(0, 10);
+
+  // Exhibition Guide derived stats
+  const guideAdClicks       = events.filter(e => e.source === 'magazine' && e.type === 'ad_click').length;
+  const guideVideoPlays     = events.filter(e => e.source === 'magazine' && e.type === 'video_play').length;
+  const guideVideoCompletes = events.filter(e => e.source === 'magazine' && e.type === 'video_complete').length;
+  const guideCarouselViews  = events.filter(e => e.source === 'magazine' && e.type === 'carousel_view').length;
+  const hasGuideActivity    = guideAdClicks + guideVideoPlays + guideCarouselViews > 0;
+  const guideStats = { adClicks: guideAdClicks, videoPlays: guideVideoPlays, videoCompletes: guideVideoCompletes, carouselViews: guideCarouselViews };
 
   const isPremium = (TIER_ORDER[myBooth?.tier] ?? 0) >= TIER_ORDER.Gold;
   const isDiamond = myBooth?.tier === 'Diamond';
@@ -355,6 +382,79 @@ export default function ExhibitorAnalytics() {
                 <div className="bg-muted/40 rounded-xl border border-border p-4 h-20" />
               </div>
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* Exhibition Guide Performance */}
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <BookOpen className="w-5 h-5 text-amber" />
+            <div>
+              <h2 className="font-heading text-sm font-bold uppercase tracking-wide">Exhibition Guide</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Engagement from the digital guide</p>
+            </div>
+          </div>
+          <button
+            onClick={() => exportGuideAnalyticsCSV(guideStats, myBooth.name)}
+            disabled={!hasGuideActivity}
+            className="flex items-center gap-1.5 text-xs border border-border text-foreground/70 font-semibold px-3 py-2 rounded-lg hover:bg-muted active:scale-95 transition-all duration-150 disabled:opacity-40 disabled:pointer-events-none"
+          >
+            <Download className="w-3.5 h-3.5" /> Export CSV
+          </button>
+        </div>
+        {hasGuideActivity ? (
+          <div className="p-5 space-y-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-xl border border-border p-4">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <MousePointerClick className="w-3.5 h-3.5 text-emerald-500" />
+                  <span className="text-[10px] text-muted-foreground">Ad Clicks</span>
+                </div>
+                <div className="font-heading text-2xl font-bold">{guideAdClicks}</div>
+              </div>
+              <div className="bg-violet-50 dark:bg-violet-950/30 rounded-xl border border-border p-4">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <BarChart2 className="w-3.5 h-3.5 text-violet-500" />
+                  <span className="text-[10px] text-muted-foreground">Carousel Views</span>
+                </div>
+                <div className="font-heading text-2xl font-bold">{guideCarouselViews}</div>
+              </div>
+              <div className="bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-border p-4">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Play className="w-3.5 h-3.5 text-blue-500" />
+                  <span className="text-[10px] text-muted-foreground">Video Plays</span>
+                </div>
+                <div className="font-heading text-2xl font-bold">{guideVideoPlays}</div>
+              </div>
+              <div className="bg-card rounded-xl border border-border p-4">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <TrendingUp className="w-3.5 h-3.5 text-amber" />
+                  <span className="text-[10px] text-muted-foreground">Video Complete</span>
+                </div>
+                <div className="font-heading text-2xl font-bold">{guideVideoCompletes}</div>
+                {guideVideoPlays > 0 && (
+                  <>
+                    <div className="mt-2 h-1 rounded-full bg-muted overflow-hidden">
+                      <div
+                        className="h-full bg-amber rounded-full"
+                        style={{ width: `${(guideVideoCompletes / guideVideoPlays) * 100}%` }}
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      {Math.round((guideVideoCompletes / guideVideoPlays) * 100)}% completion
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="py-10 text-center text-muted-foreground">
+            <BookOpen className="w-8 h-8 mx-auto mb-2 opacity-30" />
+            <p className="text-sm">No guide engagement yet.</p>
+            <p className="text-xs mt-1">Clicks and views from your Exhibition Guide pages will appear here.</p>
           </div>
         )}
       </div>

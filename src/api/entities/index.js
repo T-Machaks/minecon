@@ -9,3 +9,4 @@ export { Registration } from "./Registration";
 export { Sponsor } from "./Sponsor";
 export { User } from "./User";
 export { VirtualEnquiry } from "./VirtualEnquiry";
+export { GuidePage } from "./GuidePage";

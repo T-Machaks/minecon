@@ -1,11 +1,13 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Exhibitor, MeetingRequest, Announcement, VirtualEnquiry } from '@/api/entities';
-import { Users, Calendar, QrCode, BarChart2, TrendingUp, CheckCircle, Clock, XCircle, Globe, ToggleLeft, ToggleRight, MessageSquare, Megaphone, UserCog } from 'lucide-react';
+import { Users, Calendar, QrCode, BarChart2, TrendingUp, CheckCircle, Clock, XCircle, Globe, ToggleLeft, ToggleRight, MessageSquare, Megaphone, UserCog, AlertTriangle, ChevronDown, ChevronUp, ShieldCheck } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useAppSettings } from '@/lib/AppSettingsContext';
 import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+
+const VALID_SECTIONS = ['Main Hall', 'Exhibition Hall', 'Suppliers Zone', 'Solutions Zone'];
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -37,6 +39,32 @@ export default function Dashboard() {
 
   const pendingMeetings = meetings.filter(m => m.status === 'Pending').length;
   const confirmedMeetings = meetings.filter(m => m.status === 'Confirmed').length;
+
+  const sanityIssues = useMemo(() => {
+    const noLogo = exhibitors.filter(e => !e.logo_url);
+    const noDesc = exhibitors.filter(e => !e.description?.trim());
+    const noBooth = exhibitors.filter(e => !e.booth?.trim());
+    const badSection = exhibitors.filter(e => e.section && !VALID_SECTIONS.includes(e.section));
+
+    const boothGroups = {};
+    exhibitors.forEach(e => { if (e.booth) { boothGroups[e.booth] = boothGroups[e.booth] || []; boothGroups[e.booth].push(e.name); } });
+    const dupBooths = Object.entries(boothGroups).filter(([, ns]) => ns.length > 1);
+
+    const noAnnoBody = announcements.filter(a => !a.body?.trim());
+
+    const exhibitorIds = new Set(exhibitors.map(e => e.id));
+    const orphanMeetings = meetings.filter(m => m.exhibitor_id && !exhibitorIds.has(m.exhibitor_id));
+
+    return [
+      noLogo.length     && { label: 'Exhibitors missing logo',          count: noLogo.length,      items: noLogo.map(e => e.name) },
+      noDesc.length     && { label: 'Exhibitors missing description',   count: noDesc.length,      items: noDesc.map(e => e.name) },
+      noBooth.length    && { label: 'Exhibitors missing booth number',  count: noBooth.length,     items: noBooth.map(e => e.name) },
+      badSection.length && { label: 'Exhibitors with invalid section',  count: badSection.length,  items: badSection.map(e => `${e.name} (${e.section})`) },
+      dupBooths.length  && { label: 'Duplicate booth numbers',          count: dupBooths.length,   items: dupBooths.map(([b, ns]) => `${b}: ${ns.join(', ')}`) },
+      noAnnoBody.length && { label: 'Announcements missing body text',  count: noAnnoBody.length,  items: noAnnoBody.map(a => a.title || a.id) },
+      orphanMeetings.length && { label: 'Meetings with missing exhibitor', count: orphanMeetings.length, items: orphanMeetings.map(m => m.id) },
+    ].filter(Boolean);
+  }, [exhibitors, meetings, announcements]);
 
   const statCards = [
     { label: 'Total Exhibitors', value: exhibitors.length || 0, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
@@ -151,6 +179,9 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Sanity check — organizers only */}
+      {!isPartner && <SanityCheck issues={sanityIssues} />}
+
       {/* Exhibitors by tier */}
       {exhibitors.length > 0 && (
         <div className="bg-card border border-border rounded-xl p-4 mb-4">
@@ -214,6 +245,69 @@ export default function Dashboard() {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+function SanityCheck({ issues }) {
+  const [open, setOpen] = useState(true);
+  const [expandedIdx, setExpandedIdx] = useState(null);
+
+  return (
+    <div className="bg-card border border-border rounded-xl overflow-hidden mb-4">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/40 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-muted-foreground" />
+          <span className="font-heading text-sm font-bold uppercase tracking-wide">Sanity Check</span>
+          {issues.length > 0
+            ? <span className="text-[10px] font-bold bg-amber/10 text-amber px-1.5 py-0.5 rounded">{issues.length} issue{issues.length !== 1 ? 's' : ''}</span>
+            : <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 px-1.5 py-0.5 rounded">All clear</span>
+          }
+        </div>
+        {open ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+      </button>
+
+      {open && (
+        <div className="border-t border-border">
+          {issues.length === 0 ? (
+            <div className="flex items-center gap-3 px-4 py-4 text-emerald-600 dark:text-emerald-400">
+              <CheckCircle className="w-4 h-4 flex-shrink-0" />
+              <span className="text-sm">No data issues found — all checks passed.</span>
+            </div>
+          ) : (
+            <div className="divide-y divide-border">
+              {issues.map((issue, i) => (
+                <div key={i}>
+                  <button
+                    onClick={() => setExpandedIdx(expandedIdx === i ? null : i)}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/40 transition-colors text-left"
+                  >
+                    <AlertTriangle className="w-4 h-4 text-amber flex-shrink-0" />
+                    <span className="text-sm flex-1">{issue.label}</span>
+                    <span className="text-xs font-bold text-amber bg-amber/10 px-1.5 py-0.5 rounded mr-1">{issue.count}</span>
+                    {expandedIdx === i
+                      ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                      : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />}
+                  </button>
+                  {expandedIdx === i && (
+                    <ul className="px-4 pb-3 pl-11 space-y-0.5">
+                      {issue.items.slice(0, 12).map((item, j) => (
+                        <li key={j} className="text-xs text-muted-foreground">• {item}</li>
+                      ))}
+                      {issue.items.length > 12 && (
+                        <li className="text-xs text-muted-foreground">+ {issue.items.length - 12} more</li>
+                      )}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
