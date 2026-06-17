@@ -93,11 +93,12 @@ export default function ExhibitorHome() {
         myBooth.id,
         myBooth.booth_image_url || null
       );
-      await fetch(uploadUrl, {
+      const s3Res = await fetch(uploadUrl, {
         method: 'PUT',
         headers: { 'Content-Type': 'image/jpeg' },
         body: blob,
       });
+      if (!s3Res.ok) throw new Error(`S3 upload failed: ${s3Res.status}`);
       await updateBoothImage.mutateAsync(publicUrl);
     } finally {
       setUploadingImage(false);

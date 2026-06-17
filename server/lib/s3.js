@@ -5,9 +5,10 @@ const s3 = new S3Client({ region: 'af-south-1' });
 const BUCKET = 'minecon';
 
 export async function createPresignedPut(key, contentType) {
-  const cmd = new PutObjectCommand({ Bucket: BUCKET, Key: key, ContentType: contentType, ACL: 'public-read' });
+  const cmd = new PutObjectCommand({ Bucket: BUCKET, Key: key, ContentType: contentType });
   const uploadUrl = await getSignedUrl(s3, cmd, { expiresIn: 300 });
-  const publicUrl = `https://${BUCKET}.s3.af-south-1.amazonaws.com/${encodeURIComponent(key)}`;
+  // Encode each path segment individually — never encode the '/' separator
+  const publicUrl = `https://${BUCKET}.s3.af-south-1.amazonaws.com/${key.split('/').map(encodeURIComponent).join('/')}`;
   return { uploadUrl, publicUrl };
 }
 
