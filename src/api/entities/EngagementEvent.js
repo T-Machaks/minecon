@@ -1,55 +1,20 @@
-const STORAGE_KEY = "entities_engagements";
+import { apiFetch } from '@/api/client';
 
-function load() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
-
-function save(items) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-}
-
-function generateId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2);
-}
+const BASE = '/api/engagements';
 
 export const EngagementEvent = {
   async list(sortBy = null) {
-    const items = load();
-    if (sortBy) {
-      const desc = sortBy.startsWith('-');
-      const key = desc ? sortBy.slice(1) : sortBy;
-      items.sort((a, b) => {
-        if (a[key] > b[key]) return desc ? -1 : 1;
-        if (a[key] < b[key]) return desc ? 1 : -1;
-        return 0;
-      });
-    }
-    return items;
+    return apiFetch(sortBy ? `${BASE}?sortBy=${sortBy}` : BASE);
   },
-
   async create(data) {
-    const items = load();
-    const newItem = { id: generateId(), ...data, created_date: new Date().toISOString() };
-    items.push(newItem);
-    save(items);
-    return newItem;
+    return apiFetch(BASE, { method: 'POST', body: data });
   },
-
   async filter(query = {}) {
-    const items = load();
-    return items.filter((item) =>
-      Object.entries(query).every(([key, value]) => item[key] === value)
-    );
+    return apiFetch(`${BASE}?filter=${encodeURIComponent(JSON.stringify(query))}`);
   },
-
   async filterByExhibitor(exhibitorId, exhibitorName) {
-    const items = load();
-    return items.filter(
-      (item) => item.exhibitor_id === exhibitorId || item.exhibitor_name === exhibitorName
+    return apiFetch(
+      `${BASE}/by-exhibitor?id=${encodeURIComponent(exhibitorId)}&name=${encodeURIComponent(exhibitorName)}`
     );
   },
 };

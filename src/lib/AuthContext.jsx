@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { User } from '@/api/entities';
 
 const AuthContext = createContext();
 
@@ -6,14 +7,6 @@ const AuthContext = createContext();
 const CONSOLE_ROLES = ['organizer', 'marketing_partner'];
 // Roles with exhibitor portal access
 const EXHIBITOR_ROLES = ['exhibitor'];
-
-function loadUsers() {
-  try { return JSON.parse(localStorage.getItem('entities_users') || '[]'); } catch { return []; }
-}
-
-function findUserByEmail(email) {
-  return loadUsers().find(u => u.email?.toLowerCase() === email.toLowerCase()) || null;
-}
 
 function redirectForRole(role) {
   if (CONSOLE_ROLES.includes(role)) return '/console';
@@ -57,43 +50,39 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Stub login — looks up entities_users by email (password not validated in stub mode)
   const login = async (email) => {
-    const found = findUserByEmail(email);
-    if (!found) return { success: false, error: 'No account found with that email.' };
-    const session = {
-      id: found.id,
-      email: found.email,
-      full_name: found.full_name,
-      role: found.role,
-      company: found.company || '',
-    };
-    localStorage.setItem('minecon_user', JSON.stringify(session));
-    setUser(session);
-    setIsAuthenticated(true);
-    return { success: true, redirectTo: redirectForRole(found.role) };
+    try {
+      const found = await User.findByEmail(email);
+      if (!found) return { success: false, error: 'No account found with that email.' };
+      const session = {
+        id: found.id,
+        email: found.email,
+        full_name: found.full_name,
+        role: found.role,
+        company: found.company || '',
+      };
+      localStorage.setItem('minecon_user', JSON.stringify(session));
+      setUser(session);
+      setIsAuthenticated(true);
+      return { success: true, redirectTo: redirectForRole(found.role) };
+    } catch (e) {
+      return { success: false, error: e.message || 'Login failed.' };
+    }
   };
 
-  // Stub register — creates a user in entities_users with attendee role
   const register = async (data) => {
-    const users = loadUsers();
-    if (users.find(u => u.email?.toLowerCase() === data.email?.toLowerCase())) {
-      return { success: false, error: 'An account with that email already exists.' };
+    try {
+      const existing = await User.findByEmail(data.email);
+      if (existing) return { success: false, error: 'An account with that email already exists.' };
+      const newUser = await User.create({ role: 'attendee', status: 'active', ...data });
+      const session = { id: newUser.id, email: newUser.email, full_name: newUser.full_name, role: newUser.role, company: newUser.company || '' };
+      localStorage.setItem('minecon_user', JSON.stringify(session));
+      setUser(session);
+      setIsAuthenticated(true);
+      return { success: true, redirectTo: '/' };
+    } catch (e) {
+      return { success: false, error: e.message || 'Registration failed.' };
     }
-    const newUser = {
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2),
-      role: 'attendee',
-      status: 'active',
-      created_date: new Date().toISOString(),
-      ...data,
-    };
-    users.push(newUser);
-    localStorage.setItem('entities_users', JSON.stringify(users));
-    const session = { id: newUser.id, email: newUser.email, full_name: newUser.full_name, role: newUser.role, company: newUser.company || '' };
-    localStorage.setItem('minecon_user', JSON.stringify(session));
-    setUser(session);
-    setIsAuthenticated(true);
-    return { success: true, redirectTo: '/' };
   };
 
   const logout = () => {

@@ -11,7 +11,7 @@ import QRCodeDisplay from '@/components/QRCodeDisplay';
 import AdBannerPreview from '@/components/exhibitor/AdBannerPreview';
 import { ADS } from '@/lib/adBanners';
 
-function resizeImage(file, maxDim = 1200, quality = 0.75) {
+function resizeImageToBlob(file, maxDim = 1200, quality = 0.75) {
   return new Promise((resolve, reject) => {
     const objUrl = URL.createObjectURL(file);
     const img = new window.Image();
@@ -22,7 +22,7 @@ function resizeImage(file, maxDim = 1200, quality = 0.75) {
       canvas.width = Math.round(img.width * scale);
       canvas.height = Math.round(img.height * scale);
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      resolve(canvas.toDataURL('image/jpeg', quality));
+      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Canvas toBlob failed')), 'image/jpeg', quality);
     };
     img.onerror = reject;
     img.src = objUrl;
@@ -88,8 +88,17 @@ export default function ExhibitorHome() {
     if (!file) return;
     setUploadingImage(true);
     try {
-      const dataUrl = await resizeImage(file);
-      await updateBoothImage.mutateAsync(dataUrl);
+      const blob = await resizeImageToBlob(file);
+      const { uploadUrl, publicUrl } = await Exhibitor.getBoothImageUploadUrl(
+        myBooth.id,
+        myBooth.booth_image_url || null
+      );
+      await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'image/jpeg' },
+        body: blob,
+      });
+      await updateBoothImage.mutateAsync(publicUrl);
     } finally {
       setUploadingImage(false);
       e.target.value = '';

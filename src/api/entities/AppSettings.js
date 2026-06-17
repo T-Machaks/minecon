@@ -1,28 +1,12 @@
-const STORAGE_KEY = "entities_app_settings";
+import { apiFetch } from '@/api/client';
 
-function load() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-  } catch {
-    return {};
-  }
-}
-
-function save(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
-
-const DEFAULTS = {
-  virtualExhibitionOpen: false,
-};
+const BASE = '/api/app-settings';
 
 export const AppSettings = {
   async get() {
-    return { ...DEFAULTS, ...load() };
+    return apiFetch(BASE);
   },
   async update(data) {
-    const updated = { ...DEFAULTS, ...load(), ...data };
-    save(updated);
-    return updated;
+    return apiFetch(BASE, { method: 'PUT', body: data });
   },
 };

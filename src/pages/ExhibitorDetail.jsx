@@ -7,7 +7,7 @@ import { track } from '@/lib/tracking';
 import TierBadge from '@/components/ui/TierBadge';
 import {
   ArrowLeft, Globe, Mail, Phone, Calendar, MapPin,
-  Video, Send, CheckCircle, FileText, ExternalLink
+  Video, Send, CheckCircle, FileText, ExternalLink, ImagePlus
 } from 'lucide-react';
 
 export default function ExhibitorDetail() {
@@ -153,6 +153,23 @@ export default function ExhibitorDetail() {
           </div>
         </div>
       </div>
+
+      {/* Booth stand image */}
+      {ex.booth_image_url && (
+        <div className="px-4 mt-4">
+          <div className="bg-card border border-border rounded-2xl overflow-hidden">
+            <div className="px-4 pt-3 pb-1 flex items-center gap-2">
+              <ImagePlus className="w-4 h-4 text-amber" />
+              <h2 className="font-heading text-sm font-bold uppercase tracking-wide">Booth Stand</h2>
+            </div>
+            <img
+              src={ex.booth_image_url}
+              alt={`${ex.name} booth stand`}
+              className="w-full object-cover max-h-72"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Video embed */}
       {ex.video_url && (

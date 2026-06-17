@@ -1,7 +1,14 @@
-// Local app client — no external SDK required.
-// Entities use localStorage; extend this if a real backend is added later.
+export async function apiFetch(path, options = {}) {
+  const res = await fetch(path, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options,
+    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+  });
+  if (!res.ok) {
+    const p = await res.json().catch(() => ({}));
+    throw new Error(p.error || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
 
-export const client = {
-  appId: "minecon",
-  isAuthenticated: () => true,
-};
+export const client = { appId: 'minecon', isAuthenticated: () => true };
