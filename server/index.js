@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import exhibitors from './routes/exhibitors.js';
 import users from './routes/users.js';
@@ -13,6 +14,7 @@ import appSettings from './routes/app-settings.js';
 import upload from './routes/upload.js';
 import guidePages from './routes/guide-pages.js';
 import magazinePages from './routes/magazine-pages.js';
+import chat from './routes/chat.js';
 
 const app = express();
 app.use(express.json({ limit: '2mb' }));
@@ -31,6 +33,7 @@ app.use('/api/app-settings',      appSettings);
 app.use('/api/upload',            upload);
 app.use('/api/guide-pages',       guidePages);
 app.use('/api/magazine-pages',    magazinePages);
+app.use('/api/chat',              chat);
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 

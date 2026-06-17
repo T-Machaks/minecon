@@ -11,6 +11,7 @@ import ConsoleShell from '@/components/layout/ConsoleShell';
 import ExhibitorShell from '@/components/layout/ExhibitorShell';
 import ConsoleGuard from '@/components/ConsoleGuard';
 import InstallPromptModal from '@/components/InstallPromptModal';
+import ChatWidget from '@/components/ChatWidget';
 import { PWAInstallProvider } from '@/lib/PWAInstallContext';
 import { AppSettingsProvider } from '@/lib/AppSettingsContext';
 
@@ -138,6 +139,7 @@ function App() {
             </Router>
             <Toaster />
             <InstallPromptModal />
+            <ChatWidget />
           </QueryClientProvider>
         </AppSettingsProvider>
       </AuthProvider>
