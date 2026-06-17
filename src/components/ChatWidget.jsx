@@ -8,6 +8,7 @@ export default function ChatWidget() {
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
+  const sessionId = useRef(crypto.randomUUID());
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -21,8 +22,7 @@ export default function ChatWidget() {
     const text = input.trim();
     if (!text || loading) return;
 
-    const next = [...messages, { role: 'user', content: text }];
-    setMessages(next);
+    setMessages(prev => [...prev, { role: 'user', content: text }]);
     setInput('');
     setLoading(true);
 
@@ -30,13 +30,13 @@ export default function ChatWidget() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: next }),
+        body: JSON.stringify({ message: text, sessionId: sessionId.current }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Request failed');
-      setMessages([...next, { role: 'assistant', content: data.content }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: data.content }]);
     } catch (e) {
-      setMessages([...next, { role: 'assistant', content: `Sorry, something went wrong: ${e.message}` }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: `Sorry, something went wrong: ${e.message}` }]);
     } finally {
       setLoading(false);
     }
