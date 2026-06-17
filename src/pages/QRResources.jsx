@@ -145,7 +145,7 @@ export default function QRResources() {
             </div>
             <div className="p-5 flex gap-5 items-start">
               <div className="bg-white p-2 rounded-xl flex-shrink-0">
-                <QRCodeDisplay value={badgeQR} size={120} />
+                <QRCodeDisplay value={badgeQR} size={120} label={displayName} sublabel="MineCon 2026 Visitor" />
               </div>
               <div className="flex-1 min-w-0 space-y-2">
                 <div>
@@ -170,17 +170,6 @@ export default function QRResources() {
                 )}
               </div>
             </div>
-          </div>
-
-          {/* Standalone shareable QR */}
-          <div className="bg-card border border-border rounded-2xl p-5">
-            <p className="font-heading font-bold text-sm uppercase tracking-wide mb-4 text-center">Shareable Badge QR</p>
-            <QRCodeDisplay
-              value={badgeQR}
-              size={180}
-              label={displayName}
-              sublabel="MineCon 2026 Visitor"
-            />
           </div>
 
           {/* Registration ticket QR — for gate check-in */}
