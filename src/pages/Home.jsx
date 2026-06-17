@@ -15,7 +15,7 @@ const quickActions = [
   { label: 'Register', path: '/register', icon: UserCheck, color: 'bg-amber-500' },
   { label: 'Publications', path: '/magazine', icon: BookOpen, color: 'bg-indigo-600' },
   { label: 'Sponsors', path: '/sponsors', icon: Star, color: 'bg-yellow-500' },
-  { label: 'Connect', path: '/connect', icon: Zap, color: 'bg-slate-600' },
+  { label: 'QR Resources', path: '/qr-resources', icon: QrCode, color: 'bg-slate-600' },
 ];
 
 const typeIcon = { Important: AlertCircle, Reminder: Clock, General: Megaphone, Update: Bell };
