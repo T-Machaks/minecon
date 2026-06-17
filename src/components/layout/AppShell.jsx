@@ -64,8 +64,8 @@ export default function AppShell({ children }) {
           {/* Back button on all pages except home */}
           {!isHome ? (
             <button
-              onClick={() => navigate(-1)}
-              className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 transition-all duration-150 select-none text-white"
+              onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/')}
+              className="flex-shrink-0 flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 transition-all duration-150 select-none text-white touch-manipulation"
               aria-label="Go back"
             >
               <ChevronLeft className="w-5 h-5" />
@@ -79,7 +79,7 @@ export default function AppShell({ children }) {
           <div className="flex-1" />
 
           <button
-            className="text-white p-1.5 rounded-md hover:bg-white/10 active:scale-95 transition-all duration-150 select-none"
+            className="text-white flex items-center justify-center w-11 h-11 rounded-md hover:bg-white/10 active:scale-95 transition-all duration-150 select-none touch-manipulation"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle menu"
           >
