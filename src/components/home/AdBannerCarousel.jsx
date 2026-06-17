@@ -179,7 +179,7 @@ export default function AdBannerCarousel() {
       </div>
 
       {/* ── Progress bar ── */}
-      <div className="absolute bottom-6 left-0 right-0 h-[2px] bg-white/10">
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-white/10">
         <div
           key={`prog-${current}-${paused}`}
           className="h-full rounded-full"
@@ -209,7 +209,7 @@ export default function AdBannerCarousel() {
       {/* ── Prev / Next (appear on hover) ── */}
       <button
         onClick={prev}
-        className="absolute left-0 top-0 bottom-6 w-9 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute left-0 top-0 bottom-0 w-9 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
       >
         <div className="w-6 h-6 rounded-full bg-black/35 hover:bg-black/55 flex items-center justify-center transition-colors">
           <ChevronLeft className="w-3.5 h-3.5 text-white" />
@@ -217,7 +217,7 @@ export default function AdBannerCarousel() {
       </button>
       <button
         onClick={next}
-        className="absolute right-0 top-0 bottom-6 w-9 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute right-0 top-0 bottom-0 w-9 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
       >
         <div className="w-6 h-6 rounded-full bg-black/35 hover:bg-black/55 flex items-center justify-center transition-colors">
           <ChevronRight className="w-3.5 h-3.5 text-white" />
