@@ -37,6 +37,7 @@ const EMPTY_FORM = { full_name: '', email: '', company: '', role: 'attendee' };
 
 export default function UsersPanel() {
   const qc = useQueryClient();
+  const { user: currentUser } = useAuth();
   const [showForm, setShowForm] = useState(false);
   const [editUser, setEditUser] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -165,16 +166,18 @@ export default function UsersPanel() {
                   </div>
                   <p className="text-xs text-muted-foreground truncate">{u.email}{u.company ? ` · ${u.company}` : ''}</p>
                 </div>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <button onClick={() => openEdit(u)}
-                    className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </button>
-                  <button onClick={() => { if (window.confirm(`Remove ${u.full_name}?`)) deleteMutation.mutate(u.id); }}
-                    className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-muted-foreground hover:text-red-500">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                {!(currentUser?.role === 'organizer' && u.role === 'marketing_partner') && (
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <button onClick={() => openEdit(u)}
+                      className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={() => { if (window.confirm(`Remove ${u.full_name}?`)) deleteMutation.mutate(u.id); }}
+                      className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-muted-foreground hover:text-red-500">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>

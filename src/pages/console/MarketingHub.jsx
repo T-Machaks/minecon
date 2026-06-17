@@ -1,14 +1,16 @@
 import { useState } from 'react';
+import { Link, Navigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   AdSlot, Announcement, Exhibitor, EngagementEvent, MeetingRequest,
 } from '@/api/entities';
 import {
   Megaphone, Sparkles, BarChart2, TrendingUp, MousePointerClick,
-  Plus, Trash2, Eye, EyeOff, Download, Calendar, Users,
+  Plus, Trash2, Download, ExternalLink,
   ChevronDown, ChevronUp, Layers, BookOpen, Monitor,
 } from 'lucide-react';
 import AdBannerCarousel from '@/components/home/AdBannerCarousel';
+import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -58,6 +60,7 @@ function exportCSV(rows, filename, headers) {
 
 export default function MarketingHub() {
   const qc = useQueryClient();
+  const { user } = useAuth();
 
   // Dialog state
   const [slotDialogOpen, setSlotDialogOpen] = useState(false);
@@ -66,7 +69,7 @@ export default function MarketingHub() {
   const [postForm, setPostForm] = useState(EMPTY_POST);
   const [deleteSlotId, setDeleteSlotId] = useState(null);
   const [deletePostId, setDeletePostId] = useState(null);
-  const [expandedSection, setExpandedSection] = useState('ads');
+  const [expandedSection, setExpandedSection] = useState('magazine');
 
   // Data queries
   const { data: adSlots = [] } = useQuery({
@@ -175,6 +178,10 @@ export default function MarketingHub() {
 
   const toggle = (section) => setExpandedSection(v => v === section ? null : section);
 
+  if (user?.role !== 'marketing_partner') {
+    return <Navigate to="/console" replace />;
+  }
+
   return (
     <div className="pb-12 px-4 sm:px-6 pt-6 max-w-6xl mx-auto space-y-6">
 
@@ -200,6 +207,86 @@ export default function MarketingHub() {
           </div>
         ))}
       </div>
+
+      {/* ── MineCon Magazine ── */}
+      <Section
+        id="magazine"
+        title="MineCon Magazine"
+        icon={<BookOpen className="w-4 h-4 text-amber" />}
+        expanded={expandedSection === 'magazine'}
+        onToggle={() => toggle('magazine')}
+        action={
+          <Link
+            to="/magazine"
+            onClick={e => e.stopPropagation()}
+            className="flex items-center gap-1.5 text-xs bg-amber text-white font-semibold px-3 py-1.5 rounded-lg hover:bg-amber/90 transition-colors"
+          >
+            <ExternalLink className="w-3 h-3" /> Open
+          </Link>
+        }
+      >
+        <div className="p-5 flex flex-col sm:flex-row gap-6 items-start">
+          {/* Flipbook stub — fanned book cover */}
+          <div className="relative flex-shrink-0 mx-auto sm:mx-0" style={{ width: 140, height: 184 }}>
+            <div className="absolute inset-0 rounded-r-lg" style={{ background: 'linear-gradient(160deg,#0f172a,#1e293b)', transform: 'rotate(4deg) translateX(5px)', zIndex: 0 }} />
+            <div className="absolute inset-0 rounded-r-lg" style={{ background: 'linear-gradient(160deg,#0f172a,#1e293b)', transform: 'rotate(2deg) translateX(2px)', zIndex: 1 }} />
+            <div className="absolute inset-0 rounded-r-lg overflow-hidden shadow-2xl" style={{ background: 'linear-gradient(160deg,#080f1e 0%,#1e293b 60%,#080f1e 100%)', zIndex: 2 }}>
+              <div className="absolute inset-y-0 left-0 w-2.5" style={{ background: '#f59e0b' }} />
+              <div className="absolute top-0 inset-x-0 h-5 flex items-center justify-between px-3" style={{ background: '#f59e0b' }}>
+                <span className="font-black uppercase text-slate-900 tracking-widest" style={{ fontSize: 6.5 }}>Official Exhibition Guide</span>
+                <span className="font-bold text-slate-900" style={{ fontSize: 6.5 }}>Oct 2026</span>
+              </div>
+              <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(circle,#f59e0b 1.5px,transparent 1.5px)', backgroundSize: '16px 16px' }} />
+              <div className="absolute top-8 inset-x-0 flex flex-col items-center px-3 gap-1">
+                <img src="/minecon-logo.png" alt="" className="w-10 h-10 object-contain" />
+                <p className="text-white font-black uppercase tracking-widest" style={{ fontSize: 9.5 }}>MineCon</p>
+                <p className="font-bold uppercase tracking-widest" style={{ fontSize: 8, color: '#f59e0b' }}>2026</p>
+              </div>
+              <div className="absolute bottom-4 inset-x-3 space-y-0.5">
+                <p className="text-white font-black uppercase leading-none" style={{ fontSize: 7.5, letterSpacing: '0.08em' }}>Southern Africa's</p>
+                <p className="font-black uppercase leading-none" style={{ fontSize: 10, color: '#f59e0b', letterSpacing: '0.04em' }}>Mining Exhibition</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Magazine metadata */}
+          <div className="flex-1 space-y-4 min-w-0">
+            <div>
+              <h3 className="font-heading font-bold text-base">MineCon 2026 Exhibition Guide</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">Official digital magazine · October 2026 Edition</p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: 'Pages',       value: '8' },
+                { label: 'Ad Slots',    value: '2' },
+                { label: 'Video Embeds', value: '1' },
+              ].map(({ label, value }) => (
+                <div key={label} className="bg-muted/60 rounded-lg p-2.5 text-center">
+                  <p className="font-heading text-xl font-bold">{value}</p>
+                  <p className="text-[10px] text-muted-foreground">{label}</p>
+                </div>
+              ))}
+            </div>
+
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-1.5">Contents</p>
+              <div className="flex flex-wrap gap-1.5">
+                {['Cover', 'Welcome', 'Exhibitor Directory', 'SANY Feature', 'Floor Plan', 'Jetmaster Ad', 'Schedule', 'Back Cover'].map(s => (
+                  <span key={s} className="text-[10px] bg-muted border border-border px-2 py-0.5 rounded-full">{s}</span>
+                ))}
+              </div>
+            </div>
+
+            <Link
+              to="/magazine"
+              className="inline-flex items-center gap-2 text-sm bg-amber text-white font-semibold px-4 py-2.5 rounded-xl hover:bg-amber/90 active:scale-95 transition-all duration-150"
+            >
+              <BookOpen className="w-4 h-4" /> Read Full Magazine
+            </Link>
+          </div>
+        </div>
+      </Section>
 
       {/* ── Ad Carousel Inventory ── */}
       <Section

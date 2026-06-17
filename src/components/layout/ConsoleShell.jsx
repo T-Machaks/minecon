@@ -13,7 +13,7 @@ const consoleNav = [
   { path: '/console/check-in',       label: 'Gate Check-In',    icon: ScanLine,                     roles: ['organizer'] },
   { path: '/console/analytics',      label: 'Analytics',        icon: BarChart2,                    roles: ['organizer', 'marketing_partner'] },
   { path: '/console/communications', label: 'Communications',   icon: MessageSquare,                roles: ['organizer'] },
-  { path: '/console/marketing',      label: 'Marketing Hub',    icon: Megaphone,                    roles: ['organizer', 'marketing_partner'] },
+  { path: '/console/marketing',      label: 'Marketing Hub',    icon: Megaphone,                    roles: ['marketing_partner'] },
   { path: '/console/users',          label: 'Users & Roles',    icon: UserCog,                      roles: ['organizer'] },
   { path: '/console/admin',          label: 'Admin & Security', icon: Shield,                       roles: ['organizer'] },
 ];
