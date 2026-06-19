@@ -180,7 +180,12 @@ export default function Home() {
             </div>
             <div className="grid grid-cols-1 gap-3">
               {exhibitors.slice(0, 6).map(ex => (
-                <div key={ex.id} className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
+                <Link
+                  key={ex.id}
+                  to={`/exhibitors/${ex.id}`}
+                  onClick={() => track(ex.id, ex.name, 'featured_click', 'home_featured')}
+                  className="bg-card border border-border rounded-xl p-4 flex items-center gap-4 hover:border-amber/50 active:scale-[0.98] transition-all duration-150"
+                >
                   <div className="w-10 h-10 bg-white border border-border rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                     {ex.logo_url
                       ? <img src={ex.logo_url} alt={ex.name} className="w-9 h-9 object-contain" />
@@ -191,15 +196,10 @@ export default function Home() {
                     <p className="font-semibold text-sm truncate">{ex.name}</p>
                     <p className="text-xs text-muted-foreground">Booth {ex.booth} · {ex.category}</p>
                   </div>
-                  <Link
-                    to="/meetings"
-                    state={{ exhibitor: ex }}
-                    onClick={() => track(ex.id, ex.name, 'featured_click', 'home_featured')}
-                    className="text-xs bg-amber text-white px-3 py-1.5 rounded-lg font-medium flex-shrink-0"
-                  >
-                    Meet
-                  </Link>
-                </div>
+                  <span className="text-xs bg-amber text-white px-3 py-1.5 rounded-lg font-medium flex-shrink-0">
+                    View
+                  </span>
+                </Link>
               ))}
             </div>
           </div>
