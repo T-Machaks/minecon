@@ -64,8 +64,12 @@ export default function Login() {
       footer={
         <>
           Don't have an account?{" "}
+          <Link to="/signup" className="text-primary font-medium hover:underline">
+            Create free account
+          </Link>
+          {" · "}
           <Link to="/register" className="text-primary font-medium hover:underline">
-            Register
+            Event registration
           </Link>
         </>
       }

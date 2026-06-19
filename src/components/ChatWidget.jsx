@@ -17,7 +17,7 @@ function AuthGate() {
           To book meetings or send enquiries you need a free MineCon account — it only takes a moment to set up.
         </p>
         <div className="flex gap-2">
-          <a href="/register"
+          <a href="/signup"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber text-slate-900 text-xs font-semibold hover:bg-amber/80 transition-colors">
             <UserPlus size={13} /> Create account
           </a>
@@ -134,7 +134,7 @@ export default function ChatWidget() {
                 <p className="mt-1 text-xs">Ask me about exhibitors, the schedule, venue, or anything about the event.</p>
                 {!user && (
                   <p className="mt-3 text-xs text-amber/70">
-                    <a href="/register" className="underline underline-offset-2 hover:text-amber transition-colors">Create a free account</a>
+                    <a href="/signup" className="underline underline-offset-2 hover:text-amber transition-colors">Create a free account</a>
                     {' '}to book meetings instantly.
                   </p>
                 )}
