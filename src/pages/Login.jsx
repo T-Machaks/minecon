@@ -31,9 +31,8 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    await new Promise(r => setTimeout(r, 300));
     try {
-      const result = await login(email);
+      const result = await login(email, password);
       if (result.success) {
         navigate(intendedPath || result.redirectTo, { replace: true });
       } else {
@@ -92,38 +91,37 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Demo credentials hint */}
-      <div className="mb-4">
-        <button
-          type="button"
-          onClick={() => setShowDemo(v => !v)}
-          className="flex items-center gap-1.5 text-xs text-amber font-medium hover:underline"
-        >
-          <Info className="w-3.5 h-3.5" />
-          {showDemo ? "Hide demo accounts" : "Show demo accounts"}
-        </button>
-        {showDemo && (
-          <div className="mt-2 rounded-xl border border-amber/30 bg-amber/5 p-3 space-y-1.5">
-            <p className="text-[10px] text-muted-foreground font-semibold uppercase mb-2">
-              Stub mode — password is ignored
-            </p>
-            {DEMO_ACCOUNTS.map(a => (
-              <button
-                key={a.email}
-                type="button"
-                onClick={() => fillDemo(a.email)}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-amber/10 transition-colors text-left"
-              >
-                <div>
-                  <p className="text-xs font-semibold">{a.role}</p>
-                  <p className="text-[10px] text-muted-foreground font-mono">{a.email}</p>
-                </div>
-                <span className="text-[10px] text-amber font-bold">{a.dest} →</span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Internal demo accounts — only visible on localhost */}
+      {window.location.hostname === 'localhost' && (
+        <div className="mb-4">
+          <button
+            type="button"
+            onClick={() => setShowDemo(v => !v)}
+            className="flex items-center gap-1.5 text-xs text-amber font-medium hover:underline"
+          >
+            <Info className="w-3.5 h-3.5" />
+            {showDemo ? "Hide demo accounts" : "Show demo accounts"}
+          </button>
+          {showDemo && (
+            <div className="mt-2 rounded-xl border border-amber/30 bg-amber/5 p-3 space-y-1.5">
+              {DEMO_ACCOUNTS.map(a => (
+                <button
+                  key={a.email}
+                  type="button"
+                  onClick={() => fillDemo(a.email)}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-amber/10 transition-colors text-left"
+                >
+                  <div>
+                    <p className="text-xs font-semibold">{a.role}</p>
+                    <p className="text-[10px] text-muted-foreground font-mono">{a.email}</p>
+                  </div>
+                  <span className="text-[10px] text-amber font-bold">{a.dest} →</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {error && (
         <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
@@ -168,7 +166,6 @@ export default function Login() {
               className="pl-10 h-12"
             />
           </div>
-          <p className="text-[10px] text-muted-foreground">Stub mode — password is not validated yet.</p>
         </div>
         <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
           {loading ? (

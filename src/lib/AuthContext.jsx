@@ -50,10 +50,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (email) => {
+  const login = async (email, password) => {
     try {
-      const found = await User.findByEmail(email);
-      if (!found) return { success: false, error: 'No account found with that email.' };
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const found = await res.json();
+      if (!res.ok) return { success: false, error: found.error || 'Login failed.' };
       const session = {
         id: found.id,
         email: found.email,
@@ -72,9 +77,13 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (data) => {
     try {
-      const existing = await User.findByEmail(data.email);
-      if (existing) return { success: false, error: 'An account with that email already exists.' };
-      const newUser = await User.create({ role: 'attendee', status: 'active', ...data });
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const newUser = await res.json();
+      if (!res.ok) return { success: false, error: newUser.error || 'Registration failed.' };
       const session = { id: newUser.id, email: newUser.email, full_name: newUser.full_name, role: newUser.role, company: newUser.company || '' };
       localStorage.setItem('minecon_user', JSON.stringify(session));
       setUser(session);

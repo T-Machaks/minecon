@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { UserPlus, Mail, User, Loader2, Building2 } from 'lucide-react';
+import { UserPlus, Mail, User, Loader2, Building2, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,7 +10,7 @@ import { useAuth } from '@/lib/AuthContext';
 export default function Signup() {
   const { register } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ full_name: '', email: '', company: '' });
+  const [form, setForm] = useState({ full_name: '', email: '', company: '', password: '', confirmPassword: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -19,12 +19,21 @@ export default function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    if (form.password !== form.confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+    if (form.password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
     setLoading(true);
     try {
       const result = await register({
         full_name: form.full_name,
         email: form.email,
         company: form.company,
+        password: form.password,
       });
       if (result.success) {
         navigate(result.redirectTo || '/');
@@ -108,6 +117,40 @@ export default function Signup() {
               value={form.company}
               onChange={e => set('company', e.target.value)}
               className="pl-10 h-12"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              id="password"
+              type="password"
+              placeholder="At least 6 characters"
+              autoComplete="new-password"
+              value={form.password}
+              onChange={e => set('password', e.target.value)}
+              className="pl-10 h-12"
+              required
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="confirmPassword">Confirm password</Label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              id="confirmPassword"
+              type="password"
+              placeholder="Repeat your password"
+              autoComplete="new-password"
+              value={form.confirmPassword}
+              onChange={e => set('confirmPassword', e.target.value)}
+              className="pl-10 h-12"
+              required
             />
           </div>
         </div>
