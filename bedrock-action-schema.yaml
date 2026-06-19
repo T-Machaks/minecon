@@ -1,0 +1,381 @@
+openapi: "3.0.0"
+info:
+  title: MineCon 2026 Agent API
+  version: "1.0"
+  description: "Live API actions for the MineCon 2026 AI assistant"
+
+paths:
+
+  /api/exhibitors:
+    get:
+      operationId: listExhibitors
+      summary: "List all exhibitors"
+      description: "Returns the exhibitor directory. Filter by tier (Diamond, Gold, Chrome, Copper) or by industry category."
+      parameters:
+        - name: tier
+          in: query
+          required: false
+          description: "Filter by sponsorship tier. Allowed values: Diamond, Gold, Chrome, Copper"
+          schema:
+            type: string
+            enum: [Diamond, Gold, Chrome, Copper]
+        - name: category
+          in: query
+          required: false
+          description: "Filter by industry category, for example Mining Equipment or Safety"
+          schema:
+            type: string
+        - name: sortBy
+          in: query
+          required: false
+          description: "Field to sort results by. Allowed values: name, tier, booth"
+          schema:
+            type: string
+            enum: [name, tier, booth]
+      responses:
+        "200":
+          description: "Array of exhibitor objects"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Exhibitor"
+
+  /api/exhibitors/{id}:
+    get:
+      operationId: getExhibitor
+      summary: "Get a single exhibitor by ID"
+      description: "Returns full details for one exhibitor including booth number, zone, contact info, and products."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "The unique ID of the exhibitor"
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "Exhibitor object"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Exhibitor"
+        "404":
+          description: "Exhibitor not found"
+
+  /api/meeting-requests:
+    post:
+      operationId: createMeetingRequest
+      summary: "Submit a meeting request"
+      description: "Creates a meeting request from an attendee to an exhibitor. The exhibitor will be notified and can confirm or decline."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewMeetingRequest"
+      responses:
+        "201":
+          description: "Meeting request created successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeetingRequest"
+        "400":
+          description: "Invalid request body"
+
+  /api/meeting-requests/{id}:
+    get:
+      operationId: getMeetingRequest
+      summary: "Get a meeting request by ID"
+      description: "Returns the current status of a meeting request (pending, confirmed, declined, or cancelled)."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "The unique ID of the meeting request"
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "Meeting request with current status"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeetingRequest"
+        "404":
+          description: "Meeting request not found"
+
+  /api/virtual-enquiries:
+    post:
+      operationId: submitVirtualEnquiry
+      summary: "Submit an enquiry to an exhibitor"
+      description: "Sends a written product or service enquiry to an exhibitor booth. The exhibitor can reply through the portal."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewVirtualEnquiry"
+      responses:
+        "201":
+          description: "Enquiry submitted successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VirtualEnquiry"
+        "400":
+          description: "Invalid request body"
+
+  /api/registrations/by-email:
+    get:
+      operationId: findRegistrationByEmail
+      summary: "Find an attendee registration by email"
+      description: "Looks up an attendee registration record by email address, returning ticket type, QR code reference, and check-in status."
+      parameters:
+        - name: email
+          in: query
+          required: true
+          description: "The email address of the attendee to look up"
+          schema:
+            type: string
+            format: email
+      responses:
+        "200":
+          description: "Attendee registration record"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Registration"
+        "404":
+          description: "No registration found for this email"
+
+  /api/announcements:
+    get:
+      operationId: listAnnouncements
+      summary: "Get event announcements"
+      description: "Returns all published announcements from the organizer, sorted by most recent first. Use this to answer questions about schedule changes or event updates."
+      parameters:
+        - name: sortBy
+          in: query
+          required: false
+          description: "Field to sort announcements by. Allowed values: createdAt, title"
+          schema:
+            type: string
+            enum: [createdAt, title]
+      responses:
+        "200":
+          description: "Array of announcement objects"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Announcement"
+
+components:
+  schemas:
+
+    Exhibitor:
+      type: object
+      properties:
+        id:
+          type: string
+          description: "Unique exhibitor ID"
+        name:
+          type: string
+          description: "Exhibitor company name"
+        tier:
+          type: string
+          enum: [Diamond, Gold, Chrome, Copper]
+          description: "Sponsorship tier"
+        category:
+          type: string
+          description: "Industry category"
+        booth:
+          type: string
+          description: "Assigned booth number, e.g. A07, B12"
+        section:
+          type: string
+          description: "Exhibition section, e.g. Main Hall, Exhibition Hall, Suppliers Zone, Solutions Zone"
+        description:
+          type: string
+          description: "Company and product description"
+        contactEmail:
+          type: string
+          description: "Exhibitor contact email"
+        contactPhone:
+          type: string
+          description: "Exhibitor contact phone number"
+        website:
+          type: string
+          description: "Exhibitor website URL"
+        products:
+          type: array
+          description: "List of products and services offered"
+          items:
+            type: string
+
+    NewMeetingRequest:
+      type: object
+      required: [exhibitorId, attendeeName, attendeeEmail, preferredDate, preferredTime, purpose]
+      properties:
+        exhibitorId:
+          type: string
+          description: "The ID of the exhibitor the attendee wants to meet"
+        attendeeName:
+          type: string
+          description: "Full name of the attendee"
+        attendeeEmail:
+          type: string
+          format: email
+          description: "Email address of the attendee"
+        preferredDate:
+          type: string
+          format: date
+          description: "Preferred meeting date in YYYY-MM-DD format. Must be between 2026-10-14 and 2026-10-16"
+        preferredTime:
+          type: string
+          description: "Preferred time slot, e.g. 10:00 or 14:30"
+        purpose:
+          type: string
+          description: "Brief description of the meeting purpose"
+        message:
+          type: string
+          description: "Optional additional message to the exhibitor"
+
+    MeetingRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          description: "Unique meeting request ID"
+        exhibitorId:
+          type: string
+          description: "ID of the exhibitor"
+        attendeeName:
+          type: string
+          description: "Name of the attendee"
+        attendeeEmail:
+          type: string
+          description: "Email of the attendee"
+        preferredDate:
+          type: string
+          description: "Requested meeting date"
+        preferredTime:
+          type: string
+          description: "Requested meeting time"
+        purpose:
+          type: string
+          description: "Meeting purpose"
+        status:
+          type: string
+          enum: [Pending, Confirmed, Declined, Cancelled]
+          description: "Current status of the meeting request"
+        created_date:
+          type: string
+          format: date-time
+          description: "Timestamp when the request was created"
+
+    NewVirtualEnquiry:
+      type: object
+      required: [exhibitorId, senderName, senderEmail, message]
+      properties:
+        exhibitorId:
+          type: string
+          description: "ID of the exhibitor being contacted"
+        senderName:
+          type: string
+          description: "Full name of the person sending the enquiry"
+        senderEmail:
+          type: string
+          format: email
+          description: "Email address of the sender"
+        subject:
+          type: string
+          description: "Subject line for the enquiry"
+        message:
+          type: string
+          description: "The enquiry text, e.g. a product question, pricing request, or availability check"
+
+    VirtualEnquiry:
+      type: object
+      properties:
+        id:
+          type: string
+          description: "Unique enquiry ID"
+        exhibitorId:
+          type: string
+          description: "ID of the exhibitor"
+        senderName:
+          type: string
+          description: "Name of the sender"
+        senderEmail:
+          type: string
+          description: "Email of the sender"
+        subject:
+          type: string
+          description: "Enquiry subject"
+        message:
+          type: string
+          description: "Enquiry message body"
+        status:
+          type: string
+          enum: [New, Replied, Closed]
+          description: "Current status of the enquiry"
+        created_date:
+          type: string
+          format: date-time
+          description: "Timestamp when the enquiry was submitted"
+
+    Registration:
+      type: object
+      properties:
+        id:
+          type: string
+          description: "Unique registration ID"
+        firstName:
+          type: string
+          description: "Attendee first name"
+        lastName:
+          type: string
+          description: "Attendee last name"
+        email:
+          type: string
+          description: "Attendee email address"
+        ticketType:
+          type: string
+          enum: [General, VIP, Trade]
+          description: "Type of ticket purchased"
+        qrCode:
+          type: string
+          description: "QR code reference for the attendee ticket"
+        checkedIn:
+          type: boolean
+          description: "Whether the attendee has checked in at the venue"
+        checkInTime:
+          type: string
+          format: date-time
+          description: "Timestamp of check-in, if applicable"
+
+    Announcement:
+      type: object
+      properties:
+        id:
+          type: string
+          description: "Unique announcement ID"
+        title:
+          type: string
+          description: "Announcement title"
+        body:
+          type: string
+          description: "Full announcement text"
+        type:
+          type: string
+          enum: [General, Important, Update]
+          description: "Announcement type"
+        created_date:
+          type: string
+          format: date-time
+          description: "Timestamp when the announcement was published"

@@ -1,7 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Bot, Loader2 } from 'lucide-react';
+import { useAuth } from '@/lib/AuthContext';
+
+const PROMPTS_BY_ROLE = {
+  exhibitor: ['My meeting requests', 'Book a meeting', 'Event announcements'],
+  default:   ['Book a meeting', 'Diamond exhibitors', 'Event schedule', 'Venue & directions'],
+};
 
 export default function ChatWidget() {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -9,6 +16,8 @@ export default function ChatWidget() {
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   const sessionId = useRef(crypto.randomUUID());
+
+  const suggestedPrompts = PROMPTS_BY_ROLE[user?.role] ?? PROMPTS_BY_ROLE.default;
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -30,7 +39,14 @@ export default function ChatWidget() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, sessionId: sessionId.current }),
+        body: JSON.stringify({
+          message: text,
+          sessionId: sessionId.current,
+          userName:    user?.full_name,
+          userEmail:   user?.email,
+          userRole:    user?.role,
+          userCompany: user?.company,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Request failed');
@@ -98,7 +114,7 @@ export default function ChatWidget() {
           {/* Suggested prompts — only before first message */}
           {messages.length === 0 && (
             <div className="px-3 pb-2 flex flex-wrap gap-1">
-              {['Diamond exhibitors', 'Event schedule', 'Venue & directions'].map(p => (
+              {suggestedPrompts.map(p => (
                 <button key={p} onClick={() => { setInput(p); inputRef.current?.focus(); }}
                   className="text-xs px-2 py-1 rounded-full border border-amber/30 text-amber/80 hover:bg-amber/10 transition-colors">
                   {p}

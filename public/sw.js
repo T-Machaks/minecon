@@ -2,7 +2,7 @@
 // Caching will be enabled before go-live.
 // This stub exists to satisfy PWA installability requirements.
 
-const VERSION = 'minecon-stub-v1';
+const VERSION = 'minecon-v2026-06-19';
 
 self.addEventListener('install', () => {
   self.skipWaiting();
