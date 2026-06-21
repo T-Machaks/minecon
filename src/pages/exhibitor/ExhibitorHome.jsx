@@ -33,6 +33,7 @@ export default function ExhibitorHome() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [upgradeDismissed, setUpgradeDismissed] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
+  const [updateError, setUpdateError] = useState(null);
 
   const { data: exhibitors = [] } = useQuery({
     queryKey: ['exhibitors-all'],
@@ -46,27 +47,31 @@ export default function ExhibitorHome() {
 
   const myBooth = exhibitors.find(
     e => e.contact_email?.toLowerCase() === user?.email?.toLowerCase()
-  ) ?? exhibitors[0]; // fallback to first for demo
+      || (user?.company && e.name?.toLowerCase() === user.company.toLowerCase())
+  ) ?? exhibitors[0];
 
   const myAd = myBooth ? ADS.find(a => a.exhibitor_id === myBooth.id) : null;
   const isDiamond = myBooth?.tier === 'Diamond';
 
-  const myMeetings = myBooth
-    ? meetings.filter(m =>
-        m.exhibitor_id === myBooth.id ||
-        m.exhibitor_name === myBooth.name ||
-        m.company === myBooth.name
-      )
-    : [];
+  const myMeetings = meetings.filter(m => {
+    if (!myBooth) return true;
+    const nameMatch = myBooth.name?.toLowerCase();
+    return (
+      m.exhibitor_id === myBooth.id ||
+      m.exhibitor_name?.toLowerCase() === nameMatch ||
+      m.company?.toLowerCase() === nameMatch ||
+      !m.exhibitor_name
+    );
+  });
 
   const pending   = myMeetings.filter(m => m.status === 'Pending');
   const confirmed = myMeetings.filter(m => m.status === 'Confirmed');
 
   const updateStatus = useMutation({
     mutationFn: ({ id, status }) => MeetingRequest.update(id, { status }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['meetings-all'] }),
+    onSuccess: () => { setUpdateError(null); qc.invalidateQueries({ queryKey: ['meetings-all'] }); },
     onSettled: () => setUpdatingId(null),
-    onError: (err) => alert(`Failed to update meeting: ${err.message}`),
+    onError: (err) => setUpdateError(err.message),
   });
 
   const updateBoothImage = useMutation({
@@ -348,22 +353,29 @@ export default function ExhibitorHome() {
                     </div>
                   </div>
                   {m.status === 'Pending' && (
-                    <div className="flex gap-2">
-                      <button
-                        disabled={updatingId === m.id}
-                        onClick={() => { setUpdatingId(m.id); updateStatus.mutate({ id: m.id, status: 'Confirmed' }); }}
-                        className="flex-1 flex items-center justify-center gap-1.5 text-sm bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white py-2 rounded-lg font-medium transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <CheckCircle className="w-4 h-4" /> {updatingId === m.id ? 'Saving…' : 'Confirm'}
-                      </button>
-                      <button
-                        disabled={updatingId === m.id}
-                        onClick={() => { setUpdatingId(m.id); updateStatus.mutate({ id: m.id, status: 'Declined' }); }}
-                        className="flex-1 flex items-center justify-center gap-1.5 text-sm bg-red-100 hover:bg-red-200 active:scale-95 text-red-700 py-2 rounded-lg font-medium transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <XCircle className="w-4 h-4" /> Decline
-                      </button>
-                    </div>
+                    <>
+                      {updateError && updatingId === null && (
+                        <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{updateError}</p>
+                      )}
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          disabled={updatingId === m.id}
+                          onClick={() => { setUpdateError(null); setUpdatingId(m.id); updateStatus.mutate({ id: m.id, status: 'Confirmed' }); }}
+                          className="flex-1 flex items-center justify-center gap-1.5 text-sm bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white py-3 rounded-lg font-medium transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+                        >
+                          <CheckCircle className="w-4 h-4" /> {updatingId === m.id ? 'Saving…' : 'Confirm'}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={updatingId === m.id}
+                          onClick={() => { setUpdateError(null); setUpdatingId(m.id); updateStatus.mutate({ id: m.id, status: 'Declined' }); }}
+                          className="flex-1 flex items-center justify-center gap-1.5 text-sm bg-red-100 hover:bg-red-200 active:scale-95 text-red-700 py-3 rounded-lg font-medium transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+                        >
+                          <XCircle className="w-4 h-4" /> Decline
+                        </button>
+                      </div>
+                    </>
                   )}
                 </div>
               );

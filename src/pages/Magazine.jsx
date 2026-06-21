@@ -1168,7 +1168,7 @@ function MagazineLibrary({ onSelect }) {
     <div className="pb-24 pt-2 px-4">
       <div className="mb-5">
         <h1 className="font-heading text-xl font-black uppercase tracking-wide">Publications</h1>
-        <p className="text-sm text-muted-foreground">Magazines, guides and resources for MineCon 2026</p>
+        <p className="text-sm text-muted-foreground">Industry publications, event guides and magazines</p>
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3">

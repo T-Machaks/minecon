@@ -47,6 +47,7 @@ import MarketingHub from '@/pages/console/MarketingHub';
 
 // Exhibitor portal pages
 import ExhibitorHome from '@/pages/exhibitor/ExhibitorHome';
+import ExhibitorMeetings from '@/pages/exhibitor/ExhibitorMeetings';
 import ExhibitorAnalytics from '@/pages/exhibitor/ExhibitorAnalytics';
 import ExhibitorScanner from '@/pages/exhibitor/ExhibitorScanner';
 import ExhibitorTeam from '@/pages/exhibitor/ExhibitorTeam';
@@ -102,7 +103,7 @@ const AuthenticatedApp = () => {
       {/* ── Exhibitor Portal ── */}
       <Route element={<ExhibitorShell />}>
         <Route path="/exhibitor"           element={<ExhibitorHome />} />
-        <Route path="/exhibitor/meetings"  element={<Meetings />} />
+        <Route path="/exhibitor/meetings"  element={<ExhibitorMeetings />} />
         <Route path="/exhibitor/scan"      element={<ExhibitorScanner />} />
         <Route path="/exhibitor/analytics" element={<ExhibitorAnalytics />} />
         <Route path="/exhibitor/team"      element={<ExhibitorTeam />} />

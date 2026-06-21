@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Download, Share, X, Smartphone } from 'lucide-react';
+import { Download, Share, X, Smartphone, Link } from 'lucide-react';
 import { usePWAInstall } from '@/lib/PWAInstallContext';
 
 export default function InstallPromptModal() {
   const { showPopup, isIOS, hasBrowserPrompt, promptInstall, markSeen } = usePWAInstall();
   const [open, setOpen] = useState(false);
   const [installing, setInstalling] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!showPopup) return;
@@ -22,6 +23,21 @@ export default function InstallPromptModal() {
   const dismiss = () => {
     setOpen(false);
     markSeen();
+  };
+
+  const handleCopyLink = async () => {
+    const url = window.location.origin;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'MineCon 2026', url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    } catch {
+      // user cancelled share or clipboard unavailable
+    }
   };
 
   const handleInstall = async () => {
@@ -122,6 +138,13 @@ export default function InstallPromptModal() {
                 Got it
               </button>
             )}
+            <button
+              onClick={handleCopyLink}
+              className="w-full flex items-center justify-center gap-2 border border-white/10 hover:border-white/20 text-slate-300 hover:text-white font-medium rounded-xl py-3 text-sm transition-colors"
+            >
+              <Link className="w-4 h-4" />
+              {copied ? 'Link Copied!' : navigator.share ? 'Share Link' : 'Copy Link'}
+            </button>
             <button
               onClick={dismiss}
               className="w-full text-sm text-slate-500 hover:text-slate-300 py-2 transition-colors"

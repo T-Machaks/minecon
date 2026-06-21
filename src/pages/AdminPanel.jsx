@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Registration, MeetingRequest } from '@/api/entities';
-import { Shield, User, Building2, Star, Mic, Crown, Lock, Eye, EyeOff, CheckCircle, Settings, ChevronRight, Users, Bell } from 'lucide-react';
+import { Registration, MeetingRequest, Exhibitor } from '@/api/entities';
+import { Shield, User, Building2, Star, Mic, Crown, Lock, Eye, EyeOff, CheckCircle, Settings, ChevronRight, Users, Bell, Mail, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const ROLES = [
@@ -30,6 +30,26 @@ export default function AdminPanel() {
 
   const { data: registrations = [] } = useQuery({ queryKey: ['registrations'], queryFn: () => Registration.list() });
   const { data: meetings = [] } = useQuery({ queryKey: ['meetings'], queryFn: () => MeetingRequest.list() });
+  const { data: exhibitors = [] } = useQuery({ queryKey: ['exhibitors-all'], queryFn: () => Exhibitor.list() });
+
+  const [exhibitorSearch, setExhibitorSearch] = useState('');
+  const [editingEmail, setEditingEmail] = useState({}); // { [id]: email }
+  const [savingId, setSavingId] = useState(null);
+  const [saveError, setSaveError] = useState(null);
+
+  const saveEmail = async (id) => {
+    setSavingId(id);
+    setSaveError(null);
+    try {
+      await Exhibitor.update(id, { contact_email: editingEmail[id] });
+      queryClient.invalidateQueries({ queryKey: ['exhibitors-all'] });
+      setEditingEmail(prev => { const n = { ...prev }; delete n[id]; return n; });
+    } catch (e) {
+      setSaveError(e.message);
+    } finally {
+      setSavingId(null);
+    }
+  };
 
   const currentRole = ROLES.find(r => r.id === selectedRole);
   const canAccess = (moduleId) => currentRole?.perms.includes(moduleId);
@@ -154,6 +174,74 @@ export default function AdminPanel() {
           </div>
         </div>
       )}
+
+      {/* Exhibitor Portal Logins */}
+      <div className="bg-card border border-border rounded-xl overflow-hidden mb-5">
+        <div className="px-4 py-3 border-b border-border">
+          <p className="font-heading text-sm font-bold uppercase tracking-wide">Exhibitor Portal Logins</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Set the login email for each exhibitor so they only see their own meeting requests</p>
+        </div>
+
+        <div className="px-4 py-3 border-b border-border">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search exhibitors…"
+              value={exhibitorSearch}
+              onChange={e => setExhibitorSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-amber/50"
+            />
+          </div>
+        </div>
+
+        {saveError && (
+          <div className="mx-4 mt-3 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{saveError}</div>
+        )}
+
+        <div className="divide-y divide-border max-h-[480px] overflow-y-auto">
+          {exhibitors
+            .filter(e => !exhibitorSearch || e.name?.toLowerCase().includes(exhibitorSearch.toLowerCase()) || e.booth?.toLowerCase().includes(exhibitorSearch.toLowerCase()))
+            .sort((a, b) => (a.booth ?? '').localeCompare(b.booth ?? ''))
+            .map(e => {
+              const currentEmail = editingEmail[e.id] ?? (e.contact_email || '');
+              const isDirty = e.id in editingEmail && editingEmail[e.id] !== (e.contact_email || '');
+              return (
+                <div key={e.id} className="px-4 py-3 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold text-muted-foreground">
+                    {e.booth || '?'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{e.name}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Mail className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                      <input
+                        type="email"
+                        placeholder="Login email…"
+                        value={currentEmail}
+                        onChange={ev => setEditingEmail(prev => ({ ...prev, [e.id]: ev.target.value }))}
+                        className="flex-1 text-xs py-1 px-2 rounded border border-border bg-background focus:outline-none focus:ring-1 focus:ring-amber min-w-0"
+                      />
+                    </div>
+                  </div>
+                  {isDirty && (
+                    <button
+                      type="button"
+                      disabled={savingId === e.id}
+                      onClick={() => saveEmail(e.id)}
+                      className="flex-shrink-0 text-xs bg-amber hover:bg-amber/90 text-white px-3 py-1.5 rounded-lg font-semibold transition-colors disabled:opacity-60 touch-manipulation"
+                    >
+                      {savingId === e.id ? 'Saving…' : 'Save'}
+                    </button>
+                  )}
+                  {!isDirty && e.contact_email && (
+                    <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                  )}
+                </div>
+              );
+            })}
+        </div>
+      </div>
 
       {/* Quick links */}
       <div className="bg-card border border-border rounded-xl overflow-hidden">
