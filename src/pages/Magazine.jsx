@@ -679,7 +679,6 @@ function GuideViewer({ onBack, isMobile }) {
   const bookRef = useRef(null);
   const [bookKey, setBookKey] = useState(isMobile ? 'mb' : 'dk');
   const [currentPage, setCurrentPage] = useState(0);
-
   const { data: guidePageData = [] } = useQuery({
     queryKey: ['guide-pages'],
     queryFn: () => GuidePageData.list(),
@@ -708,7 +707,7 @@ function GuideViewer({ onBack, isMobile }) {
     : `Pages ${currentPage}–${currentPage + 1} of ${TOTAL}`;
 
   return (
-    <div className="pb-24 pt-2">
+    <div className="pb-24 pt-2 lg:py-8">
       <div className="px-4 mb-3 flex items-center gap-3">
         <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" /> Publications
@@ -725,9 +724,9 @@ function GuideViewer({ onBack, isMobile }) {
           height={544}
           size="stretch"
           minWidth={200}
-          maxWidth={500}
+          maxWidth={600}
           minHeight={259}
-          maxHeight={660}
+          maxHeight={780}
           maxShadowOpacity={0.5}
           showCover
           mobileScrollSupport
@@ -813,7 +812,7 @@ function ADMAFlipBook({ onBack, isMobile }) {
     : `Pages ${currentPage}–${currentPage + 1} of ${TOTAL}`;
 
   return (
-    <div className="pb-24 pt-2">
+    <div className="pb-24 pt-2 lg:py-8">
       <div className="px-4 mb-3 flex items-center gap-3">
         <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" /> Publications
@@ -925,7 +924,7 @@ function TobaccoTodayFlipBook({ onBack, isMobile }) {
     : `Pages ${currentPage}–${currentPage + 1} of ${TOTAL}`;
 
   return (
-    <div className="pb-24 pt-2">
+    <div className="pb-24 pt-2 lg:py-8">
       <div className="px-4 mb-3 flex items-center gap-3">
         <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" /> Publications
@@ -1171,7 +1170,7 @@ function MagazineLibrary({ onSelect }) {
         <p className="text-sm text-muted-foreground">Industry publications, event guides and magazines</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {publications.map(pub => (
           <button
             key={pub.id}

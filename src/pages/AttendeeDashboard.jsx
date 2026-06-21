@@ -64,7 +64,7 @@ export default function AttendeeDashboard() {
   };
 
   return (
-    <div className="pb-24 max-w-2xl mx-auto px-4 pt-5">
+    <div className="pb-24 max-w-2xl lg:max-w-5xl mx-auto px-4 pt-5">
       <div className="flex items-center justify-between mb-5">
         <div>
           <h1 className="font-heading text-2xl font-bold uppercase tracking-wide">My MineCon</h1>
@@ -117,7 +117,7 @@ export default function AttendeeDashboard() {
           {favorites.length === 0 ? (
             <EmptyState icon={Star} msg="No favourites yet. Browse exhibitors and save the ones you want to visit." action={{ label: 'Browse Exhibitors', to: '/exhibitors' }} />
           ) : (
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
               {favorites.map(n => <NoteCard key={n.id} note={n} onDelete={() => deleteNote.mutate(n.id)} onToggleFav={() => toggleFav.mutate({ id: n.id, val: false })} onNote={() => { setNoteModal(n); setNoteText(n.note || ''); }} />)}
             </div>
           )}
@@ -133,7 +133,7 @@ export default function AttendeeDashboard() {
           {bookmarks.length === 0 ? (
             <EmptyState icon={Bookmark} msg="No bookmarks yet. Add notes while browsing exhibitors or sessions." />
           ) : (
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
               {bookmarks.map(n => <NoteCard key={n.id} note={n} onDelete={() => deleteNote.mutate(n.id)} onToggleFav={() => toggleFav.mutate({ id: n.id, val: true })} onNote={() => { setNoteModal(n); setNoteText(n.note || ''); }} />)}
             </div>
           )}

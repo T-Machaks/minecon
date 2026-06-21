@@ -106,7 +106,7 @@ export default function QRResources() {
   };
 
   return (
-    <div className="pb-24 max-w-2xl mx-auto">
+    <div className="pb-24 max-w-2xl lg:max-w-4xl mx-auto">
       {/* Tab bar */}
       <div className="sticky top-0 z-10 bg-background border-b border-border flex">
         {TABS.map(({ id, label, icon: Icon }) => (

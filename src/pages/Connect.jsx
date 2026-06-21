@@ -50,7 +50,7 @@ export default function Connect() {
   const { data: exhibitors = [] } = useQuery({ queryKey: ['exhibitors'], queryFn: () => Exhibitor.list() });
 
   return (
-    <div className="pb-24 max-w-3xl mx-auto px-4 pt-5">
+    <div className="pb-24 max-w-3xl lg:max-w-6xl mx-auto px-4 pt-5">
       {/* Header */}
       <div className="bg-steel text-white rounded-2xl p-5 mb-6 relative overflow-hidden">
         <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%)', backgroundSize: '20px 20px' }} />
@@ -75,7 +75,7 @@ export default function Connect() {
       {MODULES.map(section => (
         <div key={section.section} className="mb-6">
           <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-3 px-1">{section.section}</p>
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {section.items.map(item => {
               const Icon = item.icon;
               return (

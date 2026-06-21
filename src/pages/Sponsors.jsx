@@ -33,7 +33,7 @@ export default function Sponsors() {
   const tiers = ['Platinum', 'Gold', 'Silver', 'Bronze'];
 
   return (
-    <div className="pb-24 max-w-2xl mx-auto px-4 pt-5">
+    <div className="pb-24 max-w-2xl lg:max-w-5xl mx-auto px-4 pt-5">
       <h1 className="font-heading text-2xl font-bold uppercase tracking-wide mb-1">Sponsors & Partners</h1>
       <p className="text-muted-foreground text-sm mb-5">MineCon 2026 is made possible by the support of our valued sponsors and industry partners.</p>
 
@@ -58,7 +58,7 @@ export default function Sponsors() {
               <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${style.badge}`}>{tier} Sponsor{tierSponsors.length > 1 ? 's' : ''}</span>
               <div className={`flex-1 h-px ${style.dot} opacity-40`} />
             </div>
-            <div className={`grid ${tier === 'Platinum' ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'} gap-3`}>
+            <div className={`grid ${tier === 'Platinum' ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'} gap-3`}>
               {tierSponsors.map(s => (
                 <div key={s.id} className={`rounded-xl border-2 p-4 ${style.bg} ${style.border}`}>
                   <div className="flex items-start gap-4 mb-3">

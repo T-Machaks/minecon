@@ -26,30 +26,33 @@ export default function EventInfo() {
   const [openFaq, setOpenFaq] = useState(null);
 
   return (
-    <div className="pb-24 px-4 pt-5 max-w-2xl mx-auto">
+    <div className="pb-24 px-4 pt-5 max-w-2xl lg:max-w-4xl mx-auto">
       <h1 className="font-heading text-2xl font-bold uppercase tracking-wide mb-5">Event Information</h1>
 
-      {/* Key details */}
-      <div className="bg-steel text-white rounded-xl p-5 mb-5">
-        <p className="font-heading text-lg font-bold tracking-wide mb-3 text-amber">MINECON 2026</p>
-        <div className="space-y-2">
-          <InfoRow icon={Clock} label="Dates" value="TBC — October 2026" />
-          <InfoRow icon={Clock} label="Opening Hours" value="08:00 – 18:00 daily (Gates: 07:30)" />
-          <InfoRow icon={MapPin} label="Venue" value="Artfarm Grounds, Pomona, Harare, Zimbabwe" />
-          <InfoRow icon={Ticket} label="Entry" value="Free for visitors · Exhibitor packages available" />
-          <InfoRow icon={Globe} label="Website" value="minecon.global" link="https://minecon.global" />
+      {/* Key details + About — side-by-side on desktop */}
+      <div className="lg:grid lg:grid-cols-2 lg:gap-5 mb-5">
+        {/* Key details */}
+        <div className="bg-steel text-white rounded-xl p-5 mb-5 lg:mb-0">
+          <p className="font-heading text-lg font-bold tracking-wide mb-3 text-amber">MINECON 2026</p>
+          <div className="space-y-2">
+            <InfoRow icon={Clock} label="Dates" value="TBC — October 2026" />
+            <InfoRow icon={Clock} label="Opening Hours" value="08:00 – 18:00 daily (Gates: 07:30)" />
+            <InfoRow icon={MapPin} label="Venue" value="Artfarm Grounds, Pomona, Harare, Zimbabwe" />
+            <InfoRow icon={Ticket} label="Entry" value="Free for visitors · Exhibitor packages available" />
+            <InfoRow icon={Globe} label="Website" value="minecon.global" link="https://minecon.global" />
+          </div>
         </div>
-      </div>
 
-      {/* About */}
-      <div className="bg-card border border-border rounded-xl p-5 mb-5">
-        <h2 className="font-heading text-lg font-bold uppercase tracking-wide mb-3">About MineCon</h2>
-        <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-          MineCon is Southern Africa's dedicated Mining and Construction Exhibition, bringing together suppliers, equipment manufacturers, professional service providers, and industry buyers under one roof.
-        </p>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          Set on the expansive Artfarm Grounds in Pomona, Harare, MineCon provides a structured B2B environment for serious business conversations, product demonstrations, and contract opportunities across the full spectrum of the mining and construction value chain.
-        </p>
+        {/* About */}
+        <div className="bg-card border border-border rounded-xl p-5 mb-5 lg:mb-0">
+          <h2 className="font-heading text-lg font-bold uppercase tracking-wide mb-3">About MineCon</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+            MineCon is Southern Africa's dedicated Mining and Construction Exhibition, bringing together suppliers, equipment manufacturers, professional service providers, and industry buyers under one roof.
+          </p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Set on the expansive Artfarm Grounds in Pomona, Harare, MineCon provides a structured B2B environment for serious business conversations, product demonstrations, and contract opportunities across the full spectrum of the mining and construction value chain.
+          </p>
+        </div>
       </div>
 
       {/* Visitor guidance */}

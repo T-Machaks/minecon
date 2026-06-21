@@ -88,7 +88,7 @@ export default function Register() {
   const confirmed = registrations.filter(r => r.status === 'Confirmed' || r.status === 'Checked In').length;
 
   return (
-    <div className="pb-24 max-w-2xl mx-auto px-4 pt-5">
+    <div className="pb-24 max-w-2xl lg:max-w-3xl mx-auto px-4 pt-5">
       <h1 className="font-heading text-2xl font-bold uppercase tracking-wide mb-1">Event Registration</h1>
       <p className="text-muted-foreground text-sm mb-4">Register for MineCon 2026 — get a badge &amp; ticket to attend the exhibition.</p>
 

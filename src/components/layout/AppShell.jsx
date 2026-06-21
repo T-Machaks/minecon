@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Home, Users, Map, Calendar, Info, Bell,
   LayoutDashboard, QrCode, Menu, X, Star,
-  BookOpen, UserCheck, Zap, Clock, Shield, ChevronLeft, Download,
+  BookOpen, UserCheck, Zap, Clock, Shield, ChevronLeft, ChevronRight, Download,
 } from 'lucide-react';
 import { useState } from 'react';
 import MineConLogo from './MineConLogo.jsx';
@@ -32,18 +32,18 @@ const navGroups = [
     label: 'Content & Info',
     items: [
       { path: '/magazine',      label: 'Publications',       icon: BookOpen },
-      { path: '/announcements', label: 'Updates',           icon: Bell },
-      { path: '/event-info',    label: 'Event Info',        icon: Info },
-      { path: '/qr-resources',  label: 'QR Resources',      icon: QrCode },
+      { path: '/announcements', label: 'Updates',            icon: Bell },
+      { path: '/event-info',    label: 'Event Info',         icon: Info },
+      { path: '/qr-resources',  label: 'QR Resources',       icon: QrCode },
     ],
   },
 ];
 
 const bottomNav = [
-  { path: '/',            label: 'Home',       icon: Home },
-  { path: '/exhibitors',  label: 'Exhibitors', icon: Users },
-  { path: '/connect',     label: 'Connect',    icon: Zap },
-  { path: '/meetings',    label: 'Meetings',   icon: Calendar },
+  { path: '/',            label: 'Home',         icon: Home },
+  { path: '/exhibitors',  label: 'Exhibitors',   icon: Users },
+  { path: '/connect',     label: 'Connect',      icon: Zap },
+  { path: '/meetings',    label: 'Meetings',     icon: Calendar },
   { path: '/magazine',    label: 'Publications', icon: BookOpen },
 ];
 
@@ -51,21 +51,33 @@ export default function AppShell({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try { return localStorage.getItem('sidebar-collapsed') === 'true'; } catch { return false; }
+  });
   const { showMenuLink, isIOS, hasBrowserPrompt, promptInstall, markSeen, openModal } = usePWAInstall();
 
   const isHome = location.pathname === '/';
   const isActive = (path) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
 
+  const toggleSidebar = () => {
+    setSidebarCollapsed(c => {
+      const next = !c;
+      try { localStorage.setItem('sidebar-collapsed', String(next)); } catch {}
+      return next;
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {/* ── Header ── */}
       <header className="sticky top-0 z-50 bg-steel shadow-lg border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-3">
-          {/* Back button on all pages except home */}
+          {/* Back button — mobile only, non-home pages */}
           {!isHome ? (
             <button
               onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/')}
-              className="flex-shrink-0 flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 transition-all duration-150 select-none text-white touch-manipulation"
+              className="lg:hidden flex-shrink-0 flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 transition-all duration-150 select-none text-white touch-manipulation"
               aria-label="Go back"
             >
               <ChevronLeft className="w-5 h-5" />
@@ -78,8 +90,9 @@ export default function AppShell({ children }) {
 
           <div className="flex-1" />
 
+          {/* Hamburger — hidden on desktop */}
           <button
-            className="text-white flex items-center justify-center w-11 h-11 rounded-md hover:bg-white/10 active:scale-95 transition-all duration-150 select-none touch-manipulation"
+            className="lg:hidden text-white flex items-center justify-center w-11 h-11 rounded-md hover:bg-white/10 active:scale-95 transition-all duration-150 select-none touch-manipulation"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle menu"
           >
@@ -87,8 +100,9 @@ export default function AppShell({ children }) {
           </button>
         </div>
 
+        {/* Mobile dropdown menu */}
         {menuOpen && (
-          <div className="bg-steel border-t border-white/10 px-4 py-3 flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
+          <div className="lg:hidden bg-steel border-t border-white/10 px-4 py-3 flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
             {navGroups.map(group => (
               <div key={group.label}>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 px-1">
@@ -114,7 +128,6 @@ export default function AppShell({ children }) {
               </div>
             ))}
 
-            {/* Portal links */}
             <div className="border-t border-white/10 pt-3">
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 px-1">
                 Portals
@@ -137,7 +150,6 @@ export default function AppShell({ children }) {
               </div>
             </div>
 
-            {/* Install App */}
             {showMenuLink && (
               <div className="border-t border-white/10 pt-3">
                 <button
@@ -161,9 +173,115 @@ export default function AppShell({ children }) {
         )}
       </header>
 
-      <main className="flex-1">{children}</main>
+      {/* ── Body: sidebar + main ── */}
+      <div className="flex flex-1 relative">
+        {/* Desktop sidebar */}
+        <aside
+          className={`hidden lg:flex flex-col fixed top-14 bottom-0 left-0 z-40 bg-steel border-r border-white/10 overflow-y-auto overflow-x-hidden transition-all duration-200 ${sidebarCollapsed ? 'w-16' : 'w-60'}`}
+        >
+          {/* Collapse toggle */}
+          <div className="flex items-center justify-end p-2 flex-shrink-0 border-b border-white/10">
+            <button
+              onClick={toggleSidebar}
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all"
+              aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {sidebarCollapsed
+                ? <ChevronRight className="w-4 h-4" />
+                : <ChevronLeft className="w-4 h-4" />
+              }
+            </button>
+          </div>
 
-      <nav className="sticky bottom-0 z-50 bg-steel border-t border-white/10">
+          {/* Nav items */}
+          <div className="flex-1 py-3 px-2 overflow-y-auto overflow-x-hidden">
+            {navGroups.map(group => (
+              <div key={group.label} className="mb-4">
+                {!sidebarCollapsed && (
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 px-2">
+                    {group.label}
+                  </p>
+                )}
+                <div className="flex flex-col gap-0.5">
+                  {group.items.map(({ path, label, icon: Icon }) => (
+                    <Link
+                      key={path}
+                      to={path}
+                      title={sidebarCollapsed ? label : undefined}
+                      className={`flex items-center px-2 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
+                        sidebarCollapsed ? 'justify-center gap-0' : 'gap-3'
+                      } ${
+                        isActive(path)
+                          ? 'bg-amber text-white shadow-sm'
+                          : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4 flex-shrink-0" />
+                      {!sidebarCollapsed && <span className="truncate">{label}</span>}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            {/* Portals */}
+            <div className="pt-3 border-t border-white/10">
+              {!sidebarCollapsed && (
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 px-2">
+                  Portals
+                </p>
+              )}
+              <div className="flex flex-col gap-0.5">
+                <Link
+                  to="/exhibitor"
+                  title={sidebarCollapsed ? 'Exhibitor Portal' : undefined}
+                  className={`flex items-center px-2 py-2 rounded-lg text-sm font-medium text-slate-400 hover:bg-white/10 hover:text-white transition-all ${sidebarCollapsed ? 'justify-center gap-0' : 'gap-3'}`}
+                >
+                  <Users className="w-4 h-4 flex-shrink-0" />
+                  {!sidebarCollapsed && <span>Exhibitor Portal</span>}
+                </Link>
+                <Link
+                  to="/console"
+                  title={sidebarCollapsed ? 'Management Console' : undefined}
+                  className={`flex items-center px-2 py-2 rounded-lg text-sm font-medium text-slate-400 hover:bg-white/10 hover:text-white transition-all ${sidebarCollapsed ? 'justify-center gap-0' : 'gap-3'}`}
+                >
+                  <Shield className="w-4 h-4 flex-shrink-0" />
+                  {!sidebarCollapsed && <span>Management Console</span>}
+                </Link>
+              </div>
+            </div>
+
+            {/* Install App */}
+            {showMenuLink && (
+              <div className="pt-3 mt-2 border-t border-white/10">
+                <button
+                  onClick={async () => {
+                    if (hasBrowserPrompt) {
+                      await promptInstall();
+                      markSeen();
+                    } else {
+                      openModal();
+                    }
+                  }}
+                  title={sidebarCollapsed ? (isIOS ? 'Add to Home Screen' : 'Install App') : undefined}
+                  className={`w-full flex items-center px-2 py-2 rounded-lg text-sm font-medium text-amber hover:bg-amber/10 transition-all ${sidebarCollapsed ? 'justify-center gap-0' : 'gap-3'}`}
+                >
+                  <Download className="w-4 h-4 flex-shrink-0" />
+                  {!sidebarCollapsed && (isIOS ? 'Add to Home Screen' : 'Install App')}
+                </button>
+              </div>
+            )}
+          </div>
+        </aside>
+
+        {/* Main content — shifts right on desktop to clear sidebar */}
+        <main className={`flex-1 min-w-0 transition-all duration-200 ${sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-60'}`}>
+          {children}
+        </main>
+      </div>
+
+      {/* Bottom tab bar — hidden on desktop */}
+      <nav className="sticky bottom-0 z-50 bg-steel border-t border-white/10 lg:hidden">
         <div className="grid grid-cols-5 max-w-md mx-auto">
           {bottomNav.map(({ path, label, icon: Icon }) => (
             <Link

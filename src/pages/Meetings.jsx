@@ -73,7 +73,7 @@ export default function Meetings() {
   }
 
   return (
-    <div className="pb-24 px-4 pt-5 max-w-2xl mx-auto">
+    <div className="pb-24 px-4 pt-5 max-w-2xl lg:max-w-4xl mx-auto">
       <h1 className="font-heading text-2xl font-bold uppercase tracking-wide mb-1">Book a Meeting</h1>
       <p className="text-muted-foreground text-sm mb-5">Request a one-on-one meeting with an exhibitor at MineCon 2026.</p>
 
@@ -81,10 +81,10 @@ export default function Meetings() {
         {/* Visitor info */}
         <div>
           <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-3 flex items-center gap-1.5"><User className="w-3.5 h-3.5" />Your Details</p>
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <FormField icon={User} placeholder="Full name *" value={form.visitor_name} onChange={v => set('visitor_name', v)} required />
-            <FormField icon={Building2} placeholder="Company name" value={form.visitor_company} onChange={v => set('visitor_company', v)} />
             <FormField icon={Mail} placeholder="Email address *" type="email" value={form.visitor_email} onChange={v => set('visitor_email', v)} required />
+            <FormField icon={Building2} placeholder="Company name" value={form.visitor_company} onChange={v => set('visitor_company', v)} />
             <FormField icon={Phone} placeholder="Phone number" type="tel" value={form.visitor_phone} onChange={v => set('visitor_phone', v)} />
           </div>
         </div>
@@ -163,7 +163,7 @@ export default function Meetings() {
       {meetings.length > 0 && (
         <div className="mt-8">
           <h2 className="font-heading text-lg font-bold uppercase tracking-wide mb-3">Meeting Requests</h2>
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {meetings.map(m => (
               <div key={m.id} className="bg-card border border-border rounded-xl p-4">
                 <div className="flex items-start justify-between gap-2">

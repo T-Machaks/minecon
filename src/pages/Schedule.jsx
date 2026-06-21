@@ -66,7 +66,7 @@ export default function Schedule() {
   const day = SCHEDULE[activeDay];
 
   return (
-    <div className="pb-24 max-w-2xl mx-auto">
+    <div className="pb-24 max-w-2xl lg:max-w-4xl mx-auto">
       <div className="px-4 pt-5 mb-4">
         <h1 className="font-heading text-2xl font-bold uppercase tracking-wide">Event Schedule</h1>
         <p className="text-muted-foreground text-sm mt-1">MineCon 2026 — Dates to be confirmed</p>
@@ -74,20 +74,22 @@ export default function Schedule() {
 
       {/* Day tabs */}
       <div className="px-4 mb-5">
-        <div className="bg-muted rounded-xl p-1 flex gap-1">
-          {days.map(d => (
-            <button
-              key={d}
-              onClick={() => setActiveDay(d)}
-              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors ${activeDay === d ? 'bg-steel text-white shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-            >
-              {d}
-            </button>
-          ))}
-        </div>
-        <div className="mt-2 px-1 flex items-center justify-between">
-          <p className="text-xs text-amber font-semibold">{day.theme}</p>
-          <p className="text-xs text-muted-foreground">{day.date}</p>
+        <div className="lg:flex lg:items-center lg:gap-4">
+          <div className="bg-muted rounded-xl p-1 flex gap-1 lg:flex-shrink-0">
+            {days.map(d => (
+              <button
+                key={d}
+                onClick={() => setActiveDay(d)}
+                className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors ${activeDay === d ? 'bg-steel text-white shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+              >
+                {d}
+              </button>
+            ))}
+          </div>
+          <div className="mt-2 lg:mt-0 px-1 flex items-center justify-between lg:flex-1">
+            <p className="text-xs text-amber font-semibold">{day.theme}</p>
+            <p className="text-xs text-muted-foreground">{day.date}</p>
+          </div>
         </div>
       </div>
 

@@ -27,7 +27,7 @@ export default function Announcements() {
   const rest = announcements.filter(a => !a.pinned && !a.sponsored);
 
   return (
-    <div className="pb-24 px-4 pt-5 max-w-2xl mx-auto">
+    <div className="pb-24 px-4 pt-5 max-w-2xl lg:max-w-4xl mx-auto">
       <h1 className="font-heading text-2xl font-bold uppercase tracking-wide mb-1">Event Updates</h1>
       <p className="text-muted-foreground text-sm mb-5">Important notices, reminders, and announcements from the MineCon organising team.</p>
 

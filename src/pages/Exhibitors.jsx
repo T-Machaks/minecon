@@ -33,7 +33,7 @@ export default function Exhibitors() {
   });
 
   return (
-    <div className="pb-24 px-4 pt-5 max-w-2xl mx-auto">
+    <div className="pb-24 px-4 pt-5 max-w-2xl lg:max-w-6xl mx-auto">
       <h1 className="font-heading text-2xl font-bold uppercase tracking-wide mb-4">Exhibitor Directory</h1>
 
       {/* Search */}
@@ -48,7 +48,7 @@ export default function Exhibitors() {
       </div>
 
       {/* Filters */}
-      <div className="space-y-2 mb-5">
+      <div className="lg:flex lg:gap-6 lg:items-start space-y-2 lg:space-y-0 mb-5">
         <div>
           <p className="text-xs font-semibold text-muted-foreground uppercase mb-1.5 flex items-center gap-1"><Filter className="w-3 h-3" /> Category</p>
           <div className="flex gap-2 flex-wrap">
@@ -99,7 +99,7 @@ export default function Exhibitors() {
         </div>
       )}
 
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {filtered.map(ex => (
           <div key={ex.id} className="bg-card border border-border rounded-xl overflow-hidden">
             {/* Card header */}

@@ -45,7 +45,7 @@ export default function Home() {
   return (
     <div className="pb-20">
       {/* Hero */}
-      <div className="bg-steel text-white px-4 pt-8 pb-10 relative overflow-hidden">
+      <div className="bg-steel text-white px-4 pt-8 pb-10 lg:pt-12 lg:pb-14 relative overflow-hidden">
         <div className="absolute inset-0 opacity-5">
           <div className="absolute top-0 left-0 w-full h-full" style={{backgroundImage: 'repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 0, transparent 50%)', backgroundSize: '20px 20px'}} />
         </div>
@@ -53,7 +53,7 @@ export default function Home() {
           <div className="inline-block bg-amber text-white text-xs font-bold px-3 py-1 rounded-full mb-4 tracking-widest uppercase">
             2026 Edition · Dates TBC
           </div>
-          <h1 className="font-heading text-4xl md:text-5xl font-bold tracking-wider mb-2">
+          <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold tracking-wider mb-2">
             MINECON 2026
           </h1>
           <p className="text-slate-300 text-base mb-1">Mining & Construction Exhibition</p>
@@ -83,7 +83,7 @@ export default function Home() {
       {/* Pinned announcements */}
       {pinned.length > 0 && (
         <div className="px-4 pt-5">
-          <div className="max-w-2xl mx-auto space-y-2">
+          <div className="max-w-2xl lg:max-w-5xl mx-auto space-y-2">
             {pinned.map(a => {
               const Icon = typeIcon[a.type] || Megaphone;
               return (
@@ -101,10 +101,10 @@ export default function Home() {
         </div>
       )}
 
-      <div className="px-4 pt-6 pb-2 w-full max-w-2xl mx-auto">
+      <div className="px-4 pt-6 pb-2 w-full max-w-2xl lg:max-w-5xl mx-auto">
         {/* Quick actions */}
         <h2 className="font-heading text-lg font-bold uppercase tracking-wide text-foreground mb-3">Quick Access</h2>
-        <div className="grid grid-cols-4 xs:grid-cols-4 gap-2 sm:gap-3">
+        <div className="grid grid-cols-4 xs:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3">
           {quickActions.map(({ label, path, icon: Icon, color }) => (
             <Link key={path} to={path} className="flex flex-col items-center gap-1.5 group select-none">
               <div className={`${color} rounded-xl flex items-center justify-center shadow-md w-full aspect-square transition-all duration-150 group-hover:scale-105 group-active:scale-90 group-hover:shadow-lg`}>
@@ -178,7 +178,7 @@ export default function Home() {
                 View all <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
               {exhibitors.slice(0, 6).map(ex => (
                 <Link
                   key={ex.id}
