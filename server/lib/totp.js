@@ -1,17 +1,18 @@
-import { authenticator } from 'otplib';
+import { generateSecret as _generateSecret, generateURI, verify } from 'otplib';
 import QRCode from 'qrcode';
 
 const ISSUER = 'MineCon 2026';
 
 export function generateSecret() {
-  return authenticator.generateSecret();
+  return _generateSecret();
 }
 
 export async function generateQrDataUrl(email, secret) {
-  const uri = authenticator.keyuri(email, ISSUER, secret);
+  const uri = generateURI({ issuer: ISSUER, label: email, secret, type: 'totp' });
   return QRCode.toDataURL(uri);
 }
 
-export function verifyToken(secret, token) {
-  return authenticator.verify({ token, secret });
+export async function verifyToken(secret, token) {
+  const result = await verify({ token, secret });
+  return result.valid;
 }

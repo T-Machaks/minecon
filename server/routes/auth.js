@@ -261,7 +261,7 @@ router.post('/totp/verify', async (req, res) => {
     const secret = entry.type === 'totp_setup' ? entry.secret : user.totp_secret;
     if (!secret) return res.status(401).json({ error: 'TOTP not configured for this account.' });
 
-    if (!verifyToken(secret, code.trim()))
+    if (!await verifyToken(secret, code.trim()))
       return res.status(401).json({ error: 'Incorrect authenticator code. Please try again.' });
 
     // If this was first-time setup, persist the TOTP secret
