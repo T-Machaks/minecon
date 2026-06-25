@@ -12,8 +12,8 @@ import SocialAuthButtons, { SocialDivider } from '@/components/SocialAuthButtons
 
 // ── Pricing ────────────────────────────────────────────────────────────────
 const TICKET_PRICES = {
-  'General Admission': 50,
-  'VIP Pass': 200,
+  'General Admission': 10,
+  'VIP (includes parking)': 25,
   'Exhibitor Pass': 0,   // set by tier
   'Speaker Pass': 0,
 };
@@ -46,7 +46,7 @@ const ROLE_TYPES = [
   { value: 'VIP Guest', icon: Crown,    color: 'bg-rose-500',   desc: 'Special invite or dignitary' },
 ];
 
-const TICKET_MAP  = { Attendee: ['General Admission', 'VIP Pass'], Exhibitor: ['Exhibitor Pass'], Sponsor: ['VIP Pass', 'Exhibitor Pass'], Speaker: ['Speaker Pass'], 'VIP Guest': ['VIP Pass'] };
+const TICKET_MAP  = { Attendee: ['General Admission', 'VIP (includes parking)'], Exhibitor: ['Exhibitor Pass'], Sponsor: ['VIP (includes parking)', 'Exhibitor Pass'], Speaker: ['Speaker Pass'], 'VIP Guest': ['VIP (includes parking)'] };
 const BADGE_MAP   = { Attendee: 'Visitor', Exhibitor: 'Exhibitor', Sponsor: 'Sponsor', Speaker: 'Speaker', 'VIP Guest': 'VIP' };
 
 function isValidZimPhone(v) {

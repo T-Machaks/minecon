@@ -225,54 +225,71 @@ export default function QRResources() {
             </div>
           </div>
 
-          {/* Registration ticket QR — for gate check-in */}
-          <div className="bg-card border border-border rounded-2xl overflow-hidden">
-            <div className="bg-steel px-4 py-3 flex items-center gap-2">
-              <Ticket className="w-4 h-4 text-amber" />
-              <span className="font-heading font-bold text-sm uppercase tracking-widest text-white">Entry Ticket QR</span>
-              <Lock className="w-3.5 h-3.5 text-amber ml-auto" />
-            </div>
-            {ticketQR ? (
-              <div className="p-5 space-y-4">
-                <QRCodeDisplay
-                  value={ticketQR}
-                  size={180}
-                  label={displayName}
-                  sublabel={`${myReg.ticket_type} · ${myReg.badge_category}`}
-                />
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  {[
-                    ['Ticket', myReg.ticket_type],
-                    ['Badge', myReg.badge_category],
-                    ['Days', [myReg.day1 && 'D1', myReg.day2 && 'D2', myReg.day3 && 'D3'].filter(Boolean).join(' ')],
-                    ['Status', myReg.checked_in ? 'Checked In ✓' : (myReg.status || 'Pending')],
-                  ].map(([label, value]) => (
-                    <div key={label} className="bg-muted rounded-lg px-3 py-2">
-                      <p className="text-muted-foreground uppercase tracking-wide text-[10px]">{label}</p>
-                      <p className="font-semibold mt-0.5 truncate">{value}</p>
-                    </div>
-                  ))}
+          {/* Entry Ticket QR(s) — one per ticket in the booking */}
+          {(() => {
+            const qty = Math.max(1, myReg?.quantity || 1);
+            const tickets = Array.from({ length: qty }, (_, i) => i + 1);
+            return (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-heading text-lg font-bold uppercase tracking-wide flex items-center gap-2">
+                    <Ticket className="w-4 h-4 text-amber" /> Entry Ticket{qty > 1 ? `s (${qty})` : ''}
+                  </h2>
+                  {qty > 1 && <span className="text-xs bg-amber text-white px-2 py-0.5 rounded-full font-medium">{qty} tickets</span>}
                 </div>
-                {myReg.checked_in && (
-                  <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl px-4 py-3">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                    <p className="text-xs text-emerald-700 dark:text-emerald-400">Checked in — this ticket has already been used for entry.</p>
+                {myReg?.token ? (
+                  <>
+                    {tickets.map(n => {
+                      const tQR = JSON.stringify({ t: 'ticket', ev: 'mc26', rid: myReg.id, tok: myReg.token, n });
+                      return (
+                        <div key={n} className="bg-card border border-border rounded-2xl overflow-hidden">
+                          <div className="bg-steel px-4 py-3 flex items-center gap-2">
+                            <Ticket className="w-4 h-4 text-amber" />
+                            <span className="font-heading font-bold text-sm uppercase tracking-widest text-white">
+                              {qty > 1 ? `Ticket ${n} of ${qty}` : 'Entry Ticket'}
+                            </span>
+                            <Lock className="w-3.5 h-3.5 text-amber ml-auto" />
+                          </div>
+                          <div className="p-5 space-y-4">
+                            <QRCodeDisplay
+                              value={tQR}
+                              size={180}
+                              label={qty > 1 ? `${displayName} — Ticket ${n}` : displayName}
+                              sublabel={`${myReg.ticket_type} · ${myReg.badge_category}`}
+                            />
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              {[
+                                ['Ticket', myReg.ticket_type],
+                                ['Badge', myReg.badge_category],
+                                ['Days', [myReg.day1 && 'D1', myReg.day2 && 'D2', myReg.day3 && 'D3'].filter(Boolean).join(' ')],
+                                ['Status', myReg.checked_in ? 'Checked In ✓' : (myReg.status || 'Pending')],
+                              ].map(([label, value]) => (
+                                <div key={label} className="bg-muted rounded-lg px-3 py-2">
+                                  <p className="text-muted-foreground uppercase tracking-wide text-[10px]">{label}</p>
+                                  <p className="font-semibold mt-0.5 truncate">{value}</p>
+                                </div>
+                              ))}
+                            </div>
+                            <div className="flex items-start gap-2 bg-muted/50 rounded-xl p-3 text-xs text-muted-foreground">
+                              <Lock className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                              <p>Present this QR at the gate for entry. Each ticket can only be used once.</p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </>
+                ) : (
+                  <div className="bg-card border border-border rounded-2xl p-6 text-center space-y-2">
+                    <Ticket className="w-10 h-10 text-muted-foreground mx-auto" />
+                    <p className="text-sm font-semibold">No entry ticket found</p>
+                    <p className="text-xs text-muted-foreground">Complete your event registration to receive entry ticket QR codes.</p>
+                    <a href="/register" className="inline-block mt-2 text-amber text-xs font-medium underline">Register now →</a>
                   </div>
                 )}
-                <div className="flex items-start gap-2 bg-muted/50 rounded-xl p-3 text-xs text-muted-foreground">
-                  <Lock className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                  <p>This QR is tied to your registration and can only be used once. Present it at the gate for entry.</p>
-                </div>
               </div>
-            ) : (
-              <div className="p-6 text-center space-y-2">
-                <Ticket className="w-10 h-10 text-muted-foreground mx-auto" />
-                <p className="text-sm font-semibold">No registration found</p>
-                <p className="text-xs text-muted-foreground">Complete your registration to receive an entry ticket QR code.</p>
-                <a href="/register" className="inline-block mt-2 text-amber text-xs font-medium underline">Register now →</a>
-              </div>
-            )}
-          </div>
+            );
+          })()}
 
           <div className="flex items-start gap-2 bg-muted/50 rounded-xl p-4 text-xs text-muted-foreground">
             <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
