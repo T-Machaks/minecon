@@ -1,12 +1,13 @@
 import { useState, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { Registration, Exhibitor, EngagementEvent } from '@/api/entities';
 import { useAuth } from '@/lib/AuthContext';
 import QRCodeDisplay from '@/components/QRCodeDisplay';
 import QRScanner from '@/components/QRScanner';
 import {
   QrCode, ScanLine, Info, CheckCircle2, AlertCircle,
-  Calendar, MapPin, ChevronRight, Ticket, Lock,
+  Calendar, MapPin, ChevronRight, Ticket, Lock, LogIn, UserPlus,
 } from 'lucide-react';
 
 const TABS = [
@@ -25,25 +26,27 @@ function getOrCreateVisitorId() {
 }
 
 export default function QRResources() {
-  const { user } = useAuth();
+  const { user, isAuthenticated, isLoadingAuth } = useAuth();
   const qc = useQueryClient();
   const [tab, setTab] = useState('badge');
   const [scanResult, setScanResult] = useState(null); // null | 'success' | 'error'
   const [scannedExhibitor, setScannedExhibitor] = useState(null);
 
-  const { data: registrations = [] } = useQuery({
-    queryKey: ['my-registration'],
+  const { data: registrations = [], isLoading: isLoadingReg } = useQuery({
+    queryKey: ['my-registration', user?.email],
     queryFn: () => Registration.list(null),
+    enabled: !!user?.email,
   });
 
   const { data: exhibitors = [] } = useQuery({
     queryKey: ['exhibitors-all'],
     queryFn: () => Exhibitor.list(null),
+    enabled: isAuthenticated,
   });
 
   const myReg = registrations.find(
     r => r.email?.toLowerCase() === user?.email?.toLowerCase()
-  ) ?? registrations[0];
+  );
 
   const displayName =
     myReg?.full_name ||
@@ -104,6 +107,60 @@ export default function QRResources() {
     setScanResult(null);
     setScannedExhibitor(null);
   };
+
+  if (isLoadingAuth) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="w-8 h-8 border-4 border-amber/30 border-t-amber rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
+        <div className="w-16 h-16 bg-amber/10 rounded-full flex items-center justify-center mb-4">
+          <QrCode className="w-8 h-8 text-amber" />
+        </div>
+        <h2 className="font-heading text-2xl font-bold mb-2">Account Required</h2>
+        <p className="text-muted-foreground text-sm mb-6 max-w-xs">
+          QR Resources are linked to your registered account. Sign in or create a free account to access your visitor badge and entry ticket.
+        </p>
+        <div className="flex gap-3">
+          <Link to="/login" className="flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-amber/90 transition-colors">
+            <LogIn className="w-4 h-4" /> Sign In
+          </Link>
+          <Link to="/signup" className="flex items-center gap-2 border border-border bg-card text-foreground px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-muted transition-colors">
+            <UserPlus className="w-4 h-4" /> Create Account
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isLoadingReg && !myReg) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
+        <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+          <Ticket className="w-8 h-8 text-muted-foreground" />
+        </div>
+        <h2 className="font-heading text-2xl font-bold mb-2">No Ticket Linked</h2>
+        <p className="text-muted-foreground text-sm mb-2 max-w-xs">
+          Your account <span className="font-medium text-foreground">{user?.email}</span> does not have a registered event ticket.
+        </p>
+        <p className="text-muted-foreground text-xs mb-6 max-w-xs">
+          Register for MineCon 2026 to receive your entry ticket and visitor badge QR codes.
+        </p>
+        <Link to="/register" className="flex items-center gap-2 bg-amber text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-amber/90 transition-colors">
+          <Ticket className="w-4 h-4" /> Register for MineCon 2026
+        </Link>
+        <p className="text-xs text-muted-foreground mt-4">
+          Already registered?{' '}
+          <span className="text-amber">Contact support if your ticket isn't appearing.</span>
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-24 max-w-2xl lg:max-w-4xl mx-auto">
