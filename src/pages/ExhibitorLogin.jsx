@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Store, ChevronDown, Search, LogIn, FlaskConical } from 'lucide-react';
+import { Store, ChevronDown, Search, LogIn, FlaskConical, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import MineConLogo from '@/components/layout/MineConLogo';
 
@@ -16,6 +16,7 @@ export default function ExhibitorLogin() {
   const [selected, setSelected] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -143,13 +144,23 @@ export default function ExhibitorLogin() {
           {/* Password */}
           <div className="flex flex-col gap-1.5">
             <label className="text-slate-300 text-sm font-medium">Demo Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => { setPassword(e.target.value); setError(''); }}
-              placeholder="Enter demo password"
-              className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber/50 focus:border-amber/50 transition-all"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={e => { setPassword(e.target.value); setError(''); }}
+                placeholder="Enter demo password"
+                className="w-full bg-white/10 border border-white/20 rounded-xl px-4 pr-11 py-3 text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber/50 focus:border-amber/50 transition-all"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(v => !v)}
+                className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-white transition-colors"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
 
           {error && (
