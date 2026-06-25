@@ -1005,47 +1005,56 @@ function TobaccoTodayFlipBook({ onBack, isMobile }) {
 // ── MineCon Magazine (stubbed — cover only) ───────────────────────────────────
 function MineConMagazineCover() {
   return (
-    <div className="absolute inset-0 flex flex-col" style={{ background: '#080c14' }}>
+    <div className="absolute inset-0 flex flex-col overflow-hidden" style={{ background: '#080c14' }}>
       {/* Masthead */}
-      <div className="shrink-0 px-4 py-2 flex items-center justify-between" style={{ background: '#f59e0b' }}>
-        <span className="font-black uppercase tracking-[0.15em] text-slate-900" style={{ fontSize: 17, fontFamily: 'Barlow Condensed,sans-serif' }}>MINECON</span>
-        <span className="font-black uppercase tracking-widest text-slate-900" style={{ fontSize: 8 }}>MAGAZINE</span>
+      <div className="shrink-0 px-3 py-1.5 flex items-center justify-between" style={{ background: '#f59e0b' }}>
+        <span className="font-black uppercase tracking-[0.15em] text-slate-900" style={{ fontSize: 14, fontFamily: 'Barlow Condensed,sans-serif' }}>MINECON</span>
+        <span className="font-black uppercase tracking-widest text-slate-900" style={{ fontSize: 7 }}>MAGAZINE</span>
       </div>
       {/* Issue line */}
-      <div className="px-4 py-1.5 shrink-0 flex justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <span className="text-slate-500" style={{ fontSize: 7.5 }}>Issue 1 · October 2026</span>
-        <span className="text-slate-500" style={{ fontSize: 7.5 }}>minecon.global</span>
+      <div className="px-3 py-1 shrink-0 flex justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <span className="text-slate-500" style={{ fontSize: 7 }}>Issue 1 · October 2026</span>
+        <span className="text-slate-500" style={{ fontSize: 7 }}>minecon.global</span>
       </div>
-      {/* Hero */}
-      <div className="flex-1 relative overflow-hidden" style={{ background: 'linear-gradient(175deg,#0d1829 0%,#162140 50%,#0b1322 100%)' }}>
+      {/* Hero — flex column so top and bottom content never collide */}
+      <div
+        className="flex-1 overflow-hidden flex flex-col justify-between px-4 py-3 relative"
+        style={{ background: 'linear-gradient(175deg,#0d1829 0%,#162140 50%,#0b1322 100%)' }}
+      >
+        {/* Background decorations */}
         <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(circle,#f59e0b 1px,transparent 1px)', backgroundSize: '18px 18px' }} />
         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 70% 50% at 50% 90%,rgba(245,158,11,0.10) 0%,transparent 70%)' }} />
-        <div className="absolute top-5 inset-x-5">
-          <div className="text-amber-400 font-bold uppercase tracking-[0.2em] mb-2" style={{ fontSize: 7.5 }}>Cover Feature</div>
-          <div className="text-white font-black leading-none" style={{ fontSize: 24, fontFamily: 'Barlow Condensed,sans-serif', lineHeight: 1 }}>
+        {/* Watermark logo */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-[0.05]">
+          <img src="/minecon-logo.png" alt="" className="w-16 h-16 object-contain" />
+        </div>
+
+        {/* Top: cover feature headline */}
+        <div className="relative z-10">
+          <div className="text-amber-400 font-bold uppercase tracking-[0.2em] mb-1" style={{ fontSize: 7 }}>Cover Feature</div>
+          <div className="text-white font-black" style={{ fontSize: 20, fontFamily: 'Barlow Condensed,sans-serif', lineHeight: 1.05 }}>
             ZIMBABWE'S<br />MINING<br />RENAISSANCE
           </div>
-          <div className="h-0.5 w-10 mt-3" style={{ background: '#f59e0b' }} />
-          <div className="text-slate-400 mt-2.5 leading-relaxed" style={{ fontSize: 8 }}>
-            Critical minerals, new investment &amp;<br />the technology reshaping our sector
+          <div className="h-px w-8 mt-2" style={{ background: '#f59e0b' }} />
+          <div className="text-slate-400 mt-1.5 leading-snug" style={{ fontSize: 7.5 }}>
+            Critical minerals, new investment &amp; the technology reshaping our sector
           </div>
         </div>
-        <div className="absolute inset-x-0 bottom-0 flex justify-center pb-12 opacity-[0.08]">
-          <img src="/minecon-logo.png" alt="" className="w-20 h-20 object-contain" />
-        </div>
-        <div className="absolute bottom-3 inset-x-5 space-y-1.5">
-          {['Lithium Rush: What It Means for Zimbabwe','Top 20 Mining Companies to Watch 2026','Technology Special: AI on the Mine Floor'].map(line => (
-            <div key={line} className="flex items-start gap-1.5">
-              <span className="text-amber-400 font-bold leading-tight flex-shrink-0" style={{ fontSize: 7.5 }}>▸</span>
-              <span className="text-slate-300 leading-tight" style={{ fontSize: 7.5 }}>{line}</span>
+
+        {/* Bottom: article teasers */}
+        <div className="relative z-10 space-y-1">
+          {['Lithium Rush: What It Means for Zimbabwe','Top 20 Mining Companies to Watch 2026','AI on the Mine Floor — Technology Special'].map(line => (
+            <div key={line} className="flex items-start gap-1">
+              <span className="text-amber-400 font-bold leading-tight flex-shrink-0" style={{ fontSize: 7 }}>▸</span>
+              <span className="text-slate-300 leading-tight" style={{ fontSize: 7 }}>{line}</span>
             </div>
           ))}
         </div>
       </div>
       {/* Footer */}
-      <div className="px-4 py-2 shrink-0 flex items-center justify-between" style={{ background: '#05080f', borderTop: '2px solid #f59e0b' }}>
-        <span className="text-amber-400 font-bold uppercase tracking-wide" style={{ fontSize: 8 }}>Inaugural Edition</span>
-        <span className="text-slate-500" style={{ fontSize: 7.5 }}>October 2026</span>
+      <div className="px-3 py-1.5 shrink-0 flex items-center justify-between" style={{ background: '#05080f', borderTop: '2px solid #f59e0b' }}>
+        <span className="text-amber-400 font-bold uppercase tracking-wide" style={{ fontSize: 7 }}>Inaugural Edition</span>
+        <span className="text-slate-500" style={{ fontSize: 7 }}>October 2026</span>
       </div>
     </div>
   );
@@ -1062,7 +1071,7 @@ function MineConMagazineViewer({ onBack }) {
         <span className="text-sm font-semibold">MineCon Magazine — Issue 1</span>
       </div>
       <div className="flex flex-col items-center px-4">
-        <div className="relative rounded-xl overflow-hidden shadow-2xl w-full" style={{ maxWidth: 300, aspectRatio: '3/4' }}>
+        <div className="relative rounded-xl overflow-hidden shadow-2xl" style={{ width: 260, height: 347 }}>
           <MineConMagazineCover />
         </div>
         <div className="mt-6 max-w-xs text-center space-y-1">
