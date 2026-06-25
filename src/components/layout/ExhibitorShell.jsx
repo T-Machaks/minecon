@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate, Outlet, Navigate } from 'react-router-dom';
-import { Store, Calendar, BarChart2, LogOut, Shield, ChevronLeft, ScanLine, Users } from 'lucide-react';
+import { Store, Calendar, BarChart2, LogOut, Shield, ChevronLeft, ScanLine, Users, Inbox } from 'lucide-react';
 import MineConLogo from './MineConLogo.jsx';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -9,6 +9,7 @@ const exhibitorNav = [
   { path: '/exhibitor/scan',      label: 'Scan',       icon: ScanLine },
   { path: '/exhibitor/analytics', label: 'Analytics',  icon: BarChart2 },
   { path: '/exhibitor/team',      label: 'Team',       icon: Users },
+  { path: '/exhibitor/enquiries', label: 'Enquiries',  icon: Inbox },
 ];
 
 export default function ExhibitorShell() {
