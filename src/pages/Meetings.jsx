@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MeetingRequest, Exhibitor } from '@/api/entities';
+import { notifyMeeting } from '@/api/notify';
 import { useAuth } from '@/lib/AuthContext';
 import { Calendar, Clock, CheckCircle, Building2, User, Mail, Phone, FileText, Lock, LogIn, UserPlus } from 'lucide-react';
 import { useLocation, Link } from 'react-router-dom';
@@ -72,9 +73,10 @@ export default function Meetings() {
 
   const mutation = useMutation({
     mutationFn: (data) => MeetingRequest.create({ ...data, status: 'Pending' }),
-    onSuccess: () => {
+    onSuccess: (created) => {
       queryClient.invalidateQueries({ queryKey: ['meetings'] });
       setSubmitted(true);
+      notifyMeeting(created, 'created');
     },
   });
 

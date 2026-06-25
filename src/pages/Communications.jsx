@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Announcement } from '@/api/entities';
+import { notifyAnnouncement } from '@/api/notify';
 import {
   Bell, Plus, Trash2, AlertCircle, Clock, MapPin,
   MessageSquare, Mail, Send, Megaphone, ChevronDown, ChevronUp, X, Sparkles,
@@ -46,10 +47,11 @@ export default function Communications() {
 
   const addMutation = useMutation({
     mutationFn: (data) => Announcement.create(data),
-    onSuccess: () => {
+    onSuccess: (created) => {
       qc.invalidateQueries({ queryKey: ['announcements'] });
       setDialogOpen(false);
       setForm(EMPTY_FORM);
+      notifyAnnouncement(created);
     },
   });
 

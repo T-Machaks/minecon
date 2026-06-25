@@ -22,3 +22,7 @@ export async function sendSmsOtp(phone) {
 export async function verifySmsOtp(phone, code) {
   return post('/api/otp/verify', { identifier: phone, code });
 }
+
+export async function sendSms(phone, message) {
+  return post('/api/sms/send', { to: phone, message });
+}

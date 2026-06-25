@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Exhibitor, MeetingRequest } from '@/api/entities';
+import { notifyMeeting } from '@/api/notify';
 import { useAuth } from '@/lib/AuthContext';
 import { useState } from 'react';
 import { Calendar, CheckCircle, XCircle, Clock, Users, Mail, Filter } from 'lucide-react';
@@ -47,7 +48,12 @@ export default function ExhibitorMeetings() {
 
   const updateStatus = useMutation({
     mutationFn: ({ id, status }) => MeetingRequest.update(id, { status }),
-    onSuccess: () => { setUpdateError(null); qc.invalidateQueries({ queryKey: ['meetings-all'] }); },
+    onSuccess: (updated) => {
+      setUpdateError(null);
+      qc.invalidateQueries({ queryKey: ['meetings-all'] });
+      const action = updated.status === 'Confirmed' ? 'confirmed' : 'declined';
+      notifyMeeting(updated, action);
+    },
     onSettled: () => setUpdatingId(null),
     onError: (err) => setUpdateError(err.message),
   });

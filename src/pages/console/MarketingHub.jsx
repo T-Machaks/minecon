@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   AdSlot, Announcement, Exhibitor, EngagementEvent, MeetingRequest, GuidePage,
 } from '@/api/entities';
+import { notifyAnnouncement } from '@/api/notify';
 import { resizeImageToBlob } from '@/lib/imageUtils';
 import {
   Megaphone, Sparkles, BarChart2, TrendingUp, MousePointerClick,
@@ -232,7 +233,12 @@ export default function MarketingHub() {
   // Mutations — Sponsored Announcements
   const createPost = useMutation({
     mutationFn: (data) => Announcement.create(data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['announcements'] }); setPostDialogOpen(false); setPostForm(EMPTY_POST); },
+    onSuccess: (created) => {
+      qc.invalidateQueries({ queryKey: ['announcements'] });
+      setPostDialogOpen(false);
+      setPostForm(EMPTY_POST);
+      notifyAnnouncement(created);
+    },
   });
   const deletePost = useMutation({
     mutationFn: (id) => Announcement.delete(id),
