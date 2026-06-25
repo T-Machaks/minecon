@@ -39,6 +39,9 @@ const EMPTY_FORM = { full_name: '', email: '', company: '', role: 'attendee' };
 export default function UsersPanel() {
   const qc = useQueryClient();
   const { user: currentUser } = useAuth();
+  const isOrganizer = currentUser?.role === 'organizer';
+  // Organizers cannot create or assign the marketing_partner role
+  const assignableRoles = isOrganizer ? ROLES.filter(r => r.id !== 'marketing_partner') : ROLES;
   const [showForm, setShowForm] = useState(false);
   const [editUser, setEditUser] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -69,7 +72,13 @@ export default function UsersPanel() {
   });
 
   const openAdd = () => { setEditUser(null); setForm(EMPTY_FORM); setFormError(''); setShowForm(true); };
-  const openEdit = (u) => { setEditUser(u); setForm({ full_name: u.full_name, email: u.email, company: u.company || '', role: u.role }); setFormError(''); setShowForm(true); };
+  const openEdit = (u) => {
+    if (isOrganizer && u.role === 'marketing_partner') return;
+    setEditUser(u);
+    setForm({ full_name: u.full_name, email: u.email, company: u.company || '', role: u.role });
+    setFormError('');
+    setShowForm(true);
+  };
   const closeForm = () => { setShowForm(false); setEditUser(null); setForm(EMPTY_FORM); setFormError(''); };
 
   const handleSubmit = (e) => {
@@ -207,7 +216,7 @@ export default function UsersPanel() {
               <div>
                 <label className="block text-xs font-semibold text-muted-foreground uppercase mb-2">Role</label>
                 <div className="grid grid-cols-2 gap-2">
-                  {ROLES.map(r => {
+                  {assignableRoles.map(r => {
                     const Icon = r.icon;
                     return (
                       <button key={r.id} type="button" onClick={() => setForm(f => ({ ...f, role: r.id }))}
