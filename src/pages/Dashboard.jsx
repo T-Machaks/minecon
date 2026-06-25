@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Exhibitor, MeetingRequest, Announcement, VirtualEnquiry } from '@/api/entities';
-import { Users, Calendar, QrCode, BarChart2, TrendingUp, CheckCircle, Clock, XCircle, Globe, ToggleLeft, ToggleRight, MessageSquare, Megaphone, UserCog, AlertTriangle, ChevronDown, ChevronUp, ShieldCheck } from 'lucide-react';
+import { Users, Calendar, QrCode, BarChart2, CheckCircle, Clock, XCircle, Globe, ToggleLeft, ToggleRight, MessageSquare, Megaphone, AlertTriangle, ChevronDown, ChevronUp, ShieldCheck } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useAppSettings } from '@/lib/AppSettingsContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -85,7 +85,6 @@ export default function Dashboard() {
             {' '}— {isPartner ? 'Marketing Partner' : 'Organizer'}
           </p>
         </div>
-        <div className="bg-amber/10 border border-amber/30 text-amber text-xs font-bold px-2.5 py-1.5 rounded-lg">DEMO</div>
       </div>
 
       {/* Marketing Partner quick-access panel */}
@@ -222,29 +221,6 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Demo metrics */}
-      <div className="bg-card border border-border rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <h2 className="font-heading text-base font-bold uppercase tracking-wide">App Engagement</h2>
-          <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded font-bold">DEMO DATA</span>
-        </div>
-        <div className="space-y-2.5">
-          {[
-            { label: 'App Visits', value: '1,248', trend: '+12%' },
-            { label: 'QR Code Scans', value: '284', trend: '+8%' },
-            { label: 'Exhibitor Profile Views', value: '673', trend: '+23%' },
-            { label: 'Site Plan Views', value: '415', trend: '+5%' },
-          ].map(m => (
-            <div key={m.label} className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">{m.label}</span>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-sm">{m.value}</span>
-                <span className="text-xs text-emerald-600 flex items-center gap-0.5"><TrendingUp className="w-3 h-3" />{m.trend}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AttendeeNote, MeetingRequest, Announcement } from '@/api/entities';
-import { Star, Bookmark, FileText, Calendar, Bell, Trash2, Plus, X, MessageSquare } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Star, Bookmark, FileText, Calendar, Bell, Trash2, X, MessageSquare } from 'lucide-react';
+import { Link, Navigate } from 'react-router-dom';
+import { useAuth } from '@/lib/AuthContext';
 import AdBannerCarousel from '@/components/home/AdBannerCarousel';
 
 const SESSIONS = [
@@ -14,39 +15,46 @@ const SESSIONS = [
   { id: 's6', title: 'Closing Keynote & Industry Awards', time: '12:00', day: 'Day 3', location: 'Main Stage' },
 ];
 
-const USER_EMAIL = 'visitor@minecon.demo';
-
 export default function AttendeeDashboard() {
+  const { user, isAuthenticated, isLoadingAuth } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('saved');
   const [noteModal, setNoteModal] = useState(null);
   const [noteText, setNoteText] = useState('');
 
   const { data: notes = [] } = useQuery({
-    queryKey: ['attendee-notes'],
-    queryFn: () => AttendeeNote.filter({ user_email: USER_EMAIL }),
+    queryKey: ['attendee-notes', user?.email],
+    queryFn: () => AttendeeNote.filter({ user_email: user.email }),
+    enabled: !!user?.email,
   });
-  const { data: meetings = [] } = useQuery({
+  const { data: allMeetings = [] } = useQuery({
     queryKey: ['meetings'],
     queryFn: () => MeetingRequest.list('-created_date'),
+    enabled: !!user?.email,
   });
   const { data: announcements = [] } = useQuery({
     queryKey: ['announcements'],
     queryFn: () => Announcement.list('-created_date'),
+    enabled: !!user?.email,
   });
+
+  const meetings = allMeetings.filter(m => m.visitor_email === user?.email);
 
   const addNote = useMutation({
     mutationFn: (data) => AttendeeNote.create(data),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['attendee-notes'] }); setNoteModal(null); setNoteText(''); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['attendee-notes', user?.email] }); setNoteModal(null); setNoteText(''); },
   });
   const deleteNote = useMutation({
     mutationFn: (id) => AttendeeNote.delete(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['attendee-notes'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['attendee-notes', user?.email] }),
   });
   const toggleFav = useMutation({
     mutationFn: ({ id, val }) => AttendeeNote.update(id, { is_favorite: val }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['attendee-notes'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['attendee-notes', user?.email] }),
   });
+
+  if (isLoadingAuth) return null;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   const favorites = notes.filter(n => n.is_favorite);
   const bookmarks = notes.filter(n => !n.is_favorite);
@@ -60,17 +68,16 @@ export default function AttendeeDashboard() {
 
   const addSession = (s) => {
     const exists = notes.find(n => n.ref_id === s.id);
-    if (!exists) addNote.mutate({ user_email: USER_EMAIL, type: 'Session', ref_id: s.id, ref_name: s.title, note: '', is_favorite: true });
+    if (!exists) addNote.mutate({ user_email: user.email, type: 'Session', ref_id: s.id, ref_name: s.title, note: '', is_favorite: true });
   };
 
   return (
     <div className="pb-24 max-w-2xl lg:max-w-5xl mx-auto px-4 pt-5">
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <h1 className="font-heading text-2xl font-bold uppercase tracking-wide">My MineCon</h1>
-          <p className="text-muted-foreground text-sm">Attendee dashboard — plan your visit</p>
-        </div>
-        <div className="bg-amber/10 border border-amber/30 text-amber text-xs font-bold px-2.5 py-1.5 rounded-lg">DEMO</div>
+      <div className="mb-5">
+        <h1 className="font-heading text-2xl font-bold uppercase tracking-wide">My MineCon</h1>
+        <p className="text-muted-foreground text-sm">
+          Welcome, <span className="text-foreground font-medium">{user?.full_name || user?.email}</span>
+        </p>
       </div>
 
       {/* Ad banner carousel */}
