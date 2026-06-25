@@ -1,6 +1,7 @@
-import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
+import { Link, useLocation, useNavigate, Outlet, Navigate } from 'react-router-dom';
 import { Store, Calendar, BarChart2, LogOut, Shield, ChevronLeft, ScanLine, Users } from 'lucide-react';
 import MineConLogo from './MineConLogo.jsx';
+import { useAuth } from '@/lib/AuthContext';
 
 const exhibitorNav = [
   { path: '/exhibitor',           label: 'My Booth',   icon: Store,     exact: true },
@@ -13,7 +14,13 @@ const exhibitorNav = [
 export default function ExhibitorShell() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, isLoadingAuth } = useAuth();
   const isHome = location.pathname === '/exhibitor';
+
+  if (isLoadingAuth) return null;
+  if (!user || user.role !== 'exhibitor') {
+    return <Navigate to="/exhibitor-login" replace />;
+  }
 
   const isActive = (path, exact) =>
     exact ? location.pathname === path : location.pathname.startsWith(path);
@@ -66,14 +73,14 @@ export default function ExhibitorShell() {
               <Shield className="w-4 h-4" />
               <span className="hidden md:inline">Console</span>
             </Link>
-            <Link
-              to="/"
+            <button
+              onClick={() => { localStorage.removeItem('minecon_user'); navigate('/exhibitor-login'); }}
               className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-white/10 transition-all duration-150 touch-manipulation"
-              title="Attendee App"
+              title="Log out"
             >
               <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Attendee App</span>
-            </Link>
+              <span className="hidden sm:inline">Log out</span>
+            </button>
           </nav>
         </div>
       </header>
