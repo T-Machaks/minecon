@@ -52,7 +52,7 @@ const bottomNav = [
 export default function AppShell({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, hasConsoleAccess, hasExhibitorAccess } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
@@ -162,27 +162,33 @@ export default function AppShell({ children }) {
               </div>
             ))}
 
-            <div className="border-t border-white/10 pt-3">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 px-1">
-                Portals
-              </p>
-              <div className="flex flex-col gap-0.5">
-                <Link
-                  to="/exhibitor"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-white/10 hover:text-white transition-all duration-150 active:scale-95"
-                >
-                  <Users className="w-4 h-4" /> Exhibitor Portal
-                </Link>
-                <Link
-                  to="/console"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-white/10 hover:text-white transition-all duration-150 active:scale-95"
-                >
-                  <Shield className="w-4 h-4" /> Management Console
-                </Link>
+            {(hasExhibitorAccess() || hasConsoleAccess()) && (
+              <div className="border-t border-white/10 pt-3">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 px-1">
+                  Portals
+                </p>
+                <div className="flex flex-col gap-0.5">
+                  {hasExhibitorAccess() && (
+                    <Link
+                      to="/exhibitor"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-white/10 hover:text-white transition-all duration-150 active:scale-95"
+                    >
+                      <Users className="w-4 h-4" /> Exhibitor Portal
+                    </Link>
+                  )}
+                  {hasConsoleAccess() && (
+                    <Link
+                      to="/console"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-white/10 hover:text-white transition-all duration-150 active:scale-95"
+                    >
+                      <Shield className="w-4 h-4" /> Management Console
+                    </Link>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {showMenuLink && (
               <div className="border-t border-white/10 pt-3">
@@ -283,32 +289,38 @@ export default function AppShell({ children }) {
               </div>
             ))}
 
-            {/* Portals */}
-            <div className="pt-3 border-t border-white/10">
-              {!sidebarCollapsed && (
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 px-2">
-                  Portals
-                </p>
-              )}
-              <div className="flex flex-col gap-0.5">
-                <Link
-                  to="/exhibitor"
-                  title={sidebarCollapsed ? 'Exhibitor Portal' : undefined}
-                  className={`flex items-center px-2 py-2 rounded-lg text-sm font-medium text-slate-400 hover:bg-white/10 hover:text-white transition-all ${sidebarCollapsed ? 'justify-center gap-0' : 'gap-3'}`}
-                >
-                  <Users className="w-4 h-4 flex-shrink-0" />
-                  {!sidebarCollapsed && <span>Exhibitor Portal</span>}
-                </Link>
-                <Link
-                  to="/console"
-                  title={sidebarCollapsed ? 'Management Console' : undefined}
-                  className={`flex items-center px-2 py-2 rounded-lg text-sm font-medium text-slate-400 hover:bg-white/10 hover:text-white transition-all ${sidebarCollapsed ? 'justify-center gap-0' : 'gap-3'}`}
-                >
-                  <Shield className="w-4 h-4 flex-shrink-0" />
-                  {!sidebarCollapsed && <span>Management Console</span>}
-                </Link>
+            {/* Portals — only for users with portal access */}
+            {(hasExhibitorAccess() || hasConsoleAccess()) && (
+              <div className="pt-3 border-t border-white/10">
+                {!sidebarCollapsed && (
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 px-2">
+                    Portals
+                  </p>
+                )}
+                <div className="flex flex-col gap-0.5">
+                  {hasExhibitorAccess() && (
+                    <Link
+                      to="/exhibitor"
+                      title={sidebarCollapsed ? 'Exhibitor Portal' : undefined}
+                      className={`flex items-center px-2 py-2 rounded-lg text-sm font-medium text-slate-400 hover:bg-white/10 hover:text-white transition-all ${sidebarCollapsed ? 'justify-center gap-0' : 'gap-3'}`}
+                    >
+                      <Users className="w-4 h-4 flex-shrink-0" />
+                      {!sidebarCollapsed && <span>Exhibitor Portal</span>}
+                    </Link>
+                  )}
+                  {hasConsoleAccess() && (
+                    <Link
+                      to="/console"
+                      title={sidebarCollapsed ? 'Management Console' : undefined}
+                      className={`flex items-center px-2 py-2 rounded-lg text-sm font-medium text-slate-400 hover:bg-white/10 hover:text-white transition-all ${sidebarCollapsed ? 'justify-center gap-0' : 'gap-3'}`}
+                    >
+                      <Shield className="w-4 h-4 flex-shrink-0" />
+                      {!sidebarCollapsed && <span>Management Console</span>}
+                    </Link>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Install App */}
             {showMenuLink && (

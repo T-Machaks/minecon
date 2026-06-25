@@ -93,6 +93,10 @@ const AuthenticatedApp = () => {
 
   return (
     <Routes>
+      {/* ── Shorthand redirects (console staff bookmarks) ── */}
+      <Route path="/admin"     element={<Navigate to="/console/admin" replace />} />
+      <Route path="/analytics" element={<Navigate to="/console/analytics" replace />} />
+
       {/* ── Auth pages — no shell ── */}
       <Route path="/login"            element={<Login />} />
       <Route path="/signup"           element={<Signup />} />

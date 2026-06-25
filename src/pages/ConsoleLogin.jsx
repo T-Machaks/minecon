@@ -1,12 +1,18 @@
 import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { LogIn, Mail, Lock, Loader2, ShieldCheck, KeyRound } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import MineConLogo from '@/components/layout/MineConLogo';
 
 export default function ConsoleLogin() {
-  const { login, changePassword, verifyOtp, verifyTotp } = useAuth();
+  const { login, changePassword, verifyOtp, verifyTotp, user, hasConsoleAccess, isLoadingAuth, authChecked } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect already-authenticated users away from this page
+  if (authChecked && !isLoadingAuth) {
+    if (hasConsoleAccess()) return <Navigate to="/console" replace />;
+    if (user) return <Navigate to="/" replace />;
+  }
 
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
