@@ -159,14 +159,14 @@ export default function MarketingHub() {
   const guideVideoCompletes  = events.filter(e => e.source === 'magazine' && e.type === 'video_complete').length;
   const guideCarouselViews   = events.filter(e => e.source === 'magazine' && e.type === 'carousel_view' && e.exhibitor_name === 'SANY Group').length;
 
-  // Sync URL inputs when selected page changes
+  // Sync URL inputs when selected page changes OR when guide config data arrives
   useEffect(() => {
     if (selectedAdPage) {
       setEditUrl(pageConfigMap[selectedAdPage]?.click_url || '');
       setEditImageUrl(pageConfigMap[selectedAdPage]?.image_url || '');
       setImageLoadError(false);
     }
-  }, [selectedAdPage]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedAdPage, guidePageConfigs]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Derived data
   const sponsoredPosts = announcements.filter(a => a.sponsored);
@@ -444,32 +444,36 @@ export default function MarketingHub() {
                   {/* Image URL — live preview */}
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-2">Ad Image</p>
-                    <div className="relative rounded-xl overflow-hidden border border-border bg-muted" style={{ aspectRatio: '3/4', maxHeight: 240 }}>
-                      {editImageUrl && !imageLoadError ? (
-                        <img
-                          src={editImageUrl}
-                          alt={page?.advertiser}
-                          className="absolute inset-0 w-full h-full object-cover"
-                          onLoad={() => setImageLoadError(false)}
-                          onError={() => setImageLoadError(true)}
-                        />
-                      ) : imageLoadError ? (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-red-500 bg-red-50 dark:bg-red-950/20">
-                          <ImageIcon className="w-7 h-7" />
-                          <span className="text-[10px] font-semibold">Cannot load image</span>
+                    {(() => {
+                      const previewSrc = editImageUrl || config.image_url || page?.defaultImage;
+                      const isCustom = editImageUrl && editImageUrl === config.image_url;
+                      const isPreview = editImageUrl && editImageUrl !== config.image_url;
+                      return (
+                        <div className="relative rounded-xl overflow-hidden border border-border bg-muted" style={{ aspectRatio: '3/4', maxHeight: 240 }}>
+                          {previewSrc && !imageLoadError ? (
+                            <img
+                              key={previewSrc}
+                              src={previewSrc}
+                              alt={page?.advertiser}
+                              className="absolute inset-0 w-full h-full object-cover"
+                              onLoad={() => setImageLoadError(false)}
+                              onError={() => setImageLoadError(true)}
+                            />
+                          ) : imageLoadError ? (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-red-500 bg-red-50 dark:bg-red-950/20">
+                              <ImageIcon className="w-7 h-7" />
+                              <span className="text-[10px] font-semibold">Cannot load image</span>
+                            </div>
+                          ) : (
+                            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                              <ImageIcon className="w-8 h-8" />
+                            </div>
+                          )}
+                          {isCustom && <div className="absolute top-2 left-2 rounded px-1.5 py-0.5 text-white text-[9px] font-bold" style={{ background: '#f59e0b' }}>Saved</div>}
+                          {isPreview && !imageLoadError && <div className="absolute top-2 left-2 rounded px-1.5 py-0.5 text-white text-[9px] font-bold bg-blue-500">Preview</div>}
                         </div>
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-                          <ImageIcon className="w-8 h-8" />
-                        </div>
-                      )}
-                      {editImageUrl && editImageUrl === config.image_url && (
-                        <div className="absolute top-2 left-2 rounded px-1.5 py-0.5 text-white text-[9px] font-bold" style={{ background: '#f59e0b' }}>Saved</div>
-                      )}
-                      {editImageUrl && editImageUrl !== config.image_url && !imageLoadError && (
-                        <div className="absolute top-2 left-2 rounded px-1.5 py-0.5 text-white text-[9px] font-bold bg-blue-500">Preview</div>
-                      )}
-                    </div>
+                      );
+                    })()}
                     <div className="mt-2 space-y-2">
                       <div className="relative">
                         <ImageIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
