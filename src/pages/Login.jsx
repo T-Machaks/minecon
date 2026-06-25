@@ -19,13 +19,12 @@ const DEMO_ACCOUNTS = [
 function MethodBadge({ icon: Icon, label, active, disabled }) {
   return (
     <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-colors
-      ${disabled ? 'border-border text-muted-foreground/40 bg-muted/30 cursor-not-allowed' :
+      ${disabled ? 'border-border text-muted-foreground/30 bg-muted/20 cursor-not-allowed' :
         active  ? 'border-primary bg-primary/10 text-primary' :
-                  'border-border text-muted-foreground'}`}
+                  'border-border text-muted-foreground hover:border-primary/50 cursor-pointer'}`}
     >
       <Icon className="w-3.5 h-3.5" />
       {label}
-      {disabled && <span className="text-[10px]">(coming soon)</span>}
     </span>
   );
 }

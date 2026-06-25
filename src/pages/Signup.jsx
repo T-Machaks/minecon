@@ -8,14 +8,36 @@ import AuthLayout from '@/components/AuthLayout';
 import { useAuth } from '@/lib/AuthContext';
 import SocialAuthButtons, { SocialDivider } from '@/components/SocialAuthButtons';
 
+function isValidZimPhone(value) {
+  if (!value) return true;
+  const clean = value.replace(/[\s\-\(\)]/g, '');
+  return /^(\+2637[0-9]{8}|07[0-9]{8})$/.test(clean);
+}
+
+function normalizeZimPhone(value) {
+  if (!value) return '';
+  const clean = value.replace(/[\s\-\(\)]/g, '');
+  return clean.startsWith('07') ? '+263' + clean.slice(1) : clean;
+}
+
 export default function Signup() {
   const { register, setSession } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ full_name: '', email: '', company: '', phone: '', password: '', confirmPassword: '' });
   const [error, setError] = useState('');
+  const [phoneError, setPhoneError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const handlePhoneChange = (v) => {
+    set('phone', v);
+    if (v && !isValidZimPhone(v)) {
+      setPhoneError('Enter a valid Zimbabwe number (e.g. 0771234567 or +263771234567)');
+    } else {
+      setPhoneError('');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,13 +50,17 @@ export default function Signup() {
       setError('Password must be at least 6 characters.');
       return;
     }
+    if (form.phone && !isValidZimPhone(form.phone)) {
+      setPhoneError('Enter a valid Zimbabwe number (e.g. 0771234567 or +263771234567)');
+      return;
+    }
     setLoading(true);
     try {
       const result = await register({
         full_name: form.full_name,
         email: form.email,
         company: form.company,
-        phone: form.phone,
+        phone: normalizeZimPhone(form.phone),
         password: form.password,
       });
       if (result.success) {
@@ -133,20 +159,21 @@ export default function Signup() {
 
         <div className="space-y-2">
           <Label htmlFor="phone">
-            Mobile number{' '}
-            <span className="text-muted-foreground font-normal">(optional — enables SMS login verification)</span>
+            Zimbabwe mobile{' '}
+            <span className="text-muted-foreground font-normal">(optional — enables SMS OTP)</span>
           </Label>
           <div className="relative">
             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               id="phone"
               type="tel"
-              placeholder="+27 82 123 4567"
+              placeholder="0771234567 or +263771234567"
               value={form.phone}
-              onChange={e => set('phone', e.target.value)}
-              className="pl-10 h-12"
+              onChange={e => handlePhoneChange(e.target.value)}
+              className={`pl-10 h-12 ${phoneError ? 'border-destructive' : ''}`}
             />
           </div>
+          {phoneError && <p className="text-xs text-destructive">{phoneError}</p>}
         </div>
 
         <div className="space-y-2">

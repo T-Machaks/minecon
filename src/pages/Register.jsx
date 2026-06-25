@@ -44,6 +44,7 @@ export default function Register() {
   const [enteredOtp, setEnteredOtp] = useState('');
   const [created, setCreated] = useState(null);
   const [duplicateError, setDuplicateError] = useState(false);
+  const [phoneError, setPhoneError] = useState('');
 
   const { data: registrations = [] } = useQuery({
     queryKey: ['registrations'],
@@ -63,6 +64,12 @@ export default function Register() {
     if (k === 'email') setDuplicateError(false);
     setForm(f => ({ ...f, [k]: v }));
   };
+
+  function isValidZimPhone(value) {
+    if (!value) return true;
+    const clean = value.replace(/[\s\-\(\)]/g, '');
+    return /^(\+2637[0-9]{8}|07[0-9]{8})$/.test(clean);
+  }
 
   const selectRole = (role) => {
     const tickets = TICKET_MAP[role];
@@ -178,7 +185,8 @@ export default function Register() {
           <p className="text-sm font-semibold mb-2">Your details — <span className="text-amber">{form.role_type}</span></p>
           <Field icon={User} placeholder="Full name *" value={form.full_name} onChange={v => set('full_name', v)} required />
           <Field icon={Mail} placeholder="Email address *" type="email" value={form.email} onChange={v => set('email', v)} required />
-          <Field icon={Phone} placeholder="Phone number" type="tel" value={form.phone} onChange={v => set('phone', v)} />
+          <Field icon={Phone} placeholder="Zimbabwe mobile (optional) — 0771234567" type="tel" value={form.phone} onChange={v => { set('phone', v); setPhoneError(v && !isValidZimPhone(v) ? 'Zimbabwe numbers only (e.g. 077 123 4567)' : ''); }} />
+          {phoneError && <p className="text-xs text-destructive -mt-2 pl-1">{phoneError}</p>}
           <Field icon={Building2} placeholder="Company / Organisation" value={form.company} onChange={v => set('company', v)} />
 
           <div>
@@ -226,6 +234,7 @@ export default function Register() {
             <button onClick={() => setStep(1)} className="flex-1 py-3 rounded-xl border border-border text-sm font-semibold hover:bg-muted transition-colors">Back</button>
             <button
               onClick={() => {
+                if (form.phone && !isValidZimPhone(form.phone)) { setPhoneError('Zimbabwe numbers only (e.g. 077 123 4567)'); return; }
                 const exists = registrations.some(r => r.email?.toLowerCase() === form.email?.toLowerCase());
                 if (exists) { setDuplicateError(true); return; }
                 setStep(3);

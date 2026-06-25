@@ -61,12 +61,27 @@ function maskPhone(phone) {
   return `${digits.slice(0, 3)}****${digits.slice(-3)}`;
 }
 
+function isValidZimPhone(value) {
+  if (!value) return true;
+  const clean = value.replace(/[\s\-\(\)]/g, '');
+  return /^(\+2637[0-9]{8}|07[0-9]{8})$/.test(clean);
+}
+
+function normalizeZimPhone(value) {
+  if (!value) return '';
+  const clean = value.replace(/[\s\-\(\)]/g, '');
+  return clean.startsWith('07') ? '+263' + clean.slice(1) : clean;
+}
+
 // ── POST /api/auth/signup  ─────────────────────────────────────────────────
 router.post('/signup', async (req, res) => {
   try {
     const { full_name, email, password, company, phone } = req.body;
     if (!full_name || !email || !password)
       return res.status(400).json({ error: 'Name, email and password are required.' });
+
+    if (phone && !isValidZimPhone(phone))
+      return res.status(400).json({ error: 'Phone number must be a valid Zimbabwe mobile number (e.g. 0771234567 or +263771234567).' });
 
     const existing = await findByEmail(email);
     if (existing) return res.status(409).json({ error: 'An account with that email already exists.' });
@@ -78,7 +93,7 @@ router.post('/signup', async (req, res) => {
       full_name,
       email: email.toLowerCase(),
       company: company || '',
-      phone: phone || '',
+      phone: normalizeZimPhone(phone),
       role: 'attendee',
       status: 'active',
       password_hash,
