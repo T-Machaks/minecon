@@ -134,7 +134,7 @@ export default function Meetings() {
               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="tel"
-                placeholder="Phone number (optional)"
+                placeholder="Zimbabwe mobile — 0771234567 (optional)"
                 value={form.visitor_phone}
                 onChange={e => set('visitor_phone', e.target.value)}
                 className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-amber"

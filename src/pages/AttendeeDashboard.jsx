@@ -27,9 +27,12 @@ export default function AttendeeDashboard() {
     queryFn: () => AttendeeNote.filter({ user_email: user.email }),
     enabled: !!user?.email,
   });
-  const { data: allMeetings = [] } = useQuery({
-    queryKey: ['meetings'],
-    queryFn: () => MeetingRequest.list('-created_date'),
+  const { data: meetings = [] } = useQuery({
+    queryKey: ['my-meetings', user?.email],
+    queryFn: async () => {
+      const all = await MeetingRequest.list('-created_date');
+      return all.filter(m => m.visitor_email?.toLowerCase() === user.email.toLowerCase());
+    },
     enabled: !!user?.email,
   });
   const { data: announcements = [] } = useQuery({
@@ -37,8 +40,6 @@ export default function AttendeeDashboard() {
     queryFn: () => Announcement.list('-created_date'),
     enabled: !!user?.email,
   });
-
-  const meetings = allMeetings.filter(m => m.visitor_email === user?.email);
 
   const addNote = useMutation({
     mutationFn: (data) => AttendeeNote.create(data),

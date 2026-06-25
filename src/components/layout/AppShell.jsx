@@ -3,10 +3,12 @@ import {
   Home, Users, Map, Calendar, Info, Bell,
   LayoutDashboard, QrCode, Menu, X, Star,
   BookOpen, UserCheck, Zap, Clock, Shield, ChevronLeft, ChevronRight, Download,
+  LogIn, LogOut, UserCircle,
 } from 'lucide-react';
 import { useState } from 'react';
 import MineConLogo from './MineConLogo.jsx';
 import { usePWAInstall } from '@/lib/PWAInstallContext';
+import { useAuth } from '@/lib/AuthContext';
 
 const navGroups = [
   {
@@ -50,7 +52,15 @@ const bottomNav = [
 export default function AppShell({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem('minecon_user');
+    setMenuOpen(false);
+    navigate('/login');
+    window.location.reload();
+  };
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     try { return localStorage.getItem('sidebar-collapsed') === 'true'; } catch { return false; }
   });
@@ -91,6 +101,28 @@ export default function AppShell({ children }) {
           </Link>
 
           <div className="flex-1" />
+
+          {/* Auth button — desktop */}
+          <div className="hidden lg:flex items-center">
+            {isAuthenticated ? (
+              <div className="flex items-center gap-2">
+                <span className="text-slate-300 text-sm truncate max-w-[140px]">{user?.full_name || user?.email}</span>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-1.5 text-slate-400 hover:text-white text-xs px-3 py-1.5 rounded-lg hover:bg-white/10 transition-all"
+                >
+                  <LogOut className="w-3.5 h-3.5" /> Log out
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                className="flex items-center gap-1.5 text-slate-300 hover:text-white text-sm px-3 py-1.5 rounded-lg hover:bg-white/10 transition-all"
+              >
+                <LogIn className="w-4 h-4" /> Sign in
+              </Link>
+            )}
+          </div>
 
           {/* Hamburger — hidden on desktop */}
           <button
@@ -172,6 +204,31 @@ export default function AppShell({ children }) {
                 </button>
               </div>
             )}
+
+            <div className="border-t border-white/10 pt-3">
+              {isAuthenticated ? (
+                <>
+                  <div className="flex items-center gap-2 px-3 py-2 mb-1">
+                    <UserCircle className="w-4 h-4 text-amber flex-shrink-0" />
+                    <span className="text-sm text-slate-300 truncate">{user?.full_name || user?.email}</span>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:bg-red-500/10 transition-all duration-150 active:scale-95"
+                  >
+                    <LogOut className="w-4 h-4" /> Log out
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-amber hover:bg-amber/10 transition-all duration-150 active:scale-95"
+                >
+                  <LogIn className="w-4 h-4" /> Sign in
+                </Link>
+              )}
+            </div>
           </div>
         )}
       </header>
@@ -274,6 +331,34 @@ export default function AppShell({ children }) {
                 </button>
               </div>
             )}
+
+            {/* Account */}
+            <div className="pt-3 mt-2 border-t border-white/10">
+              {isAuthenticated ? (
+                <>
+                  {!sidebarCollapsed && (
+                    <p className="text-xs text-slate-500 truncate px-2 mb-1">{user?.full_name || user?.email}</p>
+                  )}
+                  <button
+                    onClick={handleLogout}
+                    title={sidebarCollapsed ? 'Log out' : undefined}
+                    className={`w-full flex items-center px-2 py-2 rounded-lg text-sm font-medium text-red-400 hover:bg-red-500/10 transition-all ${sidebarCollapsed ? 'justify-center gap-0' : 'gap-3'}`}
+                  >
+                    <LogOut className="w-4 h-4 flex-shrink-0" />
+                    {!sidebarCollapsed && 'Log out'}
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to="/login"
+                  title={sidebarCollapsed ? 'Sign in' : undefined}
+                  className={`flex items-center px-2 py-2 rounded-lg text-sm font-medium text-amber hover:bg-amber/10 transition-all ${sidebarCollapsed ? 'justify-center gap-0' : 'gap-3'}`}
+                >
+                  <LogIn className="w-4 h-4 flex-shrink-0" />
+                  {!sidebarCollapsed && 'Sign in'}
+                </Link>
+              )}
+            </div>
           </div>
         </aside>
 

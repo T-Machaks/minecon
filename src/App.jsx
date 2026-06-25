@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/queryClient'
 import { GoogleOAuthProvider } from '@react-oauth/google'
-import { BrowserRouter as Router, Route, Routes, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Outlet, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -61,6 +61,13 @@ const AttendeeLayout = () => (
     <Outlet />
   </AppShell>
 );
+
+const AttendeeAuthRequired = () => {
+  const { user, isLoadingAuth } = useAuth();
+  if (isLoadingAuth) return null;
+  if (!user) return <Navigate to="/login" replace />;
+  return <Outlet />;
+};
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -127,7 +134,9 @@ const AuthenticatedApp = () => {
         <Route path="/event-info"         element={<EventInfo />} />
         <Route path="/qr-resources"       element={<QRResources />} />
         <Route path="/register"           element={<Register />} />
-        <Route path="/attendee-dashboard" element={<AttendeeDashboard />} />
+        <Route element={<AttendeeAuthRequired />}>
+          <Route path="/attendee-dashboard" element={<AttendeeDashboard />} />
+        </Route>
         <Route path="/sponsors"           element={<Sponsors />} />
         <Route path="/magazine"           element={<Magazine />} />
         <Route path="/connect"            element={<Connect />} />
