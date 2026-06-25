@@ -5,6 +5,9 @@ import { ChevronLeft, ChevronRight, ExternalLink, Play, BookOpen, ArrowLeft, Fil
 import { GuidePage as GuidePageData } from '@/api/entities';
 import { track } from '@/lib/tracking';
 
+const S3  = 'https://minecon.s3.af-south-1.amazonaws.com';
+const S3M = `${S3}/magazines`;
+
 // ── Page wrapper required by react-pageflip ──────────────────────────────────
 const MagazinePage = forwardRef(function MagazinePage({ children }, ref) {
   return (
@@ -226,7 +229,7 @@ function ContentsPage() {
 function SANYCarouselAd({ config }) {
   const slides = [
     {
-      img: '/magazines/sany/excavator.jpg',
+      img: `${S3M}/sany/excavator.jpg`,
       imgPos: 'center center',
       category: 'Excavators',
       model: 'SY135C',
@@ -236,7 +239,7 @@ function SANYCarouselAd({ config }) {
       tag: 'World #1',
     },
     {
-      img: '/magazines/sany/concrete-pump.jpg',
+      img: `${S3M}/sany/concrete-pump.jpg`,
       imgPos: 'center 40%',
       category: 'Concrete Pump Trucks',
       model: 'SYG5445THB',
@@ -246,7 +249,7 @@ function SANYCarouselAd({ config }) {
       tag: 'World #1',
     },
     {
-      img: '/magazines/sany/electric-truck.jpg',
+      img: `${S3M}/sany/electric-truck.jpg`,
       imgPos: 'center center',
       category: 'Electric Trucks',
       model: 'SANY 350kWh',
@@ -256,7 +259,7 @@ function SANYCarouselAd({ config }) {
       tag: 'Zero Emission',
     },
     {
-      img: '/magazines/sany/service.png',
+      img: `${S3M}/sany/service.png`,
       imgPos: 'center center',
       category: 'After-Sales Service',
       model: 'Go with SANY',
@@ -418,7 +421,7 @@ function EventOverviewPage() {
 
 // ── PAGE 7: Jetmaster ────────────────────────────────────────────────────────
 function JetmasterAdPage({ config }) {
-  const imageUrl = config?.image_url || '/magazines/ads/ad-jetmaster.jpg';
+  const imageUrl = config?.image_url || `${S3M}/ads/ad-jetmaster.jpg`;
   const videoSrc = config?.video_url || 'https://minecon.s3.af-south-1.amazonaws.com/videos/jetmaster-grill.mp4';
   const stop = e => { e.stopPropagation(); };
   const playTracked = useRef(false);
@@ -744,14 +747,14 @@ function GuideViewer({ onBack, isMobile }) {
           <MagazinePage key="p3"><ContentsPage /></MagazinePage>
           <MagazinePage key="p4"><SANYCarouselAd config={cfg['4']} /></MagazinePage>
           <MagazinePage key="p5"><EventOverviewPage /></MagazinePage>
-          <MagazinePage key="p6"><ManagedImageAd config={cfg['6']} defaultSrc="/magazines/ads/ad-elimobil.jpg" advertiser="Elimobil" /></MagazinePage>
+          <MagazinePage key="p6"><ManagedImageAd config={cfg['6']} defaultSrc={`${S3M}/ads/ad-elimobil.jpg`} advertiser="Elimobil" /></MagazinePage>
           <MagazinePage key="p7"><JetmasterAdPage config={cfg['7']} /></MagazinePage>
           <MagazinePage key="p8"><SitePlanPage /></MagazinePage>
           <MagazinePage key="p9"><IndustryInsightPage /></MagazinePage>
-          <MagazinePage key="p10"><ManagedImageAd config={cfg['10']} defaultSrc="/magazines/ads/ad-zambezi.jpg" advertiser="Zambezi Gas & Coal" /></MagazinePage>
+          <MagazinePage key="p10"><ManagedImageAd config={cfg['10']} defaultSrc={`${S3M}/ads/ad-zambezi.jpg`} advertiser="Zambezi Gas & Coal" /></MagazinePage>
           <MagazinePage key="p11"><ExhibitorDirectoryPage /></MagazinePage>
-          <MagazinePage key="p12"><ManagedImageAd config={cfg['12']} defaultSrc="/magazines/ads/ad-zimtile.jpg" advertiser="Zimtile" /></MagazinePage>
-          <MagazinePage key="p13"><ManagedImageAd config={cfg['13']} defaultSrc="/magazines/ads/ad-woodlot.jpg" advertiser="Woodlot Timbers" contain /></MagazinePage>
+          <MagazinePage key="p12"><ManagedImageAd config={cfg['12']} defaultSrc={`${S3M}/ads/ad-zimtile.jpg`} advertiser="Zimtile" /></MagazinePage>
+          <MagazinePage key="p13"><ManagedImageAd config={cfg['13']} defaultSrc={`${S3M}/ads/ad-woodlot.jpg`} advertiser="Woodlot Timbers" contain /></MagazinePage>
           <MagazinePage key="p14"><WhyAttendPage /></MagazinePage>
           <MagazinePage key="p15"><BackCoverPage /></MagazinePage>
         </HTMLFlipBook>
@@ -774,8 +777,6 @@ function GuideViewer({ onBack, isMobile }) {
     </div>
   );
 }
-
-const S3 = 'https://minecon.s3.af-south-1.amazonaws.com';
 
 // ── ADMA 2026 flip book (pre-rendered page images) ───────────────────────────
 function ADMAFlipBook({ onBack, isMobile }) {
