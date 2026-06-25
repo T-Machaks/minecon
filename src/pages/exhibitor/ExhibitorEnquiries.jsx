@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Exhibitor, VirtualEnquiry } from '@/api/entities';
 import { useAuth } from '@/lib/AuthContext';
+import { notifyEnquiryReply } from '@/api/notify';
 import {
   Inbox, Mail, Phone, Building2, Clock,
-  CheckCircle, Archive, Search, X, MessageSquare,
+  CheckCircle, Search, X, MessageSquare, Send, ExternalLink,
 } from 'lucide-react';
 
 const STATUSES = [
@@ -29,6 +30,9 @@ export default function ExhibitorEnquiries() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [expanded, setExpanded] = useState(null);
+  const [replyText, setReplyText] = useState({});   // { [enquiryId]: string }
+  const [replySent, setReplySent] = useState({});    // { [enquiryId]: bool }
+  const [sending, setSending] = useState({});        // { [enquiryId]: bool }
 
   const { data: exhibitors = [] } = useQuery({
     queryKey: ['exhibitors'],
@@ -54,6 +58,35 @@ export default function ExhibitorEnquiries() {
   });
 
   const setStatus = (id, status) => updateMutation.mutate({ id, data: { status } });
+
+  const handleReply = async (enquiry, method) => {
+    const text = replyText[enquiry.id]?.trim();
+    if (!text) return;
+    setSending(s => ({ ...s, [enquiry.id]: true }));
+    try {
+      if (method === 'inapp' || method === 'both') {
+        // Save reply to DB + mark responded
+        await VirtualEnquiry.update(enquiry.id, {
+          reply: text,
+          replied_at: new Date().toISOString(),
+          replied_by: user?.full_name || user?.email,
+          status: 'Responded',
+        });
+        qc.invalidateQueries({ queryKey: ['virtual-enquiries'] });
+      }
+      if (method === 'email' || method === 'both') {
+        notifyEnquiryReply(enquiry, text, myBooth?.name || enquiry.exhibitor_name);
+        if (method === 'email') {
+          // also mark responded when sending email-only reply
+          updateMutation.mutate({ id: enquiry.id, data: { status: 'Responded' } });
+        }
+      }
+      setReplySent(s => ({ ...s, [enquiry.id]: true }));
+      setReplyText(r => ({ ...r, [enquiry.id]: '' }));
+    } finally {
+      setSending(s => ({ ...s, [enquiry.id]: false }));
+    }
+  };
 
   const newCount = enquiries.filter(e => (e.status || 'New') === 'New').length;
 
@@ -92,11 +125,11 @@ export default function ExhibitorEnquiries() {
       {/* Summary strip */}
       <div className="grid grid-cols-3 gap-3 mb-5">
         {[
-          { label: 'Total',     value: enquiries.length, icon: MessageSquare, color: 'text-amber',        bg: 'bg-amber/10' },
-          { label: 'New',       value: newCount,          icon: Clock,         color: 'text-rose-500',    bg: 'bg-rose-50 dark:bg-rose-900/20' },
-          { label: 'Responded', value: enquiries.filter(e => e.status === 'Responded').length, icon: CheckCircle, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+          { label: 'Total',     value: enquiries.length,                                              icon: MessageSquare, color: 'text-amber',     bg: 'bg-amber/10' },
+          { label: 'New',       value: newCount,                                                       icon: Clock,         color: 'text-rose-500',  bg: 'bg-rose-50 dark:bg-rose-900/20' },
+          { label: 'Responded', value: enquiries.filter(e => e.status === 'Responded').length,        icon: CheckCircle,   color: 'text-blue-500',  bg: 'bg-blue-50 dark:bg-blue-900/20' },
         ].map(({ label, value, icon: Icon, color, bg }) => (
-          <div key={label} className={`flex items-center gap-2.5 p-3 rounded-xl border border-border bg-card`}>
+          <div key={label} className="flex items-center gap-2.5 p-3 rounded-xl border border-border bg-card">
             <div className={`w-8 h-8 ${bg} rounded-lg flex items-center justify-center flex-shrink-0`}>
               <Icon className={`w-4 h-4 ${color}`} />
             </div>
@@ -149,7 +182,7 @@ export default function ExhibitorEnquiries() {
           <div className="py-12 text-center">
             <Inbox className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
             <p className="text-sm text-muted-foreground">
-              {search || statusFilter !== 'all' ? 'No enquiries match your filter.' : 'No enquiries yet — they\'ll appear here when attendees reach out.'}
+              {search || statusFilter !== 'all' ? 'No enquiries match your filter.' : "No enquiries yet — they'll appear here when attendees reach out."}
             </p>
           </div>
         ) : (
@@ -157,8 +190,12 @@ export default function ExhibitorEnquiries() {
             {filtered.map(e => {
               const isOpen = expanded === e.id;
               const status = e.status || 'New';
+              const isSending = sending[e.id];
+              const sent = replySent[e.id];
+
               return (
                 <div key={e.id} className="px-4 py-3">
+                  {/* Row header */}
                   <div
                     className="flex items-start gap-3 cursor-pointer"
                     onClick={() => setExpanded(isOpen ? null : e.id)}
@@ -181,22 +218,20 @@ export default function ExhibitorEnquiries() {
                     <p className="text-[10px] text-muted-foreground flex-shrink-0 mt-1">{fmt(e.created_date)}</p>
                   </div>
 
+                  {/* Expanded */}
                   {isOpen && (
-                    <div className="mt-3 ml-12 space-y-3">
-                      {/* Message */}
-                      <div className="bg-muted/50 rounded-xl p-3 text-sm whitespace-pre-wrap">{e.message || '—'}</div>
+                    <div className="mt-3 ml-12 space-y-4">
+                      {/* Original message */}
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-1.5">Message</p>
+                        <div className="bg-muted/50 rounded-xl p-3 text-sm whitespace-pre-wrap">{e.message || '—'}</div>
+                      </div>
 
-                      {/* Contact links */}
-                      <div className="flex flex-wrap gap-3 text-xs">
-                        {e.email && (
-                          <a href={`mailto:${e.email}`}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber text-white font-semibold hover:opacity-90 transition-opacity">
-                            <Mail className="w-3.5 h-3.5" /> Reply by Email
-                          </a>
-                        )}
+                      {/* Contact row */}
+                      <div className="flex flex-wrap gap-2 text-xs">
                         {e.phone && (
                           <a href={`tel:${e.phone}`}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border hover:bg-muted transition-colors font-medium text-foreground">
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border hover:bg-muted transition-colors font-medium">
                             <Phone className="w-3.5 h-3.5" /> {e.phone}
                           </a>
                         )}
@@ -207,9 +242,83 @@ export default function ExhibitorEnquiries() {
                         )}
                       </div>
 
-                      {/* Status actions */}
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Mark as:</span>
+                      {/* Previous reply (if any) */}
+                      {e.reply && (
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-1.5">
+                            Previous reply · {fmt(e.replied_at)}
+                          </p>
+                          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3 text-sm whitespace-pre-wrap">
+                            {e.reply}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Reply composer */}
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-1.5">
+                          {e.reply ? 'Send another reply' : 'Reply'}
+                        </p>
+
+                        {sent ? (
+                          <div className="flex items-center gap-2 text-sm text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3">
+                            <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                            Reply sent successfully.
+                            <button
+                              className="ml-auto text-xs underline"
+                              onClick={() => setReplySent(r => ({ ...r, [e.id]: false }))}
+                            >
+                              Send another
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <textarea
+                              rows={3}
+                              placeholder={`Write your reply to ${e.name}…`}
+                              value={replyText[e.id] || ''}
+                              onChange={ev => setReplyText(r => ({ ...r, [e.id]: ev.target.value }))}
+                              className="w-full px-3 py-2 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-amber resize-none"
+                            />
+                            {/* Send options */}
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              <button
+                                onClick={() => handleReply(e, 'both')}
+                                disabled={!replyText[e.id]?.trim() || isSending}
+                                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber text-white text-xs font-semibold hover:opacity-90 disabled:opacity-50 transition-opacity"
+                              >
+                                {isSending
+                                  ? <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                  : <Send className="w-3.5 h-3.5" />
+                                }
+                                Send (In-app + Email{e.phone ? ' + SMS' : ''})
+                              </button>
+                              <button
+                                onClick={() => handleReply(e, 'inapp')}
+                                disabled={!replyText[e.id]?.trim() || isSending}
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-xs font-semibold hover:bg-muted disabled:opacity-50 transition-colors"
+                              >
+                                In-app only
+                              </button>
+                              {e.email && (
+                                <a
+                                  href={`mailto:${e.email}?subject=Re:%20Your%20Enquiry%20to%20${encodeURIComponent(myBooth?.name || '')}&body=${encodeURIComponent(replyText[e.id] || '')}`}
+                                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-xs font-semibold hover:bg-muted transition-colors"
+                                >
+                                  <ExternalLink className="w-3 h-3" /> Open in Mail
+                                </a>
+                              )}
+                            </div>
+                            <p className="text-[10px] text-muted-foreground mt-1.5">
+                              "Send" delivers in-app + email{e.phone ? ' + SMS' : ''} and marks as Responded. "Open in Mail" pre-fills your mail client.
+                            </p>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Status controls */}
+                      <div className="flex items-center gap-2 flex-wrap pt-1 border-t border-border">
+                        <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Status:</span>
                         {STATUSES.map(s => (
                           <button
                             key={s.id}

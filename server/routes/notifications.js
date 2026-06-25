@@ -265,6 +265,43 @@ function enquiryExhibitorHtml(q) {
   ` + footer();
 }
 
+function enquiryReplyHtml(q, reply, exName) {
+  return header() + `
+    <h2 style="margin:0 0 6px;color:#111;font-size:18px;">Reply from ${exName}</h2>
+    <p style="margin:0 0 20px;color:#555;font-size:14px;">Hi <strong>${q.name}</strong>, you have received a reply to your enquiry.</p>
+    <div style="background:#f8fafc;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:20px;">
+      <p style="margin:0 0 6px;color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;">Reply from ${exName}</p>
+      <p style="margin:0;color:#111;font-size:14px;white-space:pre-wrap;">${reply}</p>
+    </div>
+    <div style="background:#f1f5f9;border-radius:8px;padding:12px 14px;margin-bottom:20px;">
+      <p style="margin:0 0 4px;color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;">Your original enquiry</p>
+      <p style="margin:0;color:#64748b;font-size:13px;white-space:pre-wrap;">${q.message || '—'}</p>
+    </div>
+    <a href="${APP_URL}/exhibitors" style="display:inline-block;background:#f59e0b;color:#1a2332;font-weight:700;font-size:13px;padding:10px 24px;border-radius:8px;text-decoration:none;">Browse More Exhibitors →</a>
+  ` + footer();
+}
+
+r.post('/enquiry-reply', async (req, res) => {
+  res.json({ ok: true });
+  const { enquiry, reply, exhibitorName } = req.body;
+  if (!enquiry?.email || !reply) return;
+  try {
+    await emailSilent(
+      enquiry.email,
+      `Reply from ${exhibitorName || enquiry.exhibitor_name} — MineCon 2026`,
+      enquiryReplyHtml(enquiry, reply, exhibitorName || enquiry.exhibitor_name)
+    );
+    if (enquiry.phone) {
+      await smsSilent(
+        enquiry.phone,
+        `MineCon 2026: ${exhibitorName || enquiry.exhibitor_name} has replied to your enquiry: "${reply.slice(0, 120)}${reply.length > 120 ? '…' : ''}"`
+      );
+    }
+  } catch (e) {
+    console.error('[notify] enquiry-reply error:', e.message);
+  }
+});
+
 r.post('/enquiry', async (req, res) => {
   res.json({ ok: true });
   const { enquiry } = req.body;

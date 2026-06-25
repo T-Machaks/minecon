@@ -18,3 +18,7 @@ export function notifyAnnouncement(announcement) {
 export function notifyEnquiry(enquiry) {
   post('enquiry', { enquiry });
 }
+
+export function notifyEnquiryReply(enquiry, reply, exhibitorName) {
+  post('enquiry-reply', { enquiry, reply, exhibitorName });
+}
