@@ -46,6 +46,7 @@ import UsersPanel from '@/pages/console/UsersPanel';
 import CheckIn from '@/pages/CheckIn';
 import MarketingHub from '@/pages/console/MarketingHub';
 import ExhibitorApplications from '@/pages/console/ExhibitorApplications';
+import Registrations from '@/pages/console/Registrations';
 import ExhibitorApply from '@/pages/ExhibitorApply';
 import ExhibitorLogin from '@/pages/ExhibitorLogin';
 import ConsoleLogin from '@/pages/ConsoleLogin';
@@ -111,7 +112,7 @@ const AuthenticatedApp = () => {
 
           {/* Organizer-only */}
           <Route element={<OrganizerGuard />}>
-            <Route path="/console/registrations"         element={<AdminPanel />} />
+            <Route path="/console/registrations"         element={<Registrations />} />
             <Route path="/console/admin"                 element={<AdminPanel />} />
             <Route path="/console/communications"        element={<Communications />} />
             <Route path="/console/users"                 element={<UsersPanel />} />
