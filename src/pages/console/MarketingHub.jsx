@@ -1,14 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   AdSlot, Announcement, Exhibitor, EngagementEvent, MeetingRequest, GuidePage,
 } from '@/api/entities';
 import { notifyAnnouncement } from '@/api/notify';
-import { resizeImageToBlob } from '@/lib/imageUtils';
 import {
   Megaphone, Sparkles, BarChart2, TrendingUp, MousePointerClick,
-  Plus, Trash2, Download, ExternalLink, Upload, ImageIcon, Link2, Check, Play,
+  Plus, Trash2, Download, ExternalLink, ImageIcon, Link2, Check, Play,
   ChevronDown, ChevronUp, Layers, BookOpen, Monitor, FileEdit,
 } from 'lucide-react';
 import AdBannerCarousel from '@/components/home/AdBannerCarousel';
@@ -114,8 +113,7 @@ export default function MarketingHub() {
   // Magazine editor state
   const [selectedAdPage, setSelectedAdPage] = useState(null);
   const [editUrl, setEditUrl] = useState('');
-  const [uploadingMagPage, setUploadingMagPage] = useState(false);
-  const magFileInputRef = useRef(null);
+  const [editImageUrl, setEditImageUrl] = useState('');
 
   // Data queries
   const { data: adSlots = [] } = useQuery({
@@ -160,10 +158,11 @@ export default function MarketingHub() {
   const guideVideoCompletes  = events.filter(e => e.source === 'magazine' && e.type === 'video_complete').length;
   const guideCarouselViews   = events.filter(e => e.source === 'magazine' && e.type === 'carousel_view' && e.exhibitor_name === 'SANY Group').length;
 
-  // Sync URL input when selected page changes
+  // Sync URL inputs when selected page changes
   useEffect(() => {
     if (selectedAdPage) {
       setEditUrl(pageConfigMap[selectedAdPage]?.click_url || '');
+      setEditImageUrl(pageConfigMap[selectedAdPage]?.image_url || '');
     }
   }, [selectedAdPage]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -193,27 +192,12 @@ export default function MarketingHub() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['guide-pages'] }),
   });
 
-  const handleGuideImageUpload = async (file) => {
-    if (!selectedAdPage || !file) return;
-    setUploadingMagPage(true);
-    try {
-      const blob = await resizeImageToBlob(file);
-      const oldImageUrl = pageConfigMap[selectedAdPage]?.image_url || null;
-      const { uploadUrl, publicUrl } = await GuidePage.getUploadUrl(selectedAdPage, oldImageUrl);
-      const res = await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': 'image/jpeg' }, body: blob });
-      if (!res.ok) throw new Error(`S3 upload failed: ${res.status}`);
-      await updatePageMutation.mutateAsync({ pageNum: selectedAdPage, data: { image_url: publicUrl, click_url: editUrl } });
-    } catch (e) {
-      alert(`Upload failed: ${e.message}`);
-    } finally {
-      setUploadingMagPage(false);
-    }
-  };
-
-  const handleSavePageUrl = () => {
+  const handleSavePageConfig = () => {
     if (!selectedAdPage) return;
     const existing = pageConfigMap[selectedAdPage] || {};
-    updatePageMutation.mutate({ pageNum: selectedAdPage, data: { ...existing, click_url: editUrl } });
+    const data = { ...existing, click_url: editUrl };
+    if (editImageUrl.trim()) data.image_url = editImageUrl.trim();
+    updatePageMutation.mutate({ pageNum: selectedAdPage, data });
   };
 
   // Mutations — AdSlot
@@ -421,14 +405,6 @@ export default function MarketingHub() {
             })}
           </div>
 
-          {/* Hidden file input for magazine image upload */}
-          <input
-            ref={magFileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={e => { const f = e.target.files?.[0]; if (f) { handleGuideImageUpload(f); e.target.value = ''; } }}
-          />
 
           {/* Ad page edit panel */}
           {selectedAdPage && (() => {
@@ -459,7 +435,7 @@ export default function MarketingHub() {
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-4 p-4">
-                  {/* Image upload */}
+                  {/* Image URL */}
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-2">Ad Image</p>
                     <div className="relative rounded-xl overflow-hidden border border-border bg-muted" style={{ aspectRatio: '3/4', maxHeight: 240 }}>
@@ -474,17 +450,19 @@ export default function MarketingHub() {
                         <div className="absolute top-2 left-2 rounded px-1.5 py-0.5 text-white text-[9px] font-bold" style={{ background: '#f59e0b' }}>Custom</div>
                       )}
                     </div>
-                    <button
-                      onClick={() => magFileInputRef.current?.click()}
-                      disabled={uploadingMagPage}
-                      className="mt-2 w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-dashed border-amber/40 hover:border-amber text-xs font-semibold text-amber hover:bg-amber/10 transition-all disabled:opacity-50"
-                    >
-                      {uploadingMagPage
-                        ? <><div className="w-3 h-3 border-2 border-amber/30 border-t-amber rounded-full animate-spin" /> Uploading…</>
-                        : <><Upload className="w-3 h-3" /> {config.image_url ? 'Replace Image' : 'Upload Image'}</>
-                      }
-                    </button>
-                    <p className="text-[10px] text-muted-foreground mt-1">JPEG/PNG · max 5 MB · auto-resized to 1200px</p>
+                    <div className="mt-2 flex gap-2">
+                      <div className="relative flex-1">
+                        <ImageIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                        <input
+                          type="url"
+                          placeholder="S3 URL or https://…"
+                          value={editImageUrl}
+                          onChange={e => setEditImageUrl(e.target.value)}
+                          className="w-full pl-8 pr-3 py-2 rounded-lg border border-border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-amber"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-1">Paste an S3 path or any public image URL</p>
                   </div>
 
                   {/* URL + analytics */}
@@ -503,7 +481,7 @@ export default function MarketingHub() {
                           />
                         </div>
                         <button
-                          onClick={handleSavePageUrl}
+                          onClick={handleSavePageConfig}
                           disabled={isSaving}
                           className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber text-white text-xs font-semibold hover:opacity-90 disabled:opacity-50 transition-opacity"
                         >
