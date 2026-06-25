@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { LogIn, Mail, Lock, Loader2, ShieldCheck, KeyRound } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
@@ -32,6 +32,33 @@ export default function ConsoleLogin() {
   const totpRef = useRef(null);
   const focusAfter = (ref) => setTimeout(() => ref.current?.focus(), 100);
 
+  const OTP_SESSION_KEY = 'minecon_console_otp_flow';
+
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(OTP_SESSION_KEY);
+      if (saved) {
+        const s = JSON.parse(saved);
+        if (s.step && s.step !== 'credentials') {
+          setStep(s.step);
+          setMfaToken(s.mfaToken || '');
+          setChangeToken(s.changeToken || '');
+          setQrCode(s.qrCode || '');
+        }
+      }
+    } catch {}
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (step === 'credentials') {
+      sessionStorage.removeItem(OTP_SESSION_KEY);
+    } else {
+      try {
+        sessionStorage.setItem(OTP_SESSION_KEY, JSON.stringify({ step, mfaToken, changeToken, qrCode }));
+      } catch {}
+    }
+  }, [step, mfaToken, changeToken, qrCode]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -47,6 +74,7 @@ export default function ConsoleLogin() {
         else { setStep('totp_verify'); focusAfter(totpRef); }
         return;
       }
+      sessionStorage.removeItem(OTP_SESSION_KEY);
       navigate('/console', { replace: true });
     } catch {
       setError('Login failed. Please try again.');
@@ -83,6 +111,7 @@ export default function ConsoleLogin() {
     try {
       const result = await verifyOtp(mfaToken, otp);
       if (!result.success) { setError(result.error); return; }
+      sessionStorage.removeItem(OTP_SESSION_KEY);
       navigate('/console', { replace: true });
     } catch {
       setError('Verification failed. Please try again.');
@@ -98,6 +127,7 @@ export default function ConsoleLogin() {
     try {
       const result = await verifyTotp(mfaToken, totpCode);
       if (!result.success) { setError(result.error); return; }
+      sessionStorage.removeItem(OTP_SESSION_KEY);
       navigate('/console', { replace: true });
     } catch {
       setError('Verification failed. Please try again.');

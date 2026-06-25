@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,7 +63,42 @@ export default function Login() {
 
   const focusAfter = (ref) => setTimeout(() => ref.current?.focus(), 100);
 
+  const OTP_SESSION_KEY = 'minecon_otp_flow';
+
+  // Restore OTP flow if user left the app to check email/SMS and came back
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(OTP_SESSION_KEY);
+      if (saved) {
+        const s = JSON.parse(saved);
+        if (s.step && s.step !== 'credentials') {
+          setStep(s.step);
+          setMfaToken(s.mfaToken || '');
+          setChangeToken(s.changeToken || '');
+          setEmailHint(s.emailHint || '');
+          setPhoneHint(s.phoneHint || '');
+          setOtpMethod(s.otpMethod || 'email');
+          setQrCode(s.qrCode || '');
+        }
+      }
+    } catch {}
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Persist OTP flow state so it survives PWA app-switching
+  useEffect(() => {
+    if (step === 'credentials') {
+      sessionStorage.removeItem(OTP_SESSION_KEY);
+    } else {
+      try {
+        sessionStorage.setItem(OTP_SESSION_KEY, JSON.stringify({
+          step, mfaToken, changeToken, emailHint, phoneHint, otpMethod, qrCode,
+        }));
+      } catch {}
+    }
+  }, [step, mfaToken, changeToken, emailHint, phoneHint, otpMethod, qrCode]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleSession = (found) => {
+    sessionStorage.removeItem(OTP_SESSION_KEY);
     navigate(intendedPath || found.redirectTo, { replace: true });
   };
 
