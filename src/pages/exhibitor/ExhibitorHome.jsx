@@ -232,11 +232,17 @@ export default function ExhibitorHome() {
               </div>
             ))}
             <div>
-              <label className="text-xs text-muted-foreground font-medium block mb-1">Description</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs text-muted-foreground font-medium">Description</label>
+                <span className={`text-[10px] font-medium ${(editForm.description?.length || 0) >= 250 ? 'text-red-500' : 'text-muted-foreground'}`}>
+                  {editForm.description?.length || 0}/250
+                </span>
+              </div>
               <textarea
                 rows={3}
+                maxLength={250}
                 value={editForm.description || ''}
-                onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))}
+                onChange={e => setEditForm(f => ({ ...f, description: e.target.value.slice(0, 250) }))}
                 className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-amber/50 resize-none"
               />
             </div>
