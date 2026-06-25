@@ -32,21 +32,17 @@ export default function QRResources() {
   const [scanResult, setScanResult] = useState(null); // null | 'success' | 'error'
   const [scannedExhibitor, setScannedExhibitor] = useState(null);
 
-  const { data: registrations = [], isLoading: isLoadingReg } = useQuery({
+  const { data: myReg, isLoading: isLoadingReg } = useQuery({
     queryKey: ['my-registration', user?.email],
-    queryFn: () => Registration.list(null),
+    queryFn: () => Registration.findByEmail(user.email),
     enabled: !!user?.email,
   });
 
   const { data: exhibitors = [] } = useQuery({
     queryKey: ['exhibitors-all'],
     queryFn: () => Exhibitor.list(null),
-    enabled: isAuthenticated,
+    enabled: !!myReg,
   });
-
-  const myReg = registrations.find(
-    r => r.email?.toLowerCase() === user?.email?.toLowerCase()
-  );
 
   const displayName =
     myReg?.full_name ||
@@ -108,7 +104,7 @@ export default function QRResources() {
     setScannedExhibitor(null);
   };
 
-  if (isLoadingAuth) {
+  if (isLoadingAuth || (isAuthenticated && isLoadingReg)) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="w-8 h-8 border-4 border-amber/30 border-t-amber rounded-full animate-spin" />
