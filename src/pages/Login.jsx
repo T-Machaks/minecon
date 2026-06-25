@@ -46,6 +46,8 @@ export default function Login() {
   const [mfaToken, setMfaToken]   = useState('');
   const [changeToken, setChangeToken] = useState('');
   const [emailHint, setEmailHint] = useState('');
+  const [phoneHint, setPhoneHint] = useState('');
+  const [otpMethod, setOtpMethod] = useState('email');
   const [qrCode, setQrCode]       = useState('');
   const [otp, setOtp]             = useState('');
   const [totpCode, setTotpCode]   = useState('');
@@ -81,6 +83,8 @@ export default function Login() {
       if (result.mfaRequired) {
         setMfaToken(result.mfaToken);
         setEmailHint(result.emailHint);
+        setPhoneHint(result.phoneHint || '');
+        setOtpMethod('email');
         setStep('email_otp');
         focusAfter(otpRef);
         return;
@@ -144,13 +148,18 @@ export default function Login() {
     }
   };
 
-  const handleResend = async () => {
+  const handleResend = async (method) => {
     setResendMsg('');
+    setError('');
     setResending(true);
-    const result = await resendOtp(mfaToken);
+    const result = await resendOtp(mfaToken, method);
     setResending(false);
-    if (result.success) setResendMsg('New code sent.');
-    else setError(result.error);
+    if (result.success) {
+      if (result.method) setOtpMethod(result.method);
+      setResendMsg(result.method === 'sms' ? 'Code sent via SMS.' : 'New code sent to your email.');
+    } else {
+      setError(result.error);
+    }
   };
 
   // ── Step 2b/c: TOTP (setup or verify) ───────────────────────────────────
@@ -323,19 +332,26 @@ export default function Login() {
     );
   }
 
-  // ── Email OTP step ────────────────────────────────────────────────────────
+  // ── Email / SMS OTP step ─────────────────────────────────────────────────
   if (step === 'email_otp') {
+    const hint = otpMethod === 'sms' ? phoneHint : emailHint;
+    const title = otpMethod === 'sms' ? 'Check your phone' : 'Check your email';
+    const subtitle = `We sent a 6-digit code to ${hint}`;
     return (
       <AuthLayout
         icon={MessageSquare}
-        title="Check your email"
-        subtitle={`We sent a 6-digit code to ${emailHint}`}
+        title={title}
+        subtitle={subtitle}
         footer={<button type="button" onClick={resetToCredentials} className="text-primary font-medium hover:underline">← Back to login</button>}
       >
-        {/* Verification method selector — SMS greyed out */}
+        {/* Method selector */}
         <div className="flex gap-2 mb-5">
-          <MethodBadge icon={Mail}       label="Email" active />
-          <MethodBadge icon={Smartphone} label="SMS"   disabled />
+          <button type="button" onClick={() => otpMethod !== 'email' && handleResend('email')} disabled={resending}>
+            <MethodBadge icon={Mail} label="Email" active={otpMethod === 'email'} />
+          </button>
+          <button type="button" onClick={() => otpMethod !== 'sms' && phoneHint && handleResend('sms')} disabled={resending || !phoneHint}>
+            <MethodBadge icon={Smartphone} label="SMS" active={otpMethod === 'sms'} disabled={!phoneHint} />
+          </button>
         </div>
 
         {error && <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>}
@@ -367,7 +383,7 @@ export default function Login() {
         <div className="mt-4 text-center">
           <button
             type="button"
-            onClick={handleResend}
+            onClick={() => handleResend(otpMethod)}
             disabled={resending}
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
           >

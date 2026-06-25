@@ -5,6 +5,7 @@ import { GetCommand, QueryCommand, PutCommand, UpdateCommand, DeleteCommand } fr
 import { ddb } from '../lib/dynamo.js';
 import { generateId } from '../lib/idgen.js';
 import { sendOtpEmail } from '../lib/mailer.js';
+import { sendSmsOtp, verifySmsOtp } from '../lib/omniflex.js';
 import { generateSecret, generateQrDataUrl, verifyToken } from '../lib/totp.js';
 
 const TABLE = 'minecon_users';
@@ -53,6 +54,11 @@ function sanitize(user) {
 function maskEmail(email) {
   const [local, domain] = email.split('@');
   return `${local[0]}***@${domain}`;
+}
+
+function maskPhone(phone) {
+  const digits = phone.replace(/\D/g, '');
+  return `${digits.slice(0, 3)}****${digits.slice(-3)}`;
 }
 
 // ── POST /api/auth/signup  ─────────────────────────────────────────────────
@@ -130,7 +136,14 @@ router.post('/login', async (req, res) => {
     // All other roles → email OTP via NoReply@tyflex.co.zw
     const otp = generateOtp();
     const token = newToken();
-    challengeStore.set(token, { type: 'email', userId: user.id, email: user.email, otp, expiresAt: newExpiry() });
+    challengeStore.set(token, {
+      type: 'email',
+      userId: user.id,
+      email: user.email,
+      phone: user.phone || '',
+      otp,
+      expiresAt: newExpiry(),
+    });
 
     try {
       await sendOtpEmail(user.email, otp);
@@ -139,13 +152,18 @@ router.post('/login', async (req, res) => {
       return res.status(503).json({ error: 'Could not send verification email. Please try again.' });
     }
 
-    return res.json({ mfa_required: true, mfa_token: token, email_hint: maskEmail(user.email) });
+    return res.json({
+      mfa_required: true,
+      mfa_token: token,
+      email_hint: maskEmail(user.email),
+      phone_hint: user.phone ? maskPhone(user.phone) : null,
+    });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-// ── POST /api/auth/otp/verify  — email OTP ───────────────────────────────
+// ── POST /api/auth/otp/verify  — email or SMS OTP ────────────────────────
 router.post('/otp/verify', async (req, res) => {
   try {
     const { mfa_token, otp } = req.body;
@@ -154,10 +172,19 @@ router.post('/otp/verify', async (req, res) => {
 
     cleanExpired();
     const entry = challengeStore.get(mfa_token);
-    if (!entry || entry.type !== 'email')
+    if (!entry || !['email', 'sms'].includes(entry.type))
       return res.status(401).json({ error: 'Verification code expired. Please log in again.' });
-    if (entry.otp !== otp.trim())
-      return res.status(401).json({ error: 'Incorrect verification code.' });
+
+    if (entry.type === 'sms') {
+      try {
+        await verifySmsOtp(entry.phone, otp.trim());
+      } catch {
+        return res.status(401).json({ error: 'Incorrect verification code.' });
+      }
+    } else {
+      if (entry.otp !== otp.trim())
+        return res.status(401).json({ error: 'Incorrect verification code.' });
+    }
 
     challengeStore.delete(mfa_token);
     const user = await getById(entry.userId);
@@ -168,29 +195,44 @@ router.post('/otp/verify', async (req, res) => {
   }
 });
 
-// ── POST /api/auth/otp/resend  — resend email OTP ────────────────────────
+// ── POST /api/auth/otp/resend  — resend or switch method (email ↔ sms) ───
 router.post('/otp/resend', async (req, res) => {
   try {
-    const { mfa_token } = req.body;
+    const { mfa_token, method } = req.body;
     if (!mfa_token) return res.status(400).json({ error: 'mfa_token required.' });
 
     cleanExpired();
     const entry = challengeStore.get(mfa_token);
-    if (!entry || entry.type !== 'email')
+    if (!entry || !['email', 'sms'].includes(entry.type))
       return res.status(401).json({ error: 'Session expired. Please log in again.' });
 
+    const target = method || entry.type;
+
+    if (target === 'sms') {
+      if (!entry.phone) return res.status(400).json({ error: 'No phone number on this account.' });
+      try {
+        await sendSmsOtp(entry.phone);
+      } catch (smsErr) {
+        console.error('SMS OTP send failed:', smsErr.message);
+        return res.status(503).json({ error: 'Could not send SMS. Please try email instead.' });
+      }
+      entry.type = 'sms';
+      entry.expiresAt = newExpiry();
+      return res.json({ ok: true, method: 'sms' });
+    }
+
+    // email
     const otp = generateOtp();
     entry.otp = otp;
+    entry.type = 'email';
     entry.expiresAt = newExpiry();
-
     try {
       await sendOtpEmail(entry.email, otp);
     } catch (mailErr) {
       console.error('Email OTP resend failed:', mailErr.message);
       return res.status(503).json({ error: 'Could not send verification email. Please try again.' });
     }
-
-    res.json({ ok: true });
+    res.json({ ok: true, method: 'email' });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

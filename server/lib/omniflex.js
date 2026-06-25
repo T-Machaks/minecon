@@ -1,4 +1,24 @@
-// OmniFlex SMS — stubbed. Wire up real credentials later when ready.
-export async function sendSms(to, message) {
-  console.log(`[OmniFlex STUB] SMS to ${to}: ${message}`);
+const BASE = process.env.OMNIFLEX_API_URL || 'https://omniflex.co.zw';
+const API_KEY = process.env.OMNIFLEX_API_KEY;
+
+async function post(path, body) {
+  const r = await fetch(`${BASE}${path}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.message || `OmniFlex ${r.status}`);
+  return data;
+}
+
+export async function sendSmsOtp(phone) {
+  return post('/api/otp/send', { identifier: phone, method: 'sms' });
+}
+
+export async function verifySmsOtp(phone, code) {
+  return post('/api/otp/verify', { identifier: phone, code });
 }

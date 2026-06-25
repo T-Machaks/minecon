@@ -67,7 +67,7 @@ export const AuthProvider = ({ children }) => {
 
       // Email OTP required
       if (found.mfa_required) {
-        return { success: true, mfaRequired: true, mfaToken: found.mfa_token, emailHint: found.email_hint };
+        return { success: true, mfaRequired: true, mfaToken: found.mfa_token, emailHint: found.email_hint, phoneHint: found.phone_hint };
       }
 
       // Authenticator TOTP required (organizers)
@@ -172,16 +172,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const resendOtp = async (mfaToken) => {
+  const resendOtp = async (mfaToken, method) => {
     try {
       const res = await fetch('/api/auth/otp/resend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mfa_token: mfaToken }),
+        body: JSON.stringify({ mfa_token: mfaToken, method }),
       });
       const data = await res.json();
       if (!res.ok) return { success: false, error: data.error || 'Could not resend code.' };
-      return { success: true };
+      return { success: true, method: data.method };
     } catch (e) {
       return { success: false, error: e.message || 'Could not resend code.' };
     }
