@@ -24,4 +24,7 @@ export const Registration = {
   async filter(query = {}) {
     return apiFetch(`${BASE}?filter=${encodeURIComponent(JSON.stringify(query))}`);
   },
+  async sendConfirmation(id) {
+    return apiFetch(`${BASE}/confirm-email`, { method: 'POST', body: { id } });
+  },
 };

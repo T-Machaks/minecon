@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   CheckCircle, User, Building2, Mail, Phone, Ticket, Shield,
   ChevronRight, Star, Mic, Crown, AlertCircle, UserPlus, ArrowRight,
-  Plus, Minus, CreditCard, Smartphone, Loader2, Lock,
+  Plus, Minus, CreditCard, Smartphone, Loader2, Lock, LogIn,
 } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import SocialAuthButtons, { SocialDivider } from '@/components/SocialAuthButtons';
@@ -100,10 +100,10 @@ function QtyControl({ value, onChange, min = 1, max = 10 }) {
 
 // ── Main component ─────────────────────────────────────────────────────────
 export default function Register() {
-  const { user, setSession } = useAuth();
+  const { user, setSession, login, register: createAccount } = useAuth();
   const queryClient = useQueryClient();
 
-  // step: 'role' | 'details' | 'tier' | 'review' | 'payment' | 'done'
+  // step: 'role' | 'details' | 'tier' | 'review' | 'account' | 'payment' | 'done'
   const [step, setStep] = useState('role');
   const [socialError, setSocialError] = useState('');
   const [duplicateError, setDuplicateError] = useState(false);
@@ -144,6 +144,13 @@ export default function Register() {
   const [payStatus, setPayStatus] = useState('idle'); // idle | processing | success | failed
   const [payRef, setPayRef] = useState('');
 
+  // Account gate
+  const [accMode, setAccMode]   = useState('login'); // 'login' | 'signup'
+  const [accForm, setAccForm]   = useState({ full_name: '', email: '', password: '' });
+  const [accError, setAccError] = useState('');
+  const [accLoading, setAccLoading] = useState(false);
+  const setAcc = (k, v) => setAccForm(f => ({ ...f, [k]: v }));
+
   const set = (k, v) => {
     if (k === 'email') setDuplicateError(false);
     setForm(f => ({ ...f, [k]: v }));
@@ -169,13 +176,23 @@ export default function Register() {
 
   const isPaid = total > 0;
 
-  const STEPS_EXHIBITOR = ['role', 'details', 'tier', 'review', 'payment', 'done'];
-  const STEPS_PAID      = ['role', 'details', 'review', 'payment', 'done'];
+  const STEPS_EXHIBITOR = ['role', 'details', 'tier', 'review', 'account', 'payment', 'done'];
+  const STEPS_PAID      = ['role', 'details', 'review', 'account', 'payment', 'done'];
   const STEPS_FREE      = ['role', 'details', 'review', 'done'];
   const steps = form.role_type === 'Exhibitor' ? STEPS_EXHIBITOR : (isPaid ? STEPS_PAID : STEPS_FREE);
   const stepIdx = steps.indexOf(step);
   const progressSteps = steps.filter(s => s !== 'role' && s !== 'done');
   const progressIdx = progressSteps.indexOf(step);
+
+  // Auto-skip account step when user is already authenticated
+  useEffect(() => {
+    if (step === 'account' && user) {
+      if (!form.full_name && user.full_name) set('full_name', user.full_name);
+      if (!form.email    && user.email)      set('email',     user.email);
+      if (!form.company  && user.company)    set('company',   user.company);
+      goNext('payment');
+    }
+  }, [user, step]); // eslint-disable-line
 
   // ── Mutation ──────────────────────────────────────────────────────────────
   const mutation = useMutation({
@@ -184,6 +201,8 @@ export default function Register() {
       queryClient.invalidateQueries({ queryKey: ['registrations'] });
       setCreated(rec);
       setStep('done');
+      // Send confirmation email (fire-and-forget — don't block UI)
+      Registration.sendConfirmation(rec.id).catch(() => {});
     },
   });
 
@@ -525,13 +544,111 @@ export default function Register() {
               Edit
             </button>
             <button type="button"
-              onClick={() => isPaid ? goNext('payment') : handleSubmit('')}
+              onClick={() => isPaid ? goNext('account') : handleSubmit('')}
               disabled={mutation.isPending}
               className="flex-1 py-3 rounded-xl bg-amber text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60">
               {mutation.isPending ? <span className="flex items-center justify-center gap-2"><Loader2 className="w-4 h-4 animate-spin" />Submitting…</span>
                : isPaid ? 'Proceed to Payment →' : 'Confirm Registration'}
             </button>
           </div>
+        </div>
+      )}
+
+      {/* ── ACCOUNT GATE (before payment) ──────────────────────────────── */}
+      {step === 'account' && !user && (
+        <div className="space-y-5">
+          <div className="flex items-start gap-3 bg-amber/10 border border-amber/30 rounded-xl p-4">
+            <Shield className="w-5 h-5 text-amber flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-bold text-amber">Secure your registration</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Log in or create a free account before payment. This links your ticket to your account, guarantees recovery if payment fails, and unlocks your QR entry codes.
+              </p>
+            </div>
+          </div>
+
+          {/* Mode toggle */}
+          <div className="flex rounded-xl overflow-hidden border border-border">
+            {[['login', LogIn, 'Log In'], ['signup', UserPlus, 'Create Account']].map(([mode, Icon, label]) => (
+              <button key={mode} type="button"
+                onClick={() => { setAccMode(mode); setAccError(''); }}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold transition-colors ${accMode === mode ? 'bg-amber text-white' : 'bg-muted text-muted-foreground hover:bg-muted/70'}`}>
+                <Icon className="w-4 h-4" /> {label}
+              </button>
+            ))}
+          </div>
+
+          {accError && (
+            <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{accError}</div>
+          )}
+
+          <div className="space-y-3">
+            {accMode === 'signup' && (
+              <div className="relative">
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Full name</label>
+                <User className="absolute left-3 top-[calc(1.5rem+10px)] w-4 h-4 text-muted-foreground" />
+                <input type="text" required placeholder="Your full name" value={accForm.full_name || form.full_name}
+                  onChange={e => setAcc('full_name', e.target.value)}
+                  className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-amber" />
+              </div>
+            )}
+            <div className="relative">
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Email address</label>
+              <Mail className="absolute left-3 top-[calc(1.5rem+10px)] w-4 h-4 text-muted-foreground" />
+              <input type="email" required placeholder="you@example.com" value={accForm.email || form.email}
+                onChange={e => setAcc('email', e.target.value)}
+                className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-amber" />
+            </div>
+            <div className="relative">
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Password</label>
+              <Lock className="absolute left-3 top-[calc(1.5rem+10px)] w-4 h-4 text-muted-foreground" />
+              <input type="password" required placeholder={accMode === 'signup' ? 'At least 6 characters' : 'Your password'}
+                value={accForm.password}
+                onChange={e => setAcc('password', e.target.value)}
+                className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-amber" />
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <button type="button" onClick={() => goBack('review')}
+              className="flex-1 py-3 rounded-xl border border-border text-sm font-semibold hover:bg-muted transition-colors">
+              Back
+            </button>
+            <button type="button" disabled={accLoading}
+              onClick={async () => {
+                setAccError('');
+                setAccLoading(true);
+                try {
+                  const email    = (accForm.email || form.email).trim();
+                  const password = accForm.password;
+                  const name     = (accForm.full_name || form.full_name).trim();
+
+                  if (accMode === 'signup') {
+                    if (password.length < 6) { setAccError('Password must be at least 6 characters.'); return; }
+                    const res = await createAccount({ full_name: name, email, password });
+                    if (!res.success) { setAccError(res.error || 'Could not create account.'); return; }
+                  } else {
+                    const res = await login(email, password);
+                    if (!res.success) { setAccError(res.error || 'Invalid email or password.'); return; }
+                    if (res.mfaRequired || res.totpRequired) { setAccError('MFA required — please log in at /login first, then return to complete registration.'); return; }
+                  }
+                  // user is now set → useEffect will advance to 'payment'
+                } catch (e) {
+                  setAccError(e.message || 'Something went wrong.');
+                } finally {
+                  setAccLoading(false);
+                }
+              }}
+              className="flex-1 py-3 rounded-xl bg-amber text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60 flex items-center justify-center gap-2">
+              {accLoading
+                ? <><Loader2 className="w-4 h-4 animate-spin" />{accMode === 'signup' ? 'Creating…' : 'Signing in…'}</>
+                : accMode === 'signup' ? 'Create Account & Continue →' : 'Log In & Continue →'}
+            </button>
+          </div>
+
+          <p className="text-[10px] text-muted-foreground text-center">
+            Your account secures this registration and provides access to your digital entry QR codes.
+          </p>
         </div>
       )}
 
@@ -579,7 +696,7 @@ export default function Register() {
                 })}
               </div>
               <div className="flex gap-3">
-                <button type="button" onClick={() => goBack('review')}
+                <button type="button" onClick={() => goBack(user ? 'review' : 'account')}
                   className="flex-1 py-3 rounded-xl border border-border text-sm font-semibold hover:bg-muted transition-colors">
                   Back
                 </button>
@@ -635,7 +752,9 @@ export default function Register() {
             {created?.payment_ref && (
               <p className="text-xs text-muted-foreground mt-1">Payment ref: <span className="font-mono">{created.payment_ref}</span></p>
             )}
-            <p className="text-xs text-muted-foreground mt-3">A confirmation will be sent to {created?.email}</p>
+            <p className="text-xs text-muted-foreground mt-3">
+              A confirmation email with your registration details and QR access link has been sent to <strong>{created?.email}</strong>.
+            </p>
           </div>
           <div className="bg-card border border-border rounded-xl p-4 text-left space-y-1.5">
             <p className="text-xs font-bold uppercase text-muted-foreground mb-2">Next Steps</p>
