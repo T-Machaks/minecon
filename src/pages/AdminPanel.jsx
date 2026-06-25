@@ -188,7 +188,7 @@ export default function AdminPanel() {
             ))}
           </div>
           <div className="px-4 py-3 border-t border-border">
-            <Link to="/register" className="text-amber text-xs font-medium">View all registrations →</Link>
+            <Link to="/console/registrations" className="text-amber text-xs font-medium">View all registrations →</Link>
           </div>
         </div>
       )}

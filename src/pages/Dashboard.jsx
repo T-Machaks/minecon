@@ -67,10 +67,10 @@ export default function Dashboard() {
   }, [exhibitors, meetings, announcements]);
 
   const statCards = [
-    { label: 'Total Exhibitors', value: exhibitors.length || 0, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-    { label: 'Meeting Requests', value: meetings.length || 0, icon: Calendar, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20' },
-    { label: 'Info Enquiries', value: enquiries.length || 0, icon: MessageSquare, color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/20' },
-    { label: 'Announcements', value: announcements.length || 0, icon: BarChart2, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+    { label: 'Total Exhibitors',  value: exhibitors.length || 0,   icon: Users,          color: 'text-blue-600',    bg: 'bg-blue-50 dark:bg-blue-900/20',    path: '/console/analytics' },
+    { label: 'Meeting Requests',  value: meetings.length || 0,     icon: Calendar,       color: 'text-amber-600',   bg: 'bg-amber-50 dark:bg-amber-900/20',  path: '/console/analytics' },
+    { label: 'Info Enquiries',    value: enquiries.length || 0,    icon: MessageSquare,  color: 'text-violet-600',  bg: 'bg-violet-50 dark:bg-violet-900/20', path: '/console/analytics' },
+    { label: 'Announcements',     value: announcements.length || 0, icon: BarChart2,     color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20', path: isPartner ? null : '/console/communications' },
   ];
 
   return (
@@ -156,15 +156,19 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {statCards.map(s => {
           const Icon = s.icon;
-          return (
-            <div key={s.label} className="bg-card border border-border rounded-xl p-4">
+          const inner = (
+            <>
               <div className={`w-9 h-9 ${s.bg} rounded-lg flex items-center justify-center mb-3`}>
                 <Icon className={`w-5 h-5 ${s.color}`} />
               </div>
               <p className={`font-heading text-3xl font-bold ${s.color}`}>{s.value}</p>
               <p className="text-xs text-muted-foreground mt-1">{s.label}</p>
-            </div>
+            </>
           );
+          const base = 'bg-card border border-border rounded-xl p-4';
+          return s.path
+            ? <Link key={s.label} to={s.path} className={`${base} block hover:border-amber/50 transition-colors`}>{inner}</Link>
+            : <div key={s.label} className={base}>{inner}</div>;
         })}
       </div>
 
