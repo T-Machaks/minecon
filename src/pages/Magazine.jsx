@@ -753,8 +753,8 @@ function GuideViewer({ onBack, isMobile }) {
           <MagazinePage key="p9"><IndustryInsightPage /></MagazinePage>
           <MagazinePage key="p10"><ManagedImageAd config={cfg['10']} defaultSrc={`${S3M}/ads/ad-zambezi.jpg`} advertiser="Zambezi Gas & Coal" /></MagazinePage>
           <MagazinePage key="p11"><ExhibitorDirectoryPage /></MagazinePage>
-          <MagazinePage key="p12"><ManagedImageAd config={cfg['12']} defaultSrc={`${S3M}/ads/ad-boc.jpg`} advertiser="BOC" /></MagazinePage>
-          <MagazinePage key="p13"><ManagedImageAd config={cfg['13']} defaultSrc={`${S3M}/ads/ad-woodlot.jpg`} advertiser="Woodlot Timbers" contain /></MagazinePage>
+          <MagazinePage key="p12"><ManagedImageAd config={cfg['12']} defaultSrc={`${S3M}/ads/ad-zimtile.jpg`} advertiser="Zimtile" /></MagazinePage>
+          <MagazinePage key="p13"><ManagedImageAd config={cfg['13']} defaultSrc={`${S3M}/ads/ad-boc.jpg`} advertiser="BOC" /></MagazinePage>
           <MagazinePage key="p14"><WhyAttendPage /></MagazinePage>
           <MagazinePage key="p15"><BackCoverPage /></MagazinePage>
         </HTMLFlipBook>
