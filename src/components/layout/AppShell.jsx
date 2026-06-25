@@ -1,8 +1,8 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Home, Users, Map, Calendar, Info, Bell,
-  LayoutDashboard, QrCode, Menu, X, Star,
-  BookOpen, UserCheck, Zap, Clock, Shield, ChevronLeft, ChevronRight, Download,
+  LayoutDashboard, QrCode, Menu, X,
+  BookOpen, UserCheck, Clock, Shield, ChevronLeft, ChevronRight, Download,
   LogIn, LogOut, UserCircle,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -42,24 +42,23 @@ const navGroups = [
 ];
 
 const bottomNav = [
-  { path: '/',            label: 'Home',         icon: Home },
-  { path: '/exhibitors',  label: 'Exhibitors',   icon: Users },
-  { path: '/connect',     label: 'Connect',      icon: Zap },
-  { path: '/meetings',    label: 'Meetings',     icon: Calendar },
-  { path: '/magazine',    label: 'Publications', icon: BookOpen },
+  { path: '/',                    label: 'Home',       icon: Home },
+  { path: '/exhibitors',          label: 'Exhibitors', icon: Users },
+  { path: '/attendee-dashboard',  label: 'My MineCon', icon: LayoutDashboard },
+  { path: '/meetings',            label: 'Meetings',   icon: Calendar },
+  { path: '/magazine',            label: 'Publications', icon: BookOpen },
 ];
 
 export default function AppShell({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
-    localStorage.removeItem('minecon_user');
+    logout();
     setMenuOpen(false);
     navigate('/login');
-    window.location.reload();
   };
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     try { return localStorage.getItem('sidebar-collapsed') === 'true'; } catch { return false; }

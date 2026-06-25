@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Registration, MeetingRequest, Exhibitor } from '@/api/entities';
+import { MeetingRequest, Exhibitor } from '@/api/entities';
 import { Users, Calendar, BarChart2, Bell, Shield, BookOpen, Star, MessageSquare, FileText, Map, Clock, Smartphone, TrendingUp, ChevronRight, Zap } from 'lucide-react';
 
 const MODULES = [
@@ -45,7 +45,6 @@ const MODULES = [
 ];
 
 export default function Connect() {
-  const { data: registrations = [] } = useQuery({ queryKey: ['registrations'], queryFn: () => Registration.list() });
   const { data: meetings = [] } = useQuery({ queryKey: ['meetings'], queryFn: () => MeetingRequest.list() });
   const { data: exhibitors = [] } = useQuery({ queryKey: ['exhibitors'], queryFn: () => Exhibitor.list() });
 
@@ -65,8 +64,7 @@ export default function Connect() {
       </div>
 
       {/* Live stats */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        <StatCard label="Registrations" value={registrations.length} color="text-amber" />
+      <div className="grid grid-cols-2 gap-3 mb-6">
         <StatCard label="Meetings" value={meetings.length} color="text-violet-500" />
         <StatCard label="Exhibitors" value={exhibitors.length} color="text-emerald-500" />
       </div>

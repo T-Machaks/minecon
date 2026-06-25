@@ -167,7 +167,8 @@ export default function Signup() {
             <Input
               id="phone"
               type="tel"
-              placeholder="0771234567 or +263771234567"
+              placeholder="+263 77 123 4567 or 0771234567"
+              autoComplete="off"
               value={form.phone}
               onChange={e => handlePhoneChange(e.target.value)}
               className={`pl-10 h-12 ${phoneError ? 'border-destructive' : ''}`}

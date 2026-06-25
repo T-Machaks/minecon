@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Users, Map, Calendar, Info, Bell, QrCode, LayoutDashboard, ArrowRight, Megaphone, AlertCircle, Clock, Gauge, Star, BookOpen, MessageSquare, BarChart2, Shield, UserCheck, Zap, Sparkles, UserPlus, Ticket } from 'lucide-react';
+import { Users, Map, Calendar, Info, Bell, QrCode, LayoutDashboard, ArrowRight, Megaphone, AlertCircle, Clock, BookOpen, MessageSquare, UserCheck, Zap, UserPlus, Ticket } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { Announcement, Exhibitor } from '@/api/entities';
@@ -15,7 +15,7 @@ const quickActions = [
   { label: 'Schedule', path: '/schedule', icon: Clock, color: 'bg-gradient-to-br from-rose-500 to-rose-700', shadow: 'shadow-rose-500/30' },
   { label: 'Register', path: '/register', icon: UserCheck, color: 'bg-gradient-to-br from-amber-400 to-amber-600', shadow: 'shadow-amber-500/30' },
   { label: 'Publications', path: '/magazine', icon: BookOpen, color: 'bg-gradient-to-br from-indigo-500 to-indigo-700', shadow: 'shadow-indigo-500/30' },
-  { label: 'Sponsors', path: '/sponsors', icon: Star, color: 'bg-gradient-to-br from-yellow-400 to-yellow-600', shadow: 'shadow-yellow-500/30' },
+  { label: 'My Dashboard', path: '/attendee-dashboard', icon: LayoutDashboard, color: 'bg-gradient-to-br from-yellow-400 to-yellow-600', shadow: 'shadow-yellow-500/30' },
   { label: 'QR Resources', path: '/qr-resources', icon: QrCode, color: 'bg-gradient-to-br from-slate-500 to-slate-700', shadow: 'shadow-slate-500/30' },
 ];
 

@@ -22,9 +22,11 @@ function MethodBadge({ icon: Icon, label, active, disabled }) {
       ${disabled ? 'border-border text-muted-foreground/30 bg-muted/20 cursor-not-allowed' :
         active  ? 'border-primary bg-primary/10 text-primary' :
                   'border-border text-muted-foreground hover:border-primary/50 cursor-pointer'}`}
+      title={disabled ? 'Add a Zimbabwe mobile number to your account to use SMS OTP' : undefined}
     >
       <Icon className="w-3.5 h-3.5" />
       {label}
+      {disabled && <span className="opacity-60 text-[10px]">· no ZW number</span>}
     </span>
   );
 }

@@ -165,7 +165,7 @@ export default function Register() {
           <p className="text-sm font-semibold mb-2">Your details — <span className="text-amber">{form.role_type}</span></p>
           <Field icon={User} placeholder="Full name *" value={form.full_name} onChange={v => set('full_name', v)} required />
           <Field icon={Mail} placeholder="Email address *" type="email" value={form.email} onChange={v => set('email', v)} required />
-          <Field icon={Phone} placeholder="Zimbabwe mobile (optional) — 0771234567" type="tel" value={form.phone} onChange={v => { set('phone', v); setPhoneError(v && !isValidZimPhone(v) ? 'Zimbabwe numbers only (e.g. 077 123 4567)' : ''); }} />
+          <Field icon={Phone} placeholder="+263 77 123 4567 (optional)" type="tel" autoComplete="off" value={form.phone} onChange={v => { set('phone', v); setPhoneError(v && !isValidZimPhone(v) ? 'Zimbabwe numbers only (e.g. +263 77 123 4567)' : ''); }} />
           {phoneError && <p className="text-xs text-destructive -mt-2 pl-1">{phoneError}</p>}
           <Field icon={Building2} placeholder="Company / Organisation" value={form.company} onChange={v => set('company', v)} />
 
@@ -310,12 +310,13 @@ export default function Register() {
   );
 }
 
-function Field({ icon: Icon, placeholder, value, onChange, type = 'text', required }) {
+function Field({ icon: Icon, placeholder, value, onChange, type = 'text', required, autoComplete }) {
   return (
     <div className="relative">
       <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
       <input type={type} placeholder={placeholder} value={value}
         onChange={e => onChange(e.target.value)} required={required}
+        autoComplete={autoComplete}
         className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-amber" />
     </div>
   );
