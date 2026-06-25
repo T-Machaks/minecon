@@ -29,19 +29,14 @@ export default function ExhibitorMeetings() {
     queryFn: () => MeetingRequest.list('-created_date'),
   });
 
-  const myBooth = exhibitors.find(
-    e => e.contact_email?.toLowerCase() === user?.email?.toLowerCase()
-      || (user?.company && e.name?.toLowerCase() === user.company.toLowerCase())
-  ) ?? null;
+  const myBooth = exhibitors.find(e => e.user_id === user?.id) ?? null;
 
   const myMeetings = meetings.filter(m => {
-    if (!myBooth) return true; // admin view — show all
-    const nameMatch = myBooth.name?.toLowerCase();
+    if (!myBooth) return false;
+    const nameMatch = (myBooth.name || myBooth.company_name || '').toLowerCase();
     return (
       m.exhibitor_id === myBooth.id ||
-      m.exhibitor_name?.toLowerCase() === nameMatch ||
-      m.company?.toLowerCase() === nameMatch ||
-      !m.exhibitor_name // show unassigned requests too
+      m.exhibitor_name?.toLowerCase() === nameMatch
     );
   });
 
