@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Exhibitor, VirtualEnquiry } from '@/api/entities';
+import { notifyEnquiry } from '@/api/notify';
 import { useAppSettings } from '@/lib/AppSettingsContext';
 import { useAuth } from '@/lib/AuthContext';
 import { track } from '@/lib/tracking';
@@ -23,7 +24,7 @@ export default function ExhibitorDetail() {
   });
 
   const { user, isAuthenticated } = useAuth();
-  const [form, setForm] = useState({ name: '', email: '', company: '', message: '' });
+  const [form, setForm] = useState({ name: '', email: '', company: '', phone: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
   const [formError, setFormError] = useState('');
 
@@ -40,8 +41,9 @@ export default function ExhibitorDetail() {
 
   const enquireMutation = useMutation({
     mutationFn: (data) => VirtualEnquiry.create(data),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['virtual-enquiries'] });
+      notifyEnquiry(variables);
       setSubmitted(true);
     },
   });
@@ -287,6 +289,21 @@ export default function ExhibitorDetail() {
                   {form.company && (
                     <LockedField icon={<Mail className="w-3.5 h-3.5" />} value={form.company} label="Company" />
                   )}
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground block mb-1">
+                      Phone <span className="text-muted-foreground/60">(optional — for SMS confirmation)</span>
+                    </label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                      <input
+                        type="tel"
+                        value={form.phone}
+                        onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                        placeholder="+263 7X XXX XXXX"
+                        className="w-full pl-9 pr-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-amber"
+                      />
+                    </div>
+                  </div>
                   <div>
                     <label className="text-xs font-medium text-muted-foreground block mb-1">Message</label>
                     <textarea

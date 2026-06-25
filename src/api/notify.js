@@ -14,3 +14,7 @@ export function notifyMeeting(meeting, action) {
 export function notifyAnnouncement(announcement) {
   post('announcement', { announcement });
 }
+
+export function notifyEnquiry(enquiry) {
+  post('enquiry', { enquiry });
+}

@@ -232,4 +232,79 @@ r.post('/announcement', async (req, res) => {
   });
 });
 
+// ── Enquiry submitted by attendee ────────────────────────────────────────────
+function enquirySenderHtml(q, exName) {
+  return header() + `
+    <h2 style="margin:0 0 6px;color:#111;font-size:18px;">Enquiry Received ✓</h2>
+    <p style="margin:0 0 20px;color:#555;font-size:14px;">Hi <strong>${q.name}</strong>, your enquiry has been sent to <strong>${exName}</strong>.</p>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+      ${row('Exhibitor', exName)}
+      ${q.company ? row('Your Company', q.company) : ''}
+      ${row('Your Message', `<span style="white-space:pre-wrap;">${q.message || '—'}</span>`)}
+    </table>
+    <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:16px;margin-bottom:20px;">
+      <p style="margin:0;color:#78350f;font-size:13px;">The exhibitor will review your message and contact you directly. You can also book a meeting with them at MineCon 2026.</p>
+    </div>
+    <a href="${APP_URL}/exhibitors" style="display:inline-block;background:#f59e0b;color:#1a2332;font-weight:700;font-size:13px;padding:10px 24px;border-radius:8px;text-decoration:none;">Browse More Exhibitors →</a>
+  ` + footer();
+}
+
+function enquiryExhibitorHtml(q) {
+  return header() + `
+    <h2 style="margin:0 0 6px;color:#111;font-size:18px;">New Enquiry Received</h2>
+    <p style="margin:0 0 20px;color:#555;font-size:14px;">You have received a new information request via MineCon 2026.</p>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+      ${row('From', q.name)}
+      ${q.email ? row('Email', `<a href="mailto:${q.email}" style="color:#f59e0b;">${q.email}</a>`) : ''}
+      ${q.company ? row('Company', q.company) : ''}
+      ${q.phone ? row('Phone', q.phone) : ''}
+      ${row('Message', `<span style="white-space:pre-wrap;">${q.message || '—'}</span>`)}
+    </table>
+    <p style="color:#555;font-size:13px;">Reply directly to this person at their email address above, or follow up at the event.</p>
+    <a href="${APP_URL}/exhibitor" style="display:inline-block;background:#f59e0b;color:#1a2332;font-weight:700;font-size:13px;padding:10px 24px;border-radius:8px;text-decoration:none;">View Exhibitor Portal →</a>
+  ` + footer();
+}
+
+r.post('/enquiry', async (req, res) => {
+  res.json({ ok: true });
+  const { enquiry } = req.body;
+  if (!enquiry?.email) return;
+
+  try {
+    // Fetch exhibitor to get contact_email
+    let exhibitorEmail = null;
+    if (enquiry.exhibitor_id) {
+      const result = await ddb.send(new GetCommand({
+        TableName: 'minecon_exhibitors',
+        Key: { id: enquiry.exhibitor_id },
+      })).catch(() => null);
+      exhibitorEmail = result?.Item?.contact_email || null;
+    }
+
+    // 1. Confirmation to sender
+    await emailSilent(
+      enquiry.email,
+      `Enquiry received — ${enquiry.exhibitor_name}`,
+      enquirySenderHtml(enquiry, enquiry.exhibitor_name)
+    );
+    if (enquiry.phone) {
+      await smsSilent(
+        enquiry.phone,
+        `MineCon 2026: Your enquiry to ${enquiry.exhibitor_name} has been received. They will be in touch with you directly.`
+      );
+    }
+
+    // 2. Notify exhibitor
+    if (exhibitorEmail) {
+      await emailSilent(
+        exhibitorEmail,
+        `New enquiry from ${enquiry.name} — MineCon 2026`,
+        enquiryExhibitorHtml(enquiry)
+      );
+    }
+  } catch (e) {
+    console.error('[notify] enquiry error:', e.message);
+  }
+});
+
 export default r;

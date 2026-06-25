@@ -47,6 +47,7 @@ import CheckIn from '@/pages/CheckIn';
 import MarketingHub from '@/pages/console/MarketingHub';
 import ExhibitorApplications from '@/pages/console/ExhibitorApplications';
 import Registrations from '@/pages/console/Registrations';
+import EnquiriesPanel from '@/pages/console/EnquiriesPanel';
 import ExhibitorApply from '@/pages/ExhibitorApply';
 import ExhibitorLogin from '@/pages/ExhibitorLogin';
 import ConsoleLogin from '@/pages/ConsoleLogin';
@@ -122,6 +123,7 @@ const AuthenticatedApp = () => {
             <Route path="/console/users"                 element={<UsersPanel />} />
             <Route path="/console/check-in"              element={<CheckIn />} />
             <Route path="/console/exhibitor-applications" element={<ExhibitorApplications />} />
+            <Route path="/console/enquiries"              element={<EnquiriesPanel />} />
           </Route>
         </Route>
       </Route>
