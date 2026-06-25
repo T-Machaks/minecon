@@ -775,6 +775,8 @@ function GuideViewer({ onBack, isMobile }) {
   );
 }
 
+const S3 = 'https://minecon.s3.af-south-1.amazonaws.com';
+
 // ── ADMA 2026 flip book (pre-rendered page images) ───────────────────────────
 function ADMAFlipBook({ onBack, isMobile }) {
   const bookRef = useRef(null);
@@ -790,13 +792,13 @@ function ADMAFlipBook({ onBack, isMobile }) {
   // flipbook shows proper portrait pages. PDF pages 1 and 44 are portrait singles.
   const admaPages = (() => {
     const list = [];
-    list.push({ src: '/magazines/adma-pages/page-001.jpg', half: 'portrait' });
+    list.push({ src: `${S3}/magazines/adma-pages/page-001.jpg`, half: 'portrait' });
     for (let i = 2; i <= 43; i++) {
       const n = String(i).padStart(3, '0');
-      list.push({ src: `/magazines/adma-pages/page-${n}.jpg`, half: 'left' });
-      list.push({ src: `/magazines/adma-pages/page-${n}.jpg`, half: 'right' });
+      list.push({ src: `${S3}/magazines/adma-pages/page-${n}.jpg`, half: 'left' });
+      list.push({ src: `${S3}/magazines/adma-pages/page-${n}.jpg`, half: 'right' });
     }
-    list.push({ src: '/magazines/adma-pages/page-044.jpg', half: 'portrait' });
+    list.push({ src: `${S3}/magazines/adma-pages/page-044.jpg`, half: 'portrait' });
     return list;
   })();
 
@@ -820,7 +822,7 @@ function ADMAFlipBook({ onBack, isMobile }) {
         <span className="text-muted-foreground">/</span>
         <span className="text-sm font-semibold">ADMA 2026 Agricultural Show Magazine</span>
         <a
-          href="/magazines/adma-2026.pdf"
+          href={`${S3}/magazines/adma-2026.pdf`}
           target="_blank"
           rel="noopener noreferrer"
           className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0"
@@ -902,13 +904,13 @@ function TobaccoTodayFlipBook({ onBack, isMobile }) {
   // Pages 2–16 are landscape double-spreads; split each into left + right halves.
   const ttPages = (() => {
     const list = [];
-    list.push({ src: '/magazines/tobacco-today-pages/page-001.jpg', half: 'portrait' });
+    list.push({ src: `${S3}/magazines/tobacco-today-pages/page-001.jpg`, half: 'portrait' });
     for (let i = 2; i <= 16; i++) {
       const n = String(i).padStart(3, '0');
-      list.push({ src: `/magazines/tobacco-today-pages/page-${n}.jpg`, half: 'left' });
-      list.push({ src: `/magazines/tobacco-today-pages/page-${n}.jpg`, half: 'right' });
+      list.push({ src: `${S3}/magazines/tobacco-today-pages/page-${n}.jpg`, half: 'left' });
+      list.push({ src: `${S3}/magazines/tobacco-today-pages/page-${n}.jpg`, half: 'right' });
     }
-    list.push({ src: '/magazines/tobacco-today-pages/page-017.jpg', half: 'portrait' });
+    list.push({ src: `${S3}/magazines/tobacco-today-pages/page-017.jpg`, half: 'portrait' });
     return list;
   })();
 
@@ -932,7 +934,7 @@ function TobaccoTodayFlipBook({ onBack, isMobile }) {
         <span className="text-muted-foreground">/</span>
         <span className="text-sm font-semibold">Zimbabwe Tobacco Today — Issue 60 · June 2026</span>
         <a
-          href="/magazines/tobacco-today-2026-q2.pdf"
+          href={`${S3}/magazines/tobacco-today-2026-q2.pdf`}
           target="_blank"
           rel="noopener noreferrer"
           className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0"
@@ -1139,7 +1141,7 @@ function MagazineLibrary({ onSelect }) {
       type: 'flipbook',
       cover: (
         <img
-          src="/magazines/adma-pages/page-001.jpg"
+          src={`${S3}/magazines/adma-pages/page-001.jpg`}
           alt="ADMA 2026 cover"
           className="absolute inset-0 w-full h-full"
           style={{ objectFit: 'cover', objectPosition: 'center top' }}
@@ -1154,7 +1156,7 @@ function MagazineLibrary({ onSelect }) {
       type: 'flipbook',
       cover: (
         <img
-          src="/magazines/tobacco-today-pages/page-001.jpg"
+          src={`${S3}/magazines/tobacco-today-pages/page-001.jpg`}
           alt="Zimbabwe Tobacco Today cover"
           className="absolute inset-0 w-full h-full"
           style={{ objectFit: 'cover', objectPosition: 'center top' }}
