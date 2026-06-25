@@ -185,7 +185,7 @@ export default function ExhibitorLogin() {
 
         <p className="text-center text-slate-500 text-xs mt-6">
           Organizer?{' '}
-          <a href="/login" className="text-amber hover:text-amber/80 transition-colors">
+          <a href="/console/login" className="text-amber hover:text-amber/80 transition-colors">
             Sign in to Console
           </a>
         </p>
