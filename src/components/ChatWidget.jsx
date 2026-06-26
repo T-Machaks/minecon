@@ -553,8 +553,8 @@ export default function ChatWidget() {
             {messages.length === 0 && (
               <div className="text-center py-6 text-slate-400 text-sm">
                 <HardHat size={32} className="mx-auto mb-2 text-amber/50" />
-                <p className="font-medium text-slate-300">Hi! I'm The Foreman.</p>
-                <p className="mt-1 text-xs">Ask me about exhibitors, the schedule, venue, or anything about the event.</p>
+                <p className="font-medium text-slate-300">The Foreman, reporting for duty.</p>
+                <p className="mt-1 text-xs">Exhibitors, schedule, venue — I know things. Possibly too many things. Ask away, I won't judge. Much.</p>
                 {!user && (
                   <p className="mt-3 text-xs text-amber/70">
                     <a href="/signup" className="underline underline-offset-2 hover:text-amber transition-colors">Create a free account</a>
