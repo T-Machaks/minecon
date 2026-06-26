@@ -12,7 +12,7 @@ const rawDdb = new DynamoDBClient({ region: 'af-south-1' });
 const ddb = DynamoDBDocumentClient.from(rawDdb, { marshallOptions: { removeUndefinedValues: true } });
 
 const AGENT_ID    = '6KLVWZQPR7';
-const AGENT_ALIAS = 'ZILSAKMPPL';
+const AGENT_ALIAS = 'IOIIMEPX6A';
 const TABLE       = 'minecon_meeting_requests';
 
 router.post('/', async (req, res) => {
