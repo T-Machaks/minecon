@@ -109,6 +109,29 @@ export default crudRouter(TABLE, {
       }
     });
 
+    r.get('/by-email-all', async (req, res) => {
+      try {
+        const email = req.query.email?.toLowerCase();
+        if (!email) return res.status(400).json({ error: 'email required' });
+        let items = [];
+        let lastKey;
+        do {
+          const result = await ddb.send(new QueryCommand({
+            TableName: TABLE,
+            IndexName: 'email-index',
+            KeyConditionExpression: 'email = :e',
+            ExpressionAttributeValues: { ':e': email },
+            ExclusiveStartKey: lastKey,
+          }));
+          items = items.concat(result.Items || []);
+          lastKey = result.LastEvaluatedKey;
+        } while (lastKey);
+        res.json(items);
+      } catch (e) {
+        res.status(500).json({ error: e.message });
+      }
+    });
+
     r.post('/confirm-email', async (req, res) => {
       try {
         const { id } = req.body;

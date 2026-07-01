@@ -1,19 +1,13 @@
 import { apiFetch } from '@/api/client';
 
-const BASE = '/api/registrations';
+const BASE = '/api/sessions';
 
-export const Registration = {
+export const Session = {
   async list(sortBy = null) {
     return apiFetch(sortBy ? `${BASE}?sortBy=${sortBy}` : BASE);
   },
   async get(id) {
     return apiFetch(`${BASE}/${id}`);
-  },
-  async findByEmail(email) {
-    return apiFetch(`${BASE}/by-email?email=${encodeURIComponent(email)}`);
-  },
-  async listByEmail(email) {
-    return apiFetch(`${BASE}/by-email-all?email=${encodeURIComponent(email)}`);
   },
   async create(data) {
     return apiFetch(BASE, { method: 'POST', body: data });
@@ -26,8 +20,5 @@ export const Registration = {
   },
   async filter(query = {}) {
     return apiFetch(`${BASE}?filter=${encodeURIComponent(JSON.stringify(query))}`);
-  },
-  async sendConfirmation(id) {
-    return apiFetch(`${BASE}/confirm-email`, { method: 'POST', body: { id } });
   },
 };

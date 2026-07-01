@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Exhibitor, MeetingRequest } from '@/api/entities';
+import { Exhibitor, MeetingRequest, AdSlot } from '@/api/entities';
+import { EVENT_CONFIG } from '@/lib/eventConfig';
 import { notifyMeeting } from '@/api/notify';
 import { useAuth } from '@/lib/AuthContext';
 import { useState } from 'react';
@@ -10,7 +11,6 @@ import {
 } from 'lucide-react';
 import QRCodeDisplay from '@/components/QRCodeDisplay';
 import AdBannerPreview from '@/components/exhibitor/AdBannerPreview';
-import { ADS } from '@/lib/adBanners';
 import { resizeImageToBlob } from '@/lib/imageUtils';
 
 const STATUS_STYLES = {
@@ -46,12 +46,17 @@ export default function ExhibitorHome() {
     queryFn: () => MeetingRequest.list('-created_date'),
   });
 
+  const { data: activeAdSlots = [] } = useQuery({
+    queryKey: ['adslots-active'],
+    queryFn: () => AdSlot.listActive(),
+  });
+
   const myBooth = exhibitors.find(
     e => e.contact_email?.toLowerCase() === user?.email?.toLowerCase()
       || (user?.company && e.name?.toLowerCase() === user.company.toLowerCase())
   ) ?? exhibitors[0];
 
-  const myAd = myBooth ? ADS.find(a => a.exhibitor_id === myBooth.id) : null;
+  const myAd = myBooth ? (activeAdSlots.find(a => a.exhibitor_id === myBooth.id) ?? null) : null;
   const isDiamond = myBooth?.tier === 'Diamond';
 
   const myMeetings = meetings.filter(m => {
@@ -315,7 +320,7 @@ export default function ExhibitorHome() {
               </ul>
             </div>
             <a
-              href="mailto:info@minecon.global?subject=Booth%20Upgrade%20Enquiry"
+              href={`mailto:${EVENT_CONFIG.contactEmail}?subject=Booth%20Upgrade%20Enquiry`}
               className="flex items-center gap-1.5 flex-shrink-0 text-xs bg-amber text-white font-semibold px-4 py-2.5 rounded-xl hover:bg-amber/90 active:scale-95 transition-all duration-150 whitespace-nowrap"
             >
               Enquire <ArrowRight className="w-3.5 h-3.5" />
@@ -473,7 +478,7 @@ export default function ExhibitorHome() {
                 Contact the organiser to set up your carousel ad slot.
               </p>
               <a
-                href="mailto:info@minecon.global?subject=Ad%20Banner%20Setup"
+                href={`mailto:${EVENT_CONFIG.contactEmail}?subject=Ad%20Banner%20Setup`}
                 className="mt-1 text-xs text-amber font-semibold hover:underline flex items-center gap-1"
               >
                 Contact organiser <ArrowRight className="w-3 h-3" />
@@ -492,7 +497,7 @@ export default function ExhibitorHome() {
                   </p>
                 </div>
                 <a
-                  href="mailto:info@minecon.global?subject=Booth%20Upgrade%20Enquiry"
+                  href={`mailto:${EVENT_CONFIG.contactEmail}?subject=Booth%20Upgrade%20Enquiry`}
                   className="flex items-center gap-1.5 text-xs bg-amber text-white font-semibold px-4 py-2 rounded-lg hover:bg-amber/90 active:scale-95 transition-all duration-150"
                 >
                   Upgrade to Diamond <ArrowRight className="w-3.5 h-3.5" />
@@ -536,7 +541,7 @@ export default function ExhibitorHome() {
               n: myBooth.name,
               b: myBooth.booth,
               s: myBooth.section,
-              ev: 'mc26',
+              ev: EVENT_CONFIG.qrEventCode,
             })}
             size={160}
             label={myBooth.name}

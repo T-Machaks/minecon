@@ -1,19 +1,23 @@
 import { useQuery } from '@tanstack/react-query';
 import { Announcement } from '@/api/entities';
-import { Megaphone, AlertCircle, Clock, Bell, Pin, Sparkles } from 'lucide-react';
+import { Megaphone, AlertCircle, Clock, Bell, Pin, Sparkles, MapPin, Navigation } from 'lucide-react';
 
-const typeIcon = { Important: AlertCircle, Reminder: Clock, General: Megaphone, Update: Bell };
+const typeIcon = { Important: AlertCircle, Reminder: Clock, General: Megaphone, Update: Bell, Venue: MapPin, Directional: Navigation };
 const typeColor = {
-  Important: 'border-red-400 bg-red-50 dark:bg-red-950/30 text-red-600',
-  Reminder: 'border-amber-400 bg-amber-50 dark:bg-amber-950/30 text-amber-600',
-  General: 'border-blue-400 bg-blue-50 dark:bg-blue-950/30 text-blue-600',
-  Update: 'border-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600',
+  Important:   'border-red-400 bg-red-50 dark:bg-red-950/30 text-red-600',
+  Reminder:    'border-amber-400 bg-amber-50 dark:bg-amber-950/30 text-amber-600',
+  General:     'border-blue-400 bg-blue-50 dark:bg-blue-950/30 text-blue-600',
+  Update:      'border-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600',
+  Venue:       'border-violet-400 bg-violet-50 dark:bg-violet-950/30 text-violet-600',
+  Directional: 'border-teal-400 bg-teal-50 dark:bg-teal-950/30 text-teal-600',
 };
 const typeBadge = {
-  Important: 'bg-red-100 text-red-700',
-  Reminder: 'bg-amber-100 text-amber-700',
-  General: 'bg-blue-100 text-blue-700',
-  Update: 'bg-emerald-100 text-emerald-700',
+  Important:   'bg-red-100 text-red-700',
+  Reminder:    'bg-amber-100 text-amber-700',
+  General:     'bg-blue-100 text-blue-700',
+  Update:      'bg-emerald-100 text-emerald-700',
+  Venue:       'bg-violet-100 text-violet-700',
+  Directional: 'bg-teal-100 text-teal-700',
 };
 
 export default function Announcements() {

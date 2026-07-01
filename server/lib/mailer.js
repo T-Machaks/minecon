@@ -77,3 +77,54 @@ export async function sendOtpEmail(toEmail, otp, override = null) {
     throw new Error(`Graph API error ${res.status}: ${err?.error?.message || res.statusText}`);
   }
 }
+
+const APP_URL = 'https://minecon.tyflex.co.zw';
+
+export async function sendWelcomeEmail(toEmail, fullName) {
+  if (!TENANT_ID || !CLIENT_ID || !CLIENT_SECRET || !SENDER) return;
+
+  const firstName = (fullName || '').split(' ')[0] || 'there';
+
+  return sendOtpEmail(toEmail, null, {
+    subject: 'Welcome to MineCon 2026',
+    html: `
+      <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#ffffff;">
+        <div style="background:#1a2332;padding:28px 24px;text-align:center;">
+          <p style="margin:0;color:#f59e0b;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;">Southern Africa's Mining Exhibition</p>
+          <h1 style="margin:8px 0 0;color:#ffffff;font-size:24px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;">MineCon 2026</h1>
+        </div>
+        <div style="padding:32px 24px;">
+          <h2 style="margin:0 0 12px;color:#111;font-size:20px;font-weight:700;">Welcome aboard, ${firstName}!</h2>
+          <p style="margin:0 0 20px;color:#555;line-height:1.6;font-size:15px;">
+            Your MineCon 2026 account is ready. Browse exhibitors, book meetings, manage your schedule,
+            and get live event updates — all in one place.
+          </p>
+          <div style="text-align:center;margin:28px 0;">
+            <a href="${APP_URL}"
+               style="display:inline-block;background:#f59e0b;color:#ffffff;font-weight:700;font-size:15px;
+                      text-decoration:none;padding:14px 32px;border-radius:8px;letter-spacing:0.03em;">
+              Explore MineCon 2026
+            </a>
+          </div>
+          <div style="background:#f9f9f9;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
+            <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#333;text-transform:uppercase;letter-spacing:0.05em;">Event Details</p>
+            <p style="margin:0;font-size:14px;color:#555;line-height:1.8;">
+              📅 October 2026 &middot; 3 Days<br>
+              📍 Artfarm Grounds, Pomona, Harare<br>
+              🌐 minecon.global
+            </p>
+          </div>
+          <p style="margin:0;font-size:13px;color:#999;line-height:1.6;">
+            If you didn't create this account, you can safely ignore this email.
+          </p>
+        </div>
+        <div style="background:#f4f4f5;border-top:1px solid #e5e7eb;padding:16px 24px;text-align:center;">
+          <p style="margin:0;font-size:12px;color:#aaa;">
+            &copy; 2026 MineCon &middot;
+            <a href="https://minecon.global" style="color:#f59e0b;text-decoration:none;">minecon.global</a>
+          </p>
+        </div>
+      </div>
+    `,
+  });
+}

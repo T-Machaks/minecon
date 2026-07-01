@@ -344,4 +344,13 @@ r.post('/enquiry', async (req, res) => {
   }
 });
 
+// Bulk SMS stub — logs payload, ready for OmniFlex mass-send when available
+r.post('/bulk-sms', async (req, res) => {
+  const { message, campaign } = req.body;
+  if (!message) return res.status(400).json({ error: 'message required' });
+  console.log(`[bulk-sms] campaign="${campaign}" message="${message.slice(0, 80)}…"`);
+  // TODO: scan registrations, normalise phones, call sendSms for each
+  res.json({ queued: true, campaign });
+});
+
 export default r;

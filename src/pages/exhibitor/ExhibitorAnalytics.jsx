@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Exhibitor, MeetingRequest, EngagementEvent } from '@/api/entities';
+import { Exhibitor, MeetingRequest, EngagementEvent, AdSlot } from '@/api/entities';
+import { EVENT_CONFIG } from '@/lib/eventConfig';
 import { useAuth } from '@/lib/AuthContext';
 import {
   Eye, Calendar, Megaphone, TrendingUp,
@@ -11,7 +12,6 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import AdBannerPreview from '@/components/exhibitor/AdBannerPreview';
-import { ADS } from '@/lib/adBanners';
 
 const TYPE_LABEL = {
   profile_view:   'Booth Visit',
@@ -122,6 +122,11 @@ export default function ExhibitorAnalytics() {
     queryFn: () => MeetingRequest.list('-created_date'),
   });
 
+  const { data: activeAdSlots = [] } = useQuery({
+    queryKey: ['adslots-active'],
+    queryFn: () => AdSlot.listActive(),
+  });
+
   if (!myBooth) {
     return (
       <div className="max-w-4xl mx-auto px-6 py-16 text-center">
@@ -184,7 +189,7 @@ export default function ExhibitorAnalytics() {
 
   const isPremium = (TIER_ORDER[myBooth?.tier] ?? 0) >= TIER_ORDER.Gold;
   const isDiamond = myBooth?.tier === 'Diamond';
-  const myAd = myBooth ? ADS.find(a => a.exhibitor_id === myBooth.id) : null;
+  const myAd = activeAdSlots.find(a => a.exhibitor_id === myBooth.id) ?? null;
   const carouselAdClicks = events.filter(e => e.type === 'ad_click' && e.source === 'home_carousel').length;
 
   const kpis = [
@@ -632,7 +637,7 @@ export default function ExhibitorAnalytics() {
               ))}
             </div>
             <a
-              href="mailto:info@minecon.global?subject=Booth%20Tier%20Upgrade%20Enquiry"
+              href={`mailto:${EVENT_CONFIG.contactEmail}?subject=Booth%20Tier%20Upgrade%20Enquiry`}
               className="flex items-center justify-center gap-2 w-full bg-amber text-white font-semibold text-sm py-2.5 rounded-lg hover:bg-amber/90 active:scale-95 transition-all duration-150"
               onClick={() => setUpgradeOpen(false)}
             >

@@ -1,21 +1,22 @@
 import { Link } from 'react-router-dom';
-import { Users, Map, Calendar, Info, Bell, QrCode, LayoutDashboard, ArrowRight, Megaphone, AlertCircle, Clock, BookOpen, MessageSquare, UserCheck, Sparkles, UserPlus, Ticket } from 'lucide-react';
+import { Users, Map, Calendar, Info, Bell, QrCode, LayoutDashboard, ArrowRight, Megaphone, AlertCircle, Clock, BookOpen, MessageSquare, UserCheck, Sparkles, UserPlus, Ticket, Video } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { Announcement, Exhibitor } from '@/api/entities';
 import AdBannerCarousel from '@/components/home/AdBannerCarousel';
 import VirtualBanner from '@/components/VirtualBanner';
+import CountdownBanner from '@/components/CountdownBanner';
 import { track } from '@/lib/tracking';
 import { useAppSettings } from '@/lib/AppSettingsContext';
 
 const quickActions = [
   { label: 'Exhibitors', path: '/exhibitors', icon: Users, color: 'bg-gradient-to-br from-blue-500 to-blue-700', shadow: 'shadow-blue-500/30' },
   { label: 'Site Plan', path: '/site-plan', icon: Map, color: 'bg-gradient-to-br from-emerald-500 to-emerald-700', shadow: 'shadow-emerald-500/30' },
+  { label: 'Live Sessions', path: '/sessions', icon: Video, color: 'bg-gradient-to-br from-red-500 to-red-700', shadow: 'shadow-red-500/30' },
   { label: 'Meetings', path: '/meetings', icon: Calendar, color: 'bg-gradient-to-br from-violet-500 to-violet-700', shadow: 'shadow-violet-500/30' },
   { label: 'Schedule', path: '/schedule', icon: Clock, color: 'bg-gradient-to-br from-rose-500 to-rose-700', shadow: 'shadow-rose-500/30' },
   { label: 'Register', path: '/register', icon: UserCheck, color: 'bg-gradient-to-br from-amber-400 to-amber-600', shadow: 'shadow-amber-500/30' },
   { label: 'Publications', path: '/magazine', icon: BookOpen, color: 'bg-gradient-to-br from-indigo-500 to-indigo-700', shadow: 'shadow-indigo-500/30' },
-  { label: 'My Dashboard', path: '/attendee-dashboard', icon: LayoutDashboard, color: 'bg-gradient-to-br from-yellow-400 to-yellow-600', shadow: 'shadow-yellow-500/30' },
   { label: 'QR Resources', path: '/qr-resources', icon: QrCode, color: 'bg-gradient-to-br from-slate-500 to-slate-700', shadow: 'shadow-slate-500/30' },
 ];
 
@@ -73,6 +74,9 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Countdown banner */}
+      <CountdownBanner />
 
       {/* Ad banner carousel */}
       <div className="pt-4">

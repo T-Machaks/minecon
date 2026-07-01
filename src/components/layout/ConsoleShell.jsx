@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import {
   LayoutDashboard, BarChart2, MessageSquare, Shield,
-  LogOut, Users, Menu, X, ChevronLeft, UserCog, ScanLine, Megaphone, ClipboardList, Inbox,
+  LogOut, Users, Menu, X, ChevronLeft, UserCog, ScanLine, Megaphone, ClipboardList, Inbox, Video,
 } from 'lucide-react';
 import { useState } from 'react';
 import MineConLogo from './MineConLogo.jsx';
@@ -12,6 +12,7 @@ const consoleNav = [
   { path: '/console/registrations',  label: 'Registrations',    icon: Users,                        roles: ['organizer', 'superadmin'] },
   { path: '/console/check-in',       label: 'Gate Check-In',    icon: ScanLine,                     roles: ['organizer', 'superadmin'] },
   { path: '/console/analytics',      label: 'Analytics',        icon: BarChart2,                    roles: ['organizer', 'marketing_partner', 'superadmin'] },
+  { path: '/console/sessions',        label: 'Sessions',         icon: Video,                        roles: ['organizer', 'superadmin'] },
   { path: '/console/communications', label: 'Communications',   icon: MessageSquare,                roles: ['organizer', 'superadmin'] },
   { path: '/console/marketing',      label: 'Marketing Hub',    icon: Megaphone,                    roles: ['marketing_partner', 'superadmin'] },
   { path: '/console/exhibitor-applications', label: 'Exhibitor Applications', icon: ClipboardList, roles: ['organizer', 'superadmin'] },

@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import { GetCommand, QueryCommand, PutCommand, UpdateCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 import { ddb } from '../lib/dynamo.js';
 import { generateId } from '../lib/idgen.js';
-import { sendOtpEmail } from '../lib/mailer.js';
+import { sendOtpEmail, sendWelcomeEmail } from '../lib/mailer.js';
 import { sendSmsOtp, verifySmsOtp } from '../lib/omniflex.js';
 import { generateSecret, generateQrDataUrl, verifyToken } from '../lib/totp.js';
 
@@ -99,6 +99,7 @@ router.post('/signup', async (req, res) => {
       password_hash,
     };
     await ddb.send(new PutCommand({ TableName: TABLE, Item: user }));
+    sendWelcomeEmail(user.email, user.full_name).catch(e => console.error('Welcome email failed:', e.message));
     res.status(201).json(sanitize(user));
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -370,6 +371,7 @@ async function upsertOAuthUser({ email, full_name, oauth_provider, oauth_id }) {
     oauth_id,
   };
   await ddb.send(new PutCommand({ TableName: TABLE, Item: user }));
+  sendWelcomeEmail(user.email, user.full_name).catch(e => console.error('Welcome email failed:', e.message));
   return user;
 }
 

@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate, Outlet, Navigate } from 'react-router-d
 import { Store, Calendar, BarChart2, LogOut, Shield, ChevronLeft, ScanLine, Users, Inbox } from 'lucide-react';
 import MineConLogo from './MineConLogo.jsx';
 import { useAuth } from '@/lib/AuthContext';
+import { EVENT_CONFIG } from '@/lib/eventConfig';
 
 const exhibitorNav = [
   { path: '/exhibitor',           label: 'My Booth',   icon: Store,     exact: true },
@@ -75,7 +76,7 @@ export default function ExhibitorShell() {
               <span className="hidden md:inline">Console</span>
             </Link>
             <button
-              onClick={() => { localStorage.removeItem('minecon_user'); navigate('/exhibitor-login'); }}
+              onClick={() => { localStorage.removeItem(EVENT_CONFIG.storageUserKey); navigate('/exhibitor-login'); }}
               className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-white/10 transition-all duration-150 touch-manipulation"
               title="Log out"
             >

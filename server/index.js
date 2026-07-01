@@ -18,6 +18,7 @@ import chat from './routes/chat.js';
 import auth from './routes/auth.js';
 import exhibitorApplications from './routes/exhibitor-applications.js';
 import notifications from './routes/notifications.js';
+import sessions from './routes/sessions.js';
 
 const app = express();
 app.use(express.json({ limit: '2mb' }));
@@ -40,6 +41,7 @@ app.use('/api/chat',              chat);
 app.use('/api/auth',                    auth);
 app.use('/api/exhibitor-applications',  exhibitorApplications);
 app.use('/api/notifications',           notifications);
+app.use('/api/sessions',               sessions);
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { MeetingRequest, Exhibitor } from '@/api/entities';
+import { useAuth } from '@/lib/AuthContext';
 import { Users, Calendar, BarChart2, Bell, Shield, BookOpen, Star, MessageSquare, FileText, Map, Clock, Smartphone, TrendingUp, ChevronRight, Zap } from 'lucide-react';
 
 const MODULES = [
@@ -9,7 +10,7 @@ const MODULES = [
     items: [
       { label: 'Event Registration', desc: 'Register attendees, exhibitors, sponsors, speakers, and VIPs', path: '/register', icon: Users, color: 'bg-amber-500' },
       { label: 'Attendee Dashboard', desc: 'Personal schedule, saved exhibitors, notes, and meetings', path: '/attendee-dashboard', icon: Smartphone, color: 'bg-blue-500' },
-      { label: 'Admin & Security', desc: 'Roles, permissions, OTP verification, and user management', path: '/admin', icon: Shield, color: 'bg-red-500' },
+      { label: 'Admin & Security', desc: 'Roles, permissions, OTP verification, and user management', path: '/admin', icon: Shield, color: 'bg-red-500', consoleOnly: true },
     ],
   },
   {
@@ -31,7 +32,7 @@ const MODULES = [
   {
     section: 'Communications & Content',
     items: [
-      { label: 'Communications Hub', desc: 'Countdown, announcements, venue notices, and campaign messaging', path: '/communications', icon: MessageSquare, color: 'bg-orange-500' },
+      { label: 'Communications Hub', desc: 'Countdown, announcements, venue notices, and campaign messaging', path: '/communications', icon: MessageSquare, color: 'bg-orange-500', consoleOnly: true },
       { label: 'Publications', desc: 'Interactive exhibition guide with product spotlights, sponsor ads and videos', path: '/magazine', icon: BookOpen, color: 'bg-indigo-500' },
       { label: 'QR Resources', desc: 'How to use QR codes to access brochures, videos, and contacts', path: '/qr-resources', icon: Zap, color: 'bg-lime-600' },
     ],
@@ -39,12 +40,13 @@ const MODULES = [
   {
     section: 'Analytics & Reporting',
     items: [
-      { label: 'Analytics Dashboard', desc: 'Registrations, check-ins, meetings, QR scans, and engagement data', path: '/analytics', icon: BarChart2, color: 'bg-slate-600' },
+      { label: 'Analytics Dashboard', desc: 'Registrations, check-ins, meetings, QR scans, and engagement data', path: '/analytics', icon: BarChart2, color: 'bg-slate-600', consoleOnly: true },
     ],
   },
 ];
 
 export default function Connect() {
+  const { hasConsoleAccess } = useAuth();
   const { data: meetings = [] } = useQuery({ queryKey: ['meetings'], queryFn: () => MeetingRequest.list() });
   const { data: exhibitors = [] } = useQuery({ queryKey: ['exhibitors'], queryFn: () => Exhibitor.list() });
 
@@ -70,11 +72,14 @@ export default function Connect() {
       </div>
 
       {/* Module sections */}
-      {MODULES.map(section => (
+      {MODULES.map(section => {
+        const visibleItems = section.items.filter(item => !item.consoleOnly || hasConsoleAccess());
+        if (visibleItems.length === 0) return null;
+        return (
         <div key={section.section} className="mb-6">
           <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-3 px-1">{section.section}</p>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-            {section.items.map(item => {
+            {visibleItems.map(item => {
               const Icon = item.icon;
               return (
                 <Link key={item.path} to={item.path}
@@ -92,7 +97,8 @@ export default function Connect() {
             })}
           </div>
         </div>
-      ))}
+        );
+      })}
 
       {/* PWA access link */}
       <div className="bg-muted/50 border border-border rounded-xl p-4 flex items-center gap-3">
