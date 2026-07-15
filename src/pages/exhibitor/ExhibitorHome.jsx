@@ -58,8 +58,9 @@ export default function ExhibitorHome() {
 
   const myBooth = exhibitors.find(
     e => e.contact_email?.toLowerCase() === user?.email?.toLowerCase()
+      || e.user_id === user?.id
       || (user?.company && e.name?.toLowerCase() === user.company.toLowerCase())
-  ) ?? exhibitors[0];
+  ) ?? null;
 
   const myAd = myBooth ? (activeAdSlots.find(a => a.exhibitor_id === myBooth.id) ?? null) : null;
   const tierConfig = getTierConfig(myBooth?.tier);
