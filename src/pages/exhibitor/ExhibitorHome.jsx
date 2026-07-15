@@ -12,6 +12,7 @@ import {
 import QRCodeDisplay from '@/components/QRCodeDisplay';
 import AdBannerPreview from '@/components/exhibitor/AdBannerPreview';
 import { resizeImageToBlob } from '@/lib/imageUtils';
+import { getTierConfig } from '@/lib/boothTiers';
 
 const STATUS_STYLES = {
   Pending:   { cls: 'bg-amber-100 text-amber-700', icon: Clock },
@@ -57,7 +58,8 @@ export default function ExhibitorHome() {
   ) ?? exhibitors[0];
 
   const myAd = myBooth ? (activeAdSlots.find(a => a.exhibitor_id === myBooth.id) ?? null) : null;
-  const isDiamond = myBooth?.tier === 'Diamond';
+  const tierConfig = getTierConfig(myBooth?.tier);
+  const hasAdSlot = tierConfig.adSlot;
 
   const myMeetings = meetings.filter(m => {
     if (!myBooth) return true;
@@ -462,7 +464,7 @@ export default function ExhibitorHome() {
           </div>
         </div>
         <div className="p-5">
-          {isDiamond && myAd ? (
+          {hasAdSlot && myAd ? (
             <div className="space-y-3">
               <AdBannerPreview ad={myAd} />
               <p className="text-xs text-muted-foreground">
@@ -470,7 +472,7 @@ export default function ExhibitorHome() {
                 <a href="/exhibitor/analytics" className="text-amber font-medium hover:underline">Analytics</a>.
               </p>
             </div>
-          ) : isDiamond ? (
+          ) : hasAdSlot ? (
             <div className="flex flex-col items-center justify-center gap-2 py-6 text-center">
               <Megaphone className="w-8 h-8 text-muted-foreground" />
               <p className="text-sm font-medium">No ad configured</p>
@@ -491,16 +493,16 @@ export default function ExhibitorHome() {
                   <Lock className="w-5 h-5 text-amber" />
                 </div>
                 <div className="text-center px-6">
-                  <p className="font-heading font-bold text-sm">Diamond Feature</p>
+                  <p className="font-heading font-bold text-sm">Gold &amp; Diamond Feature</p>
                   <p className="text-xs text-muted-foreground mt-1 max-w-xs">
-                    Diamond tier exhibitors get a dedicated ad slot in the attendee home screen carousel.
+                    Gold and Diamond tier exhibitors get a dedicated ad slot in the attendee home screen carousel.
                   </p>
                 </div>
                 <a
                   href={`mailto:${EVENT_CONFIG.contactEmail}?subject=Booth%20Upgrade%20Enquiry`}
                   className="flex items-center gap-1.5 text-xs bg-amber text-white font-semibold px-4 py-2 rounded-lg hover:bg-amber/90 active:scale-95 transition-all duration-150"
                 >
-                  Upgrade to Diamond <ArrowRight className="w-3.5 h-3.5" />
+                  Upgrade to Gold <ArrowRight className="w-3.5 h-3.5" />
                 </a>
               </div>
               <div className="relative w-full h-24 bg-gradient-to-r from-slate-700 to-slate-900 rounded-xl overflow-hidden">

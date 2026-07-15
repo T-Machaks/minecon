@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Exhibitor, MeetingRequest, EngagementEvent, AdSlot } from '@/api/entities';
 import { EVENT_CONFIG } from '@/lib/eventConfig';
+import { getTierConfig } from '@/lib/boothTiers';
 import { useAuth } from '@/lib/AuthContext';
 import {
   Eye, Calendar, Megaphone, TrendingUp,
@@ -95,7 +96,6 @@ function exportLeadsCSV(leads, boothName) {
   URL.revokeObjectURL(url);
 }
 
-const TIER_ORDER = { Diamond: 4, Gold: 3, Chrome: 2, Copper: 1 };
 
 export default function ExhibitorAnalytics() {
   const { user } = useAuth();
@@ -187,8 +187,8 @@ export default function ExhibitorAnalytics() {
   const hasGuideActivity    = guideAdClicks + guideVideoPlays + guideCarouselViews > 0;
   const guideStats = { adClicks: guideAdClicks, videoPlays: guideVideoPlays, videoCompletes: guideVideoCompletes, carouselViews: guideCarouselViews };
 
-  const isPremium = (TIER_ORDER[myBooth?.tier] ?? 0) >= TIER_ORDER.Gold;
-  const isDiamond = myBooth?.tier === 'Diamond';
+  const tierConfig = getTierConfig(myBooth?.tier);
+  const { leadExport: isPremium, adSlot: hasAdSlot, analyticsDepth } = tierConfig;
   const myAd = activeAdSlots.find(a => a.exhibitor_id === myBooth.id) ?? null;
   const carouselAdClicks = events.filter(e => e.type === 'ad_click' && e.source === 'home_carousel').length;
 
@@ -230,7 +230,29 @@ export default function ExhibitorAnalytics() {
         ))}
       </div>
 
-      {/* 14-day trend */}
+      {/* Copper (view-only): upgrade prompt replaces all charts */}
+      {analyticsDepth === 'view' && (
+        <div className="bg-card border border-border rounded-xl p-6 text-center space-y-3">
+          <div className="w-12 h-12 bg-amber/10 border border-amber/20 rounded-full flex items-center justify-center mx-auto">
+            <Lock className="w-6 h-6 text-amber" />
+          </div>
+          <div>
+            <p className="font-heading font-bold text-sm">Upgrade for Full Analytics</p>
+            <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto">
+              Chrome and Gold tiers unlock engagement charts, source breakdowns, exhibition guide stats, and lead export. Copper tier includes totals only.
+            </p>
+          </div>
+          <button
+            onClick={() => setUpgradeOpen(true)}
+            className="inline-flex items-center gap-1.5 text-xs bg-amber text-white font-semibold px-4 py-2 rounded-lg hover:bg-amber/90 active:scale-95 transition-all duration-150"
+          >
+            Upgrade Booth <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* 14-day trend — Chrome (basic) and above */}
+      {analyticsDepth !== 'view' && (
       <div className="bg-card border border-border rounded-xl p-5">
         <h2 className="font-heading text-sm font-bold uppercase tracking-wide mb-4 flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-amber" /> Engagement — Last 14 Days
@@ -258,8 +280,9 @@ export default function ExhibitorAnalytics() {
           </div>
         )}
       </div>
+      )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+      {analyticsDepth !== 'view' && <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {/* Engagement by source */}
         <div className="bg-card border border-border rounded-xl p-5">
           <h2 className="font-heading text-sm font-bold uppercase tracking-wide mb-4 flex items-center gap-2">
@@ -326,6 +349,7 @@ export default function ExhibitorAnalytics() {
           )}
         </div>
       </div>
+      }
 
       {/* Ad Banner Performance */}
       <div className="bg-card border border-border rounded-xl overflow-hidden">
@@ -333,7 +357,7 @@ export default function ExhibitorAnalytics() {
           <Megaphone className="w-4 h-4 text-amber" />
           <h2 className="font-heading text-sm font-bold uppercase tracking-wide">Ad Banner Performance</h2>
         </div>
-        {isDiamond && myAd ? (
+        {hasAdSlot && myAd ? (
           <div className="p-5 space-y-4">
             <AdBannerPreview ad={myAd} />
             <div className="grid grid-cols-2 gap-3">
@@ -355,7 +379,7 @@ export default function ExhibitorAnalytics() {
               </div>
             </div>
           </div>
-        ) : isDiamond ? (
+        ) : hasAdSlot ? (
           <div className="p-8 text-center text-muted-foreground">
             <Megaphone className="w-8 h-8 mx-auto mb-2" />
             <p className="text-sm font-medium">No ad configured</p>
@@ -368,9 +392,9 @@ export default function ExhibitorAnalytics() {
                 <Lock className="w-5 h-5 text-amber" />
               </div>
               <div className="text-center px-6">
-                <p className="font-heading font-bold text-sm">Diamond Feature</p>
+                <p className="font-heading font-bold text-sm">Gold &amp; Diamond Feature</p>
                 <p className="text-xs text-muted-foreground mt-1 max-w-xs">
-                  Upgrade to Diamond to get a carousel ad slot and track click performance.
+                  Upgrade to Gold or Diamond to get a carousel ad slot and track click performance.
                 </p>
               </div>
               <button
@@ -391,8 +415,8 @@ export default function ExhibitorAnalytics() {
         )}
       </div>
 
-      {/* Exhibition Guide Performance */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden">
+      {/* Exhibition Guide Performance — Chrome (basic) and above */}
+      {analyticsDepth !== 'view' && <div className="bg-card border border-border rounded-xl overflow-hidden">
         <div className="px-5 py-4 border-b border-border flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-amber" />
@@ -462,7 +486,7 @@ export default function ExhibitorAnalytics() {
             <p className="text-xs mt-1">Clicks and views from your Exhibition Guide pages will appear here.</p>
           </div>
         )}
-      </div>
+      </div>}
 
       {/* Meeting requests breakdown */}
       {myMeetings.length > 0 && (
@@ -485,8 +509,8 @@ export default function ExhibitorAnalytics() {
         </div>
       )}
 
-      {/* Recent activity */}
-      <div className="bg-card border border-border rounded-xl p-5">
+      {/* Recent activity — Chrome (basic) and above */}
+      {analyticsDepth !== 'view' && <div className="bg-card border border-border rounded-xl p-5">
         <h2 className="font-heading text-sm font-bold uppercase tracking-wide mb-4">
           Recent Activity
         </h2>
@@ -517,7 +541,7 @@ export default function ExhibitorAnalytics() {
             })}
           </div>
         )}
-      </div>
+      </div>}
 
       {/* Lead Export */}
       <div className="bg-card border border-border rounded-xl overflow-hidden">
