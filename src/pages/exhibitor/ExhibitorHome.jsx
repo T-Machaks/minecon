@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Exhibitor, MeetingRequest, AdSlot } from '@/api/entities';
+import { Exhibitor, MeetingRequest, AdSlot, Announcement } from '@/api/entities';
 import { EVENT_CONFIG } from '@/lib/eventConfig';
 import { notifyMeeting } from '@/api/notify';
 import { useAuth } from '@/lib/AuthContext';
@@ -8,6 +8,7 @@ import {
   Store, Calendar, CheckCircle, XCircle, Clock,
   Mail, Phone, Globe, MapPin, Edit, Users, Star, QrCode, ScanLine,
   ImagePlus, Trash2, ArrowRight, TrendingUp, X, Megaphone, Lock, MousePointerClick,
+  Sparkles, PlusCircle, Send,
 } from 'lucide-react';
 import QRCodeDisplay from '@/components/QRCodeDisplay';
 import AdBannerPreview from '@/components/exhibitor/AdBannerPreview';
@@ -36,6 +37,9 @@ export default function ExhibitorHome() {
   const [upgradeDismissed, setUpgradeDismissed] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
   const [updateError, setUpdateError] = useState(null);
+  const [postFormOpen, setPostFormOpen] = useState(false);
+  const [postForm, setPostForm] = useState({ title: '', body: '' });
+  const [postError, setPostError] = useState('');
 
   const { data: exhibitors = [] } = useQuery({
     queryKey: ['exhibitors-all'],
@@ -60,6 +64,28 @@ export default function ExhibitorHome() {
   const myAd = myBooth ? (activeAdSlots.find(a => a.exhibitor_id === myBooth.id) ?? null) : null;
   const tierConfig = getTierConfig(myBooth?.tier);
   const hasAdSlot = tierConfig.adSlot;
+  const { sponsoredPostCredits } = tierConfig;
+
+  const { data: myPosts = [] } = useQuery({
+    queryKey: ['my-sponsored-posts', myBooth?.id],
+    queryFn: () => Announcement.filter({ exhibitor_id: myBooth.id, sponsored: true }),
+    enabled: !!myBooth?.id && sponsoredPostCredits > 0,
+  });
+
+  const postsUsed = myPosts.length;
+  const postsRemaining = Math.max(0, sponsoredPostCredits - postsUsed);
+
+  const createPost = useMutation({
+    mutationFn: (data) => Announcement.create(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['my-sponsored-posts', myBooth?.id] });
+      qc.invalidateQueries({ queryKey: ['announcements'] });
+      setPostForm({ title: '', body: '' });
+      setPostFormOpen(false);
+      setPostError('');
+    },
+    onError: (e) => setPostError(e.message),
+  });
 
   const myMeetings = meetings.filter(m => {
     if (!myBooth) return true;
@@ -516,6 +542,156 @@ export default function ExhibitorHome() {
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Sponsored Posts */}
+      <div className="bg-card border border-border rounded-2xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-amber" />
+            <div>
+              <h2 className="font-heading text-sm font-bold uppercase tracking-wide">Sponsored Posts</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Appear in the Sponsored section of Event Updates</p>
+            </div>
+          </div>
+          {sponsoredPostCredits > 0 && (
+            <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full flex-shrink-0 ${postsRemaining > 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-muted text-muted-foreground'}`}>
+              {postsRemaining} / {sponsoredPostCredits} remaining
+            </span>
+          )}
+        </div>
+
+        <div className="p-5">
+          {sponsoredPostCredits === 0 ? (
+            /* Lock overlay for Chrome / Copper */
+            <div className="relative">
+              <div className="absolute inset-0 backdrop-blur-[3px] bg-background/70 flex flex-col items-center justify-center z-10 gap-3 rounded-xl">
+                <div className="w-10 h-10 bg-amber/10 border border-amber/20 rounded-full flex items-center justify-center">
+                  <Lock className="w-5 h-5 text-amber" />
+                </div>
+                <div className="text-center px-6">
+                  <p className="font-heading font-bold text-sm">Gold &amp; Diamond Feature</p>
+                  <p className="text-xs text-muted-foreground mt-1 max-w-xs">
+                    Gold exhibitors get 1 sponsored post. Diamond exhibitors get 3. Upgrade to reach every attendee.
+                  </p>
+                </div>
+                <a
+                  href={`mailto:${EVENT_CONFIG.contactEmail}?subject=Booth%20Upgrade%20Enquiry`}
+                  className="flex items-center gap-1.5 text-xs bg-amber text-white font-semibold px-4 py-2 rounded-lg hover:bg-amber/90 active:scale-95 transition-all duration-150"
+                >
+                  Upgrade to Gold <ArrowRight className="w-3.5 h-3.5" />
+                </a>
+              </div>
+              <div className="space-y-2 opacity-30 pointer-events-none select-none">
+                {[1, 2].map(i => (
+                  <div key={i} className="h-16 bg-muted rounded-xl" />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Existing posts */}
+              {myPosts.length > 0 && (
+                <div className="space-y-2">
+                  {myPosts.map(p => (
+                    <div key={p.id} className="border border-amber/20 bg-amber-50/40 dark:bg-amber-950/10 rounded-xl p-3.5">
+                      <div className="flex items-start gap-2">
+                        <Sparkles className="w-4 h-4 text-amber flex-shrink-0 mt-0.5" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-foreground leading-snug">{p.title}</p>
+                          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{p.body}</p>
+                          <p className="text-[10px] text-muted-foreground/60 mt-1.5">
+                            {p.created_date ? new Date(p.created_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Create form */}
+              {postsRemaining > 0 && !postFormOpen && (
+                <button
+                  onClick={() => { setPostFormOpen(true); setPostError(''); }}
+                  className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-border hover:border-amber/40 rounded-xl py-4 text-sm font-medium text-muted-foreground hover:text-amber transition-colors"
+                >
+                  <PlusCircle className="w-4 h-4" />
+                  New Sponsored Post
+                </button>
+              )}
+
+              {postsRemaining === 0 && myPosts.length > 0 && (
+                <p className="text-xs text-center text-muted-foreground py-2">
+                  You've used all {sponsoredPostCredits} sponsored post{sponsoredPostCredits > 1 ? 's' : ''} included with your {myBooth.tier} package.
+                </p>
+              )}
+
+              {postFormOpen && (
+                <div className="border border-border rounded-xl p-4 space-y-3 bg-muted/30">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">New Sponsored Post</p>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground block mb-1">
+                      Headline <span className="text-muted-foreground/60">({postForm.title.length}/80)</span>
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={80}
+                      value={postForm.title}
+                      onChange={e => setPostForm(f => ({ ...f, title: e.target.value.slice(0, 80) }))}
+                      placeholder="What's the announcement?"
+                      className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-amber/50"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground block mb-1">
+                      Body <span className="text-muted-foreground/60">({postForm.body.length}/280)</span>
+                    </label>
+                    <textarea
+                      rows={3}
+                      maxLength={280}
+                      value={postForm.body}
+                      onChange={e => setPostForm(f => ({ ...f, body: e.target.value.slice(0, 280) }))}
+                      placeholder="Share details with attendees…"
+                      className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-amber/50 resize-none"
+                    />
+                  </div>
+                  {postError && <p className="text-xs text-red-500 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">{postError}</p>}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        if (!postForm.title.trim() || !postForm.body.trim()) {
+                          setPostError('Headline and body are required.');
+                          return;
+                        }
+                        setPostError('');
+                        createPost.mutate({
+                          title: postForm.title.trim(),
+                          body: postForm.body.trim(),
+                          sponsored: true,
+                          sponsor_name: myBooth.name,
+                          exhibitor_id: myBooth.id,
+                          type: 'General',
+                        });
+                      }}
+                      disabled={createPost.isPending}
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber text-white text-sm font-semibold rounded-lg hover:bg-amber/90 active:scale-95 disabled:opacity-60 transition-all"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      {createPost.isPending ? 'Publishing…' : 'Publish Post'}
+                    </button>
+                    <button
+                      onClick={() => { setPostFormOpen(false); setPostForm({ title: '', body: '' }); setPostError(''); }}
+                      className="px-4 py-2.5 border border-border rounded-lg text-sm font-semibold hover:bg-muted active:scale-95 transition-all"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
