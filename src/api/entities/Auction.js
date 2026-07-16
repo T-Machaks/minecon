@@ -21,4 +21,7 @@ export const Auction = {
   async filter(query = {}) {
     return apiFetch(`${BASE}?filter=${encodeURIComponent(JSON.stringify(query))}`);
   },
+  async placeBid(id, lotNumber, data) {
+    return apiFetch(`${BASE}/${id}/lots/${lotNumber}/bid`, { method: 'POST', body: data });
+  },
 };
