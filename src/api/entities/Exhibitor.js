@@ -27,4 +27,7 @@ export const Exhibitor = {
       body: { exhibitorId, oldImageUrl },
     });
   },
+  async getGalleryImageUploadUrl() {
+    return apiFetch('/api/upload/gallery-image-url', { method: 'POST', body: {} });
+  },
 };

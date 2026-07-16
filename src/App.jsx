@@ -73,6 +73,7 @@ import ExhibitorTeam from '@/pages/exhibitor/ExhibitorTeam';
 import ExhibitorEnquiries from '@/pages/exhibitor/ExhibitorEnquiries';
 import ExhibitorJobs from '@/pages/exhibitor/ExhibitorJobs';
 import ExhibitorTenders from '@/pages/exhibitor/ExhibitorTenders';
+import ExhibitorStand from '@/pages/exhibitor/ExhibitorStand';
 
 // Layout wrappers (give each shell access to Outlet)
 const AttendeeLayout = () => (
@@ -155,6 +156,7 @@ const AuthenticatedApp = () => {
         <Route path="/exhibitor/enquiries" element={<ExhibitorEnquiries />} />
         <Route path="/exhibitor/jobs"      element={<ExhibitorJobs />} />
         <Route path="/exhibitor/tenders"   element={<ExhibitorTenders />} />
+        <Route path="/exhibitor/stand"     element={<ExhibitorStand />} />
       </Route>
 
       {/* ── Attendee PWA ── */}

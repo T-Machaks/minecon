@@ -52,6 +52,18 @@ r.post('/guide-image-url', async (req, res) => {
   }
 });
 
+r.post('/gallery-image-url', async (req, res) => {
+  try {
+    const { oldImageUrl } = req.body;
+    if (oldImageUrl) {
+      try { const url = new URL(oldImageUrl); await deleteS3Object(decodeURIComponent(url.pathname.slice(1))); } catch {}
+    }
+    const key = `gallery-images/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+    const { uploadUrl, publicUrl } = await createPresignedPut(key, 'image/jpeg');
+    res.json({ uploadUrl, publicUrl });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 r.post('/lot-image-url', async (req, res) => {
   try {
     const { oldImageUrl } = req.body;

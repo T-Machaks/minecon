@@ -10,8 +10,20 @@ import TierBadge from '@/components/ui/TierBadge';
 import {
   ArrowLeft, Globe, Mail, Phone, Calendar, MapPin,
   Video, Send, CheckCircle, FileText, ExternalLink, ImagePlus,
-  Lock, LogIn, UserPlus, ChevronDown, Award, Zap,
+  Lock, LogIn, UserPlus, ChevronDown, ChevronLeft, ChevronRight, Award, Zap,
 } from 'lucide-react';
+
+// ── YouTube URL → embed URL converter ────────────────────────────────────────
+
+function toEmbedUrl(url) {
+  if (!url) return '';
+  if (url.includes('/embed/')) return url;
+  const short = url.match(/youtu\.be\/([A-Za-z0-9_-]{11})/);
+  if (short) return `https://www.youtube.com/embed/${short[1]}`;
+  const watch = url.match(/[?&]v=([A-Za-z0-9_-]{11})/);
+  if (watch) return `https://www.youtube.com/embed/${watch[1]}`;
+  return url;
+}
 
 // ── FAQ accordion ─────────────────────────────────────────────────────────────
 
@@ -33,28 +45,70 @@ function FaqItem({ q, a }) {
   );
 }
 
-// ── Gallery grid ──────────────────────────────────────────────────────────────
+// ── Gallery carousel ──────────────────────────────────────────────────────────
 
 function Gallery({ images, name }) {
+  const [idx, setIdx] = useState(0);
   if (!images || images.length === 0) return null;
-  const cols = images.length === 1 ? 'grid-cols-1' : images.length === 2 ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3';
+  const prev = () => setIdx(i => (i - 1 + images.length) % images.length);
+  const next = () => setIdx(i => (i + 1) % images.length);
   return (
     <div className="px-4 mt-4">
-      <div className="bg-card border border-border rounded-2xl p-4">
-        <h2 className="font-heading text-sm font-bold uppercase tracking-wide mb-3 flex items-center gap-2">
-          <ImagePlus className="w-4 h-4 text-amber" /> Gallery
-        </h2>
-        <div className={`grid gap-2 ${cols}`}>
-          {images.map((img, i) => (
-            <a key={i} href={img} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-lg group">
-              <img
-                src={img}
-                alt={`${name} ${i + 1}`}
-                className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-            </a>
-          ))}
+      <div className="bg-card border border-border rounded-2xl overflow-hidden">
+        <div className="px-4 pt-3 pb-2 flex items-center justify-between">
+          <h2 className="font-heading text-sm font-bold uppercase tracking-wide flex items-center gap-2">
+            <ImagePlus className="w-4 h-4 text-amber" /> Gallery
+          </h2>
+          {images.length > 1 && (
+            <span className="text-xs text-muted-foreground">{idx + 1} / {images.length}</span>
+          )}
         </div>
+        <div className="relative bg-black aspect-video">
+          <img
+            key={idx}
+            src={images[idx]}
+            alt={`${name} photo ${idx + 1}`}
+            className="w-full h-full object-cover"
+          />
+          {images.length > 1 && (
+            <>
+              <button
+                onClick={prev}
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                onClick={next}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-colors"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+              <div className="absolute bottom-2.5 left-0 right-0 flex justify-center gap-1.5">
+                {images.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setIdx(i)}
+                    className={`w-1.5 h-1.5 rounded-full transition-colors ${i === idx ? 'bg-white' : 'bg-white/40'}`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+        {images.length > 1 && (
+          <div className="px-3 py-2.5 flex gap-2 overflow-x-auto">
+            {images.map((img, i) => (
+              <button
+                key={i}
+                onClick={() => setIdx(i)}
+                className={`flex-shrink-0 w-16 h-10 rounded-lg overflow-hidden border-2 transition-all ${i === idx ? 'border-amber' : 'border-transparent opacity-60 hover:opacity-100'}`}
+              >
+                <img src={img} alt="" className="w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -164,7 +218,7 @@ export default function ExhibitorDetail() {
             </div>
             <div className="aspect-video">
               <iframe
-                src={ex.video_url}
+                src={toEmbedUrl(ex.video_url)}
                 title={`${ex.name} video`}
                 className="w-full h-full"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

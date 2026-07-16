@@ -89,13 +89,11 @@ export default function ExhibitorHome() {
   });
 
   const myMeetings = meetings.filter(m => {
-    if (!myBooth) return true;
+    if (!myBooth) return false;
     const nameMatch = myBooth.name?.toLowerCase();
     return (
       m.exhibitor_id === myBooth.id ||
-      m.exhibitor_name?.toLowerCase() === nameMatch ||
-      m.company?.toLowerCase() === nameMatch ||
-      !m.exhibitor_name
+      m.exhibitor_name?.toLowerCase() === nameMatch
     );
   });
 

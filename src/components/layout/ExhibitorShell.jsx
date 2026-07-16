@@ -1,18 +1,19 @@
 import { Link, useLocation, useNavigate, Outlet, Navigate } from 'react-router-dom';
-import { Store, Calendar, BarChart2, LogOut, Shield, ChevronLeft, ScanLine, Users, Inbox, Briefcase, FileText } from 'lucide-react';
+import { Store, Calendar, BarChart2, LogOut, Shield, ChevronLeft, ScanLine, Users, Inbox, Briefcase, FileText, Globe } from 'lucide-react';
 import MineConLogo from './MineConLogo.jsx';
 import { useAuth } from '@/lib/AuthContext';
 import { EVENT_CONFIG } from '@/lib/eventConfig';
 
 const exhibitorNav = [
-  { path: '/exhibitor',           label: 'My Booth',   icon: Store,     exact: true },
-  { path: '/exhibitor/meetings',  label: 'Meetings',   icon: Calendar },
-  { path: '/exhibitor/scan',      label: 'Scan',       icon: ScanLine },
-  { path: '/exhibitor/analytics', label: 'Analytics',  icon: BarChart2 },
-  { path: '/exhibitor/team',      label: 'Team',       icon: Users },
-  { path: '/exhibitor/enquiries', label: 'Enquiries',  icon: Inbox },
-  { path: '/exhibitor/jobs',      label: 'Jobs',       icon: Briefcase },
-  { path: '/exhibitor/tenders',   label: 'Tenders',    icon: FileText },
+  { path: '/exhibitor',           label: 'My Booth',     icon: Store,     exact: true },
+  { path: '/exhibitor/stand',     label: 'Virtual Stand', icon: Globe },
+  { path: '/exhibitor/meetings',  label: 'Meetings',     icon: Calendar },
+  { path: '/exhibitor/scan',      label: 'Scan',         icon: ScanLine },
+  { path: '/exhibitor/analytics', label: 'Analytics',    icon: BarChart2 },
+  { path: '/exhibitor/team',      label: 'Team',         icon: Users },
+  { path: '/exhibitor/enquiries', label: 'Enquiries',    icon: Inbox },
+  { path: '/exhibitor/jobs',      label: 'Jobs',         icon: Briefcase },
+  { path: '/exhibitor/tenders',   label: 'Tenders',      icon: FileText },
 ];
 
 export default function ExhibitorShell() {
