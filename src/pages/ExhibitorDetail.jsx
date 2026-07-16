@@ -9,8 +9,56 @@ import { track } from '@/lib/tracking';
 import TierBadge from '@/components/ui/TierBadge';
 import {
   ArrowLeft, Globe, Mail, Phone, Calendar, MapPin,
-  Video, Send, CheckCircle, FileText, ExternalLink, ImagePlus, Lock, LogIn, UserPlus
+  Video, Send, CheckCircle, FileText, ExternalLink, ImagePlus,
+  Lock, LogIn, UserPlus, ChevronDown, Award, Zap,
 } from 'lucide-react';
+
+// ── FAQ accordion ─────────────────────────────────────────────────────────────
+
+function FaqItem({ q, a }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-b border-border last:border-0">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-start justify-between gap-3 py-3 text-left"
+      >
+        <span className="text-sm font-medium leading-snug">{q}</span>
+        <ChevronDown className={`w-4 h-4 flex-shrink-0 text-muted-foreground transition-transform mt-0.5 ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <p className="text-sm text-foreground/75 leading-relaxed pb-3">{a}</p>
+      )}
+    </div>
+  );
+}
+
+// ── Gallery grid ──────────────────────────────────────────────────────────────
+
+function Gallery({ images, name }) {
+  if (!images || images.length === 0) return null;
+  const cols = images.length === 1 ? 'grid-cols-1' : images.length === 2 ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3';
+  return (
+    <div className="px-4 mt-4">
+      <div className="bg-card border border-border rounded-2xl p-4">
+        <h2 className="font-heading text-sm font-bold uppercase tracking-wide mb-3 flex items-center gap-2">
+          <ImagePlus className="w-4 h-4 text-amber" /> Gallery
+        </h2>
+        <div className={`grid gap-2 ${cols}`}>
+          {images.map((img, i) => (
+            <a key={i} href={img} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-lg group">
+              <img
+                src={img}
+                alt={`${name} ${i + 1}`}
+                className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function ExhibitorDetail() {
   const { id } = useParams();
@@ -56,11 +104,7 @@ export default function ExhibitorDetail() {
       return;
     }
     track(ex.id, ex.name, 'info_request', 'exhibitor_detail');
-    enquireMutation.mutate({
-      exhibitor_id: ex.id,
-      exhibitor_name: ex.name,
-      ...form,
-    });
+    enquireMutation.mutate({ exhibitor_id: ex.id, exhibitor_name: ex.name, ...form });
   }
 
   if (isLoading) {
@@ -80,6 +124,11 @@ export default function ExhibitorDetail() {
     );
   }
 
+  const gallery = Array.isArray(ex.gallery) ? ex.gallery.filter(Boolean) : [];
+  const faq = Array.isArray(ex.faq) ? ex.faq : [];
+  const certifications = Array.isArray(ex.certifications) ? ex.certifications : [];
+  const specialties = Array.isArray(ex.specialties) ? ex.specialties : [];
+
   return (
     <div className="pb-24 max-w-2xl lg:max-w-4xl mx-auto">
       {/* Back nav */}
@@ -92,7 +141,7 @@ export default function ExhibitorDetail() {
         </button>
       </div>
 
-      {/* Booth stand image — full-width, above 2-col */}
+      {/* Booth stand image */}
       {ex.booth_image_url && (
         <div className="px-4 mt-4">
           <div className="bg-card border border-border rounded-2xl overflow-hidden">
@@ -100,16 +149,12 @@ export default function ExhibitorDetail() {
               <ImagePlus className="w-4 h-4 text-amber" />
               <h2 className="font-heading text-sm font-bold uppercase tracking-wide">Booth Stand</h2>
             </div>
-            <img
-              src={ex.booth_image_url}
-              alt={`${ex.name} booth stand`}
-              className="w-full object-cover max-h-72"
-            />
+            <img src={ex.booth_image_url} alt={`${ex.name} booth stand`} className="w-full object-cover max-h-72" />
           </div>
         </div>
       )}
 
-      {/* Video embed — full-width, above 2-col */}
+      {/* Video embed */}
       {ex.video_url && (
         <div className="px-4 mt-4">
           <div className="bg-card border border-border rounded-2xl overflow-hidden">
@@ -130,11 +175,14 @@ export default function ExhibitorDetail() {
         </div>
       )}
 
-      {/* 2-col layout on desktop — stacked on mobile */}
+      {/* Gallery */}
+      <Gallery images={gallery} name={ex.name} />
+
+      {/* 2-col layout */}
       <div className="px-4 mt-4 lg:grid lg:grid-cols-5 lg:gap-6">
-        {/* Left: company info + products (3/5 on desktop) */}
+        {/* ── Left column ── */}
         <div className="lg:col-span-3 space-y-4">
-          {/* Company info card */}
+          {/* Company card */}
           <div className="bg-card border border-border rounded-2xl p-5">
             <div className="flex items-start gap-4">
               <div className="w-16 h-16 bg-white border border-border rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm">
@@ -159,9 +207,20 @@ export default function ExhibitorDetail() {
             {ex.description && (
               <p className="mt-4 text-sm text-foreground/80 leading-relaxed">{ex.description}</p>
             )}
+
+            {/* Certifications */}
+            {certifications.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {certifications.map((c, i) => (
+                  <span key={i} className="inline-flex items-center gap-1 text-[10px] bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded-full font-medium">
+                    <Award className="w-2.5 h-2.5" /> {c}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Products / offerings */}
+          {/* Products & Services */}
           {ex.products && ex.products.length > 0 && (
             <div className="bg-card border border-border rounded-2xl p-4">
               <h2 className="font-heading text-sm font-bold uppercase tracking-wide mb-3">Products & Services</h2>
@@ -172,12 +231,42 @@ export default function ExhibitorDetail() {
               </div>
             </div>
           )}
+
+          {/* Specialties */}
+          {specialties.length > 0 && (
+            <div className="bg-card border border-border rounded-2xl p-4">
+              <h2 className="font-heading text-sm font-bold uppercase tracking-wide mb-3 flex items-center gap-2">
+                <Zap className="w-4 h-4 text-amber" /> Specialties
+              </h2>
+              <ul className="space-y-2">
+                {specialties.map((s, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-foreground/80">
+                    <span className="text-amber font-bold mt-0.5 flex-shrink-0">▸</span> {s}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* FAQ */}
+          {faq.length > 0 && (
+            <div className="bg-card border border-border rounded-2xl p-4">
+              <h2 className="font-heading text-sm font-bold uppercase tracking-wide mb-1">
+                Frequently Asked Questions
+              </h2>
+              <div className="mt-2">
+                {faq.map((item, i) => (
+                  <FaqItem key={i} q={item.question} a={item.answer} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Right: contacts + CTAs + brochure + enquiry (2/5 on desktop) */}
+        {/* ── Right column ── */}
         <div className="lg:col-span-2 space-y-4 mt-4 lg:mt-0">
-          {/* Contact & links */}
-          {(ex.website || ex.contact_email || ex.contact_phone) && (
+          {/* Contact */}
+          {(ex.website || ex.contact_email || ex.contact_phone || ex.phone) && (
             <div className="bg-card border border-border rounded-2xl p-4">
               <h2 className="font-heading text-sm font-bold uppercase tracking-wide mb-3">Contact</h2>
               <div className="flex flex-wrap gap-2">
@@ -192,14 +281,14 @@ export default function ExhibitorDetail() {
                     <Globe className="w-3.5 h-3.5" /> Website <ExternalLink className="w-3 h-3 opacity-50" />
                   </a>
                 )}
-                {ex.contact_email && (
+                {(ex.contact_email) && (
                   <a href={`mailto:${ex.contact_email}`} className="flex items-center gap-1.5 text-xs border border-border px-3 py-1.5 rounded-lg hover:bg-muted active:bg-muted transition-colors min-w-0 max-w-full overflow-hidden">
                     <Mail className="w-3.5 h-3.5 flex-shrink-0" /> <span className="truncate">{ex.contact_email}</span>
                   </a>
                 )}
-                {ex.contact_phone && (
-                  <a href={`tel:${ex.contact_phone}`} className="flex items-center gap-1.5 text-xs border border-border px-3 py-1.5 rounded-lg hover:bg-muted active:bg-muted transition-colors">
-                    <Phone className="w-3.5 h-3.5 flex-shrink-0" /> {ex.contact_phone}
+                {(ex.contact_phone || ex.phone) && (
+                  <a href={`tel:${ex.contact_phone || ex.phone}`} className="flex items-center gap-1.5 text-xs border border-border px-3 py-1.5 rounded-lg hover:bg-muted active:bg-muted transition-colors">
+                    <Phone className="w-3.5 h-3.5 flex-shrink-0" /> {ex.contact_phone || ex.phone}
                   </a>
                 )}
               </div>
@@ -229,7 +318,7 @@ export default function ExhibitorDetail() {
             )}
           </div>
 
-          {/* Brochure download */}
+          {/* Brochure */}
           {ex.brochure_url && (
             <a
               href={ex.brochure_url}
@@ -249,7 +338,7 @@ export default function ExhibitorDetail() {
             </a>
           )}
 
-          {/* Request Info form — only shown when virtual exhibition is open */}
+          {/* Request Info */}
           {settings.virtualExhibitionOpen && (
             <div className="bg-card border border-border rounded-2xl p-4">
               <div className="flex items-center gap-2 mb-1">
@@ -281,7 +370,6 @@ export default function ExhibitorDetail() {
                 </div>
               ) : (
                 <form onSubmit={handleEnquire} className="space-y-3">
-                  {/* Locked account fields */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <LockedField icon={<Mail className="w-3.5 h-3.5" />} value={form.name} label="Name" />
                     <LockedField icon={<Mail className="w-3.5 h-3.5" />} value={form.email} label="Email" />
@@ -291,7 +379,7 @@ export default function ExhibitorDetail() {
                   )}
                   <div>
                     <label className="text-xs font-medium text-muted-foreground block mb-1">
-                      Phone <span className="text-muted-foreground/60">(optional — for SMS confirmation)</span>
+                      Phone <span className="text-muted-foreground/60">(optional)</span>
                     </label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
