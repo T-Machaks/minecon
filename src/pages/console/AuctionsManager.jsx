@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Auction } from '@/api/entities';
 import { AUCTION_TYPES, AUCTION_STATUSES, LOT_CATEGORIES } from '@/lib/auctionConstants';
 import {
   Gavel, Plus, Trash2, Edit, Package, X, ChevronDown, ChevronUp, Radio,
+  ImagePlus, Loader2,
 } from 'lucide-react';
 
 import {
@@ -18,7 +19,9 @@ import {
 
 const EMPTY_LOT = {
   lot_number: '', title: '', category: LOT_CATEGORIES[0], description: '',
-  year: '', make: '', model: '', hours: '', condition: 'Good', reserve_price: '',
+  year: '', make: '', model: '', hours: '', condition: 'Good',
+  starting_bid: '', reserve_price: '', bid_increment: '',
+  images: [],
 };
 
 const EMPTY_AUCTION = {
@@ -32,6 +35,82 @@ const STATUS_STYLES = {
   Upcoming: 'bg-amber/10 text-amber',
   Closed: 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400',
 };
+
+async function uploadLotImage(file, oldUrl) {
+  const res = await fetch('/api/upload/lot-image-url', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ oldImageUrl: oldUrl || null }),
+  });
+  if (!res.ok) throw new Error('Failed to get upload URL');
+  const { uploadUrl, publicUrl } = await res.json();
+  const put = await fetch(uploadUrl, {
+    method: 'PUT',
+    body: file,
+    headers: { 'Content-Type': 'image/jpeg' },
+  });
+  if (!put.ok) throw new Error('S3 upload failed');
+  return publicUrl;
+}
+
+function LotImageUploader({ images = [], onChange }) {
+  const fileRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    setError('');
+    setUploading(true);
+    try {
+      const url = await uploadLotImage(file);
+      onChange([...images, url]);
+    } catch (err) {
+      setError(err.message || 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeImage = (idx) => {
+    onChange(images.filter((_, i) => i !== idx));
+  };
+
+  return (
+    <div>
+      <label className="text-[11px] text-muted-foreground font-medium block mb-1.5">Photos</label>
+      <div className="flex flex-wrap gap-2">
+        {images.map((url, idx) => (
+          <div key={idx} className="relative w-16 h-16 rounded-lg overflow-hidden border border-border group">
+            <img src={url} alt="" className="w-full h-full object-cover" />
+            <button
+              type="button"
+              onClick={() => removeImage(idx)}
+              className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+            >
+              <X className="w-4 h-4 text-white" />
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading}
+          className="w-16 h-16 rounded-lg border-2 border-dashed border-border hover:border-amber/50 flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-amber transition-colors disabled:opacity-50"
+        >
+          {uploading
+            ? <Loader2 className="w-4 h-4 animate-spin" />
+            : <ImagePlus className="w-4 h-4" />}
+          <span className="text-[9px] font-medium leading-none">{uploading ? 'Uploading' : 'Add'}</span>
+        </button>
+        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+      </div>
+      {error && <p className="text-[11px] text-red-500 mt-1">{error}</p>}
+    </div>
+  );
+}
 
 function LotEditor({ lots, onChange }) {
   const [expanded, setExpanded] = useState(null);
@@ -48,8 +127,7 @@ function LotEditor({ lots, onChange }) {
   };
 
   const updateLot = (i, field, value) => {
-    const next = lots.map((l, idx) => idx === i ? { ...l, [field]: value } : l);
-    onChange(next);
+    onChange(lots.map((l, idx) => idx === i ? { ...l, [field]: value } : l));
   };
 
   return (
@@ -60,20 +138,41 @@ function LotEditor({ lots, onChange }) {
           <Plus className="w-3 h-3" /> Add Lot
         </Button>
       </div>
+
       {lots.map((lot, i) => (
         <div key={i} className="border border-border rounded-lg overflow-hidden">
+          {/* Header row */}
           <div className="flex items-center gap-2 px-3 py-2 bg-muted/30">
-            <button type="button" onClick={() => setExpanded(expanded === i ? null : i)} className="flex items-center gap-2 flex-1 text-left text-sm font-medium">
-              {expanded === i ? <ChevronUp className="w-3.5 h-3.5 flex-shrink-0" /> : <ChevronDown className="w-3.5 h-3.5 flex-shrink-0" />}
-              <span className="text-xs text-muted-foreground font-mono bg-muted px-1.5 py-0.5 rounded">Lot {lot.lot_number || i + 1}</span>
+            <button
+              type="button"
+              onClick={() => setExpanded(expanded === i ? null : i)}
+              className="flex items-center gap-2 flex-1 text-left text-sm font-medium"
+            >
+              {expanded === i
+                ? <ChevronUp className="w-3.5 h-3.5 flex-shrink-0" />
+                : <ChevronDown className="w-3.5 h-3.5 flex-shrink-0" />}
+              <span className="text-xs text-muted-foreground font-mono bg-muted px-1.5 py-0.5 rounded">
+                Lot {lot.lot_number || i + 1}
+              </span>
               <span className="truncate">{lot.title || 'Untitled lot'}</span>
+              {lot.starting_bid && (
+                <span className="text-xs text-amber font-semibold ml-auto flex-shrink-0">
+                  Start USD {Number(lot.starting_bid).toLocaleString()}
+                </span>
+              )}
             </button>
-            <button type="button" onClick={() => removeLot(i)} className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/20 text-red-500">
+            <button
+              type="button"
+              onClick={() => removeLot(i)}
+              className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/20 text-red-500 flex-shrink-0"
+            >
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
+
           {expanded === i && (
-            <div className="p-3 space-y-2 border-t border-border">
+            <div className="p-3 space-y-3 border-t border-border">
+              {/* Lot # + Category */}
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-[11px] text-muted-foreground font-medium block mb-1">Lot #</label>
@@ -89,10 +188,14 @@ function LotEditor({ lots, onChange }) {
                   </Select>
                 </div>
               </div>
+
+              {/* Title */}
               <div>
                 <label className="text-[11px] text-muted-foreground font-medium block mb-1">Title</label>
                 <Input value={lot.title} onChange={e => updateLot(i, 'title', e.target.value)} placeholder="e.g. 2019 Caterpillar 336 Excavator" className="h-8 text-sm" />
               </div>
+
+              {/* Year / Make / Model */}
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <label className="text-[11px] text-muted-foreground font-medium block mb-1">Year</label>
@@ -107,7 +210,9 @@ function LotEditor({ lots, onChange }) {
                   <Input value={lot.model} onChange={e => updateLot(i, 'model', e.target.value)} placeholder="336" className="h-8 text-sm" />
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-2">
+
+              {/* Hours + Condition */}
+              <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-[11px] text-muted-foreground font-medium block mb-1">Hours / km</label>
                   <Input value={lot.hours} onChange={e => updateLot(i, 'hours', e.target.value)} placeholder="4 200 hrs" className="h-8 text-sm" />
@@ -121,15 +226,59 @@ function LotEditor({ lots, onChange }) {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              {/* Bidding: Starting bid / Reserve / Increment */}
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-[11px] text-muted-foreground font-medium block mb-1">Starting Bid (USD)</label>
+                  <Input
+                    type="number" min="0" step="any"
+                    value={lot.starting_bid}
+                    onChange={e => updateLot(i, 'starting_bid', e.target.value)}
+                    placeholder="0"
+                    className="h-8 text-sm"
+                  />
+                </div>
                 <div>
                   <label className="text-[11px] text-muted-foreground font-medium block mb-1">Reserve (USD)</label>
-                  <Input type="number" value={lot.reserve_price} onChange={e => updateLot(i, 'reserve_price', e.target.value)} placeholder="0" className="h-8 text-sm" />
+                  <Input
+                    type="number" min="0" step="any"
+                    value={lot.reserve_price}
+                    onChange={e => updateLot(i, 'reserve_price', e.target.value)}
+                    placeholder="0"
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-muted-foreground font-medium block mb-1">Bid Increment (USD)</label>
+                  <Input
+                    type="number" min="0" step="any"
+                    value={lot.bid_increment}
+                    onChange={e => updateLot(i, 'bid_increment', e.target.value)}
+                    placeholder="500"
+                    className="h-8 text-sm"
+                  />
                 </div>
               </div>
+
+              {/* Description */}
               <div>
                 <label className="text-[11px] text-muted-foreground font-medium block mb-1">Description</label>
-                <Textarea value={lot.description} onChange={e => updateLot(i, 'description', e.target.value)} rows={2} placeholder="Key details, service history, notes…" className="text-sm resize-none" />
+                <Textarea
+                  value={lot.description}
+                  onChange={e => updateLot(i, 'description', e.target.value)}
+                  rows={2}
+                  placeholder="Key details, service history, notes…"
+                  className="text-sm resize-none"
+                />
               </div>
+
+              {/* Images */}
+              <LotImageUploader
+                images={Array.isArray(lot.images) ? lot.images : []}
+                onChange={imgs => updateLot(i, 'images', imgs)}
+              />
             </div>
           )}
         </div>
@@ -253,26 +402,15 @@ export default function AuctionsManager() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['auctions'] }),
   });
 
-  const openCreate = () => {
-    setEditing(null);
-    setDialogOpen(true);
-  };
-
-  const openEdit = (a) => {
-    setEditing(a);
-    setDialogOpen(true);
-  };
+  const openCreate = () => { setEditing(null); setDialogOpen(true); };
+  const openEdit = (a) => { setEditing(a); setDialogOpen(true); };
 
   const handleSave = (form) => {
-    if (editing) {
-      updateMutation.mutate({ id: editing.id, data: form });
-    } else {
-      createMutation.mutate(form);
-    }
+    if (editing) updateMutation.mutate({ id: editing.id, data: form });
+    else createMutation.mutate(form);
   };
 
   const isSaving = createMutation.isPending || updateMutation.isPending;
-
   const filtered = statusFilter === 'All'
     ? auctions
     : auctions.filter(a => (a.status || 'Upcoming') === statusFilter);
@@ -291,7 +429,6 @@ export default function AuctionsManager() {
         </Button>
       </div>
 
-      {/* Status filter */}
       <div className="flex gap-2 flex-wrap">
         {['All', ...AUCTION_STATUSES].map(s => (
           <button key={s} onClick={() => setStatusFilter(s)}
@@ -360,17 +497,30 @@ export default function AuctionsManager() {
                 <div className="border-t border-border bg-muted/30 px-4 py-3 space-y-2">
                   {lots.map((lot, i) => (
                     <div key={i} className="bg-card border border-border rounded-lg p-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-muted-foreground font-mono bg-muted px-1.5 py-0.5 rounded">Lot {lot.lot_number || i + 1}</span>
-                        {lot.category && <span className="text-[10px] text-muted-foreground">{lot.category}</span>}
+                      <div className="flex items-start gap-3">
+                        {/* Thumbnail */}
+                        {Array.isArray(lot.images) && lot.images[0] && (
+                          <img src={lot.images[0]} alt="" className="w-12 h-12 rounded object-cover flex-shrink-0 border border-border" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[10px] text-muted-foreground font-mono bg-muted px-1.5 py-0.5 rounded">Lot {lot.lot_number || i + 1}</span>
+                            {lot.category && <span className="text-[10px] text-muted-foreground">{lot.category}</span>}
+                            {Array.isArray(lot.images) && lot.images.length > 1 && (
+                              <span className="text-[10px] text-muted-foreground">{lot.images.length} photos</span>
+                            )}
+                          </div>
+                          <p className="text-sm font-semibold mt-0.5">{lot.title}</p>
+                          {(lot.year || lot.make || lot.model) && (
+                            <p className="text-xs text-muted-foreground">{[lot.year, lot.make, lot.model].filter(Boolean).join(' ')}</p>
+                          )}
+                          <div className="flex flex-wrap gap-3 mt-1 text-xs">
+                            {lot.starting_bid && <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Start: USD {Number(lot.starting_bid).toLocaleString()}</span>}
+                            {lot.reserve_price && <span className="text-amber font-semibold">Reserve: USD {Number(lot.reserve_price).toLocaleString()}</span>}
+                            {lot.bid_increment && <span className="text-muted-foreground">Incr: USD {Number(lot.bid_increment).toLocaleString()}</span>}
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-sm font-semibold mt-1">{lot.title}</p>
-                      {(lot.year || lot.make || lot.model) && (
-                        <p className="text-xs text-muted-foreground mt-0.5">{[lot.year, lot.make, lot.model].filter(Boolean).join(' ')}</p>
-                      )}
-                      {lot.reserve_price && (
-                        <p className="text-xs text-amber font-semibold mt-1">Reserve: USD {Number(lot.reserve_price).toLocaleString()}</p>
-                      )}
                     </div>
                   ))}
                 </div>

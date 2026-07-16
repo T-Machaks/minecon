@@ -1,9 +1,108 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Auction } from '@/api/entities';
 import {
-  ArrowLeft, Gavel, Calendar, Package, Tag, Radio, CheckCircle,
+  ArrowLeft, Gavel, Calendar, Package, Tag, Radio, CheckCircle, ChevronLeft, ChevronRight,
 } from 'lucide-react';
+
+function LotCard({ lot, index }) {
+  const images = Array.isArray(lot.images) ? lot.images.filter(Boolean) : [];
+  const [imgIdx, setImgIdx] = useState(0);
+
+  return (
+    <div className="bg-card border border-border rounded-xl overflow-hidden">
+      {/* Image gallery */}
+      {images.length > 0 && (
+        <div className="relative bg-black aspect-video">
+          <img
+            src={images[imgIdx]}
+            alt={`${lot.title} photo ${imgIdx + 1}`}
+            className="w-full h-full object-contain"
+          />
+          {images.length > 1 && (
+            <>
+              <button
+                onClick={() => setImgIdx(n => (n - 1 + images.length) % images.length)}
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setImgIdx(n => (n + 1) % images.length)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                {images.map((_, j) => (
+                  <button key={j} onClick={() => setImgIdx(j)} className={`w-1.5 h-1.5 rounded-full transition-colors ${j === imgIdx ? 'bg-white' : 'bg-white/40'}`} />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] text-muted-foreground font-mono bg-muted px-1.5 py-0.5 rounded">
+                Lot {lot.lot_number || index + 1}
+              </span>
+              {lot.category && (
+                <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
+                  <Tag className="w-2.5 h-2.5" /> {lot.category}
+                </span>
+              )}
+            </div>
+            <p className="font-semibold text-sm mt-1">{lot.title}</p>
+          </div>
+        </div>
+
+        {/* Specs */}
+        {(lot.year || lot.make || lot.model || lot.hours || lot.condition) && (
+          <div className="flex flex-wrap gap-3 mt-2 text-xs text-muted-foreground">
+            {lot.year && <span><strong>Year:</strong> {lot.year}</span>}
+            {lot.make && <span><strong>Make:</strong> {lot.make}</span>}
+            {lot.model && <span><strong>Model:</strong> {lot.model}</span>}
+            {lot.hours && <span><strong>Hours:</strong> {lot.hours}</span>}
+            {lot.condition && <span><strong>Condition:</strong> {lot.condition}</span>}
+          </div>
+        )}
+
+        {/* Bidding info */}
+        {(lot.starting_bid || lot.reserve_price || lot.bid_increment) && (
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            {lot.starting_bid && (
+              <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-2 text-center">
+                <p className="text-[10px] text-muted-foreground font-medium">Starting Bid</p>
+                <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{fmtCurrency(lot.starting_bid)}</p>
+              </div>
+            )}
+            {lot.reserve_price && (
+              <div className="bg-amber/10 rounded-lg p-2 text-center">
+                <p className="text-[10px] text-muted-foreground font-medium">Reserve</p>
+                <p className="text-sm font-bold text-amber">{fmtCurrency(lot.reserve_price)}</p>
+              </div>
+            )}
+            {lot.bid_increment && (
+              <div className="bg-muted rounded-lg p-2 text-center">
+                <p className="text-[10px] text-muted-foreground font-medium">Increment</p>
+                <p className="text-sm font-bold">{fmtCurrency(lot.bid_increment)}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {lot.description && (
+          <p className="text-xs text-muted-foreground mt-3 leading-relaxed">{lot.description}</p>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function fmtDate(iso) {
   if (!iso) return null;
@@ -134,46 +233,12 @@ export default function AuctionDetail() {
 
         {/* Lots */}
         {lots.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <h2 className="font-heading text-sm font-bold uppercase tracking-wide flex items-center gap-2">
               <Package className="w-4 h-4 text-amber" /> Featured Lots
             </h2>
             {lots.map((lot, i) => (
-              <div key={i} className="bg-card border border-border rounded-xl p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[10px] text-muted-foreground font-mono bg-muted px-1.5 py-0.5 rounded">
-                        Lot {lot.lot_number || i + 1}
-                      </span>
-                      {lot.category && (
-                        <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
-                          <Tag className="w-2.5 h-2.5" /> {lot.category}
-                        </span>
-                      )}
-                    </div>
-                    <p className="font-semibold text-sm mt-1">{lot.title}</p>
-                    {lot.description && (
-                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{lot.description}</p>
-                    )}
-                  </div>
-                  {lot.reserve_price && (
-                    <div className="text-right flex-shrink-0">
-                      <p className="text-[10px] text-muted-foreground">Reserve</p>
-                      <p className="text-sm font-bold text-amber">{fmtCurrency(lot.reserve_price)}</p>
-                    </div>
-                  )}
-                </div>
-                {(lot.year || lot.make || lot.model || lot.hours || lot.condition) && (
-                  <div className="flex flex-wrap gap-3 mt-2 text-xs text-muted-foreground">
-                    {lot.year && <span><strong>Year:</strong> {lot.year}</span>}
-                    {lot.make && <span><strong>Make:</strong> {lot.make}</span>}
-                    {lot.model && <span><strong>Model:</strong> {lot.model}</span>}
-                    {lot.hours && <span><strong>Hours:</strong> {lot.hours}</span>}
-                    {lot.condition && <span><strong>Condition:</strong> {lot.condition}</span>}
-                  </div>
-                )}
-              </div>
+              <LotCard key={i} lot={lot} index={i} />
             ))}
           </div>
         )}
