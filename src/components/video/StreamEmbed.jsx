@@ -8,6 +8,22 @@ const ALLOWED_ORIGINS = [
   'app.zoom.us',
 ];
 
+function toEmbedUrl(url) {
+  if (!url) return url;
+  try {
+    const u = new URL(url);
+    if (u.hostname === 'youtu.be') {
+      const videoId = u.pathname.slice(1);
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    if ((u.hostname === 'www.youtube.com' || u.hostname === 'youtube.com') && u.pathname === '/watch') {
+      const videoId = u.searchParams.get('v');
+      if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+    }
+  } catch {}
+  return url;
+}
+
 function isSafeUrl(url) {
   try {
     const u = new URL(url);
@@ -17,7 +33,8 @@ function isSafeUrl(url) {
   }
 }
 
-export default function StreamEmbed({ url, title = 'Live Session' }) {
+export default function StreamEmbed({ url: rawUrl, title = 'Live Session' }) {
+  const url = toEmbedUrl(rawUrl);
   if (!url) {
     return (
       <div className="aspect-video bg-slate-900 flex items-center justify-center rounded-xl">

@@ -51,9 +51,18 @@ import ExhibitorApplications from '@/pages/console/ExhibitorApplications';
 import Registrations from '@/pages/console/Registrations';
 import SessionsManager from '@/pages/console/SessionsManager';
 import EnquiriesPanel from '@/pages/console/EnquiriesPanel';
+import AuctionsManager from '@/pages/console/AuctionsManager';
 import ExhibitorApply from '@/pages/ExhibitorApply';
 import ExhibitorLogin from '@/pages/ExhibitorLogin';
 import ConsoleLogin from '@/pages/ConsoleLogin';
+
+// Marketplace pages
+import Jobs from '@/pages/Jobs';
+import JobDetail from '@/pages/JobDetail';
+import Tenders from '@/pages/Tenders';
+import TenderDetail from '@/pages/TenderDetail';
+import Auctions from '@/pages/Auctions';
+import AuctionDetail from '@/pages/AuctionDetail';
 
 // Exhibitor portal pages
 import ExhibitorHome from '@/pages/exhibitor/ExhibitorHome';
@@ -62,6 +71,8 @@ import ExhibitorAnalytics from '@/pages/exhibitor/ExhibitorAnalytics';
 import ExhibitorScanner from '@/pages/exhibitor/ExhibitorScanner';
 import ExhibitorTeam from '@/pages/exhibitor/ExhibitorTeam';
 import ExhibitorEnquiries from '@/pages/exhibitor/ExhibitorEnquiries';
+import ExhibitorJobs from '@/pages/exhibitor/ExhibitorJobs';
+import ExhibitorTenders from '@/pages/exhibitor/ExhibitorTenders';
 
 // Layout wrappers (give each shell access to Outlet)
 const AttendeeLayout = () => (
@@ -129,6 +140,7 @@ const AuthenticatedApp = () => {
             <Route path="/console/check-in"              element={<CheckIn />} />
             <Route path="/console/exhibitor-applications" element={<ExhibitorApplications />} />
             <Route path="/console/enquiries"              element={<EnquiriesPanel />} />
+            <Route path="/console/auctions"               element={<AuctionsManager />} />
           </Route>
         </Route>
       </Route>
@@ -141,6 +153,8 @@ const AuthenticatedApp = () => {
         <Route path="/exhibitor/analytics" element={<ExhibitorAnalytics />} />
         <Route path="/exhibitor/team"      element={<ExhibitorTeam />} />
         <Route path="/exhibitor/enquiries" element={<ExhibitorEnquiries />} />
+        <Route path="/exhibitor/jobs"      element={<ExhibitorJobs />} />
+        <Route path="/exhibitor/tenders"   element={<ExhibitorTenders />} />
       </Route>
 
       {/* ── Attendee PWA ── */}
@@ -163,6 +177,12 @@ const AuthenticatedApp = () => {
         <Route path="/connect"            element={<Connect />} />
         <Route path="/sessions"           element={<LiveSessions />} />
         <Route path="/sessions/:id"       element={<LiveRoom />} />
+        <Route path="/jobs"               element={<Jobs />} />
+        <Route path="/jobs/:id"           element={<JobDetail />} />
+        <Route path="/tenders"            element={<Tenders />} />
+        <Route path="/tenders/:id"        element={<TenderDetail />} />
+        <Route path="/auctions"           element={<Auctions />} />
+        <Route path="/auctions/:id"       element={<AuctionDetail />} />
         <Route path="*"                   element={<PageNotFound />} />
       </Route>
     </Routes>

@@ -4,7 +4,7 @@ import { Store, ChevronDown, Search, LogIn, FlaskConical, Eye, EyeOff } from 'lu
 import { useAuth } from '@/lib/AuthContext';
 import MineConLogo from '@/components/layout/MineConLogo';
 
-const DEMO_PASSWORD = '@MineCon2026';
+const DEMO_PASSWORD = 'demo2026';
 
 export default function ExhibitorLogin() {
   const navigate = useNavigate();
@@ -79,7 +79,12 @@ export default function ExhibitorLogin() {
         {/* Demo notice */}
         <div className="flex items-start gap-2 bg-amber/10 border border-amber/30 rounded-xl px-4 py-3 mb-6 text-amber text-sm">
           <FlaskConical className="w-4 h-4 mt-0.5 flex-shrink-0" />
-          <span>Demo mode — select your company and use the shared demo password.</span>
+          <div>
+            <p>Demo mode — select your company and use the shared demo password.</p>
+            <p className="mt-1 text-amber/70 text-xs">
+              Demo password: <span className="font-mono font-bold text-amber">{DEMO_PASSWORD}</span>
+            </p>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col gap-5">

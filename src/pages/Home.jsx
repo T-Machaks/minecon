@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Users, Map, Calendar, Info, Bell, QrCode, LayoutDashboard, ArrowRight, Megaphone, AlertCircle, Clock, BookOpen, MessageSquare, UserCheck, Sparkles, UserPlus, Ticket, Video } from 'lucide-react';
+import { Users, Map, Calendar, Info, Bell, QrCode, LayoutDashboard, ArrowRight, Megaphone, AlertCircle, Clock, BookOpen, MessageSquare, UserCheck, Sparkles, UserPlus, Ticket, Video, Briefcase, FileText, Gavel } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { Announcement, Exhibitor } from '@/api/entities';
@@ -18,6 +18,9 @@ const quickActions = [
   { label: 'Register', path: '/register', icon: UserCheck, color: 'bg-gradient-to-br from-amber-400 to-amber-600', shadow: 'shadow-amber-500/30' },
   { label: 'Publications', path: '/magazine', icon: BookOpen, color: 'bg-gradient-to-br from-indigo-500 to-indigo-700', shadow: 'shadow-indigo-500/30' },
   { label: 'QR Resources', path: '/qr-resources', icon: QrCode, color: 'bg-gradient-to-br from-slate-500 to-slate-700', shadow: 'shadow-slate-500/30' },
+  { label: 'Jobs Board', path: '/jobs', icon: Briefcase, color: 'bg-gradient-to-br from-indigo-400 to-indigo-600', shadow: 'shadow-indigo-400/30' },
+  { label: 'Tenders', path: '/tenders', icon: FileText, color: 'bg-gradient-to-br from-teal-500 to-teal-700', shadow: 'shadow-teal-500/30' },
+  { label: 'Auctions', path: '/auctions', icon: Gavel, color: 'bg-gradient-to-br from-rose-500 to-rose-700', shadow: 'shadow-rose-500/30' },
 ];
 
 const typeIcon = { Important: AlertCircle, Reminder: Clock, General: Megaphone, Update: Bell };

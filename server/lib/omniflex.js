@@ -5,9 +5,9 @@ const API_KEY = process.env.OMNIFLEX_API_KEY;
 function normalizePhone(phone) {
   if (!phone) return phone;
   const digits = String(phone).replace(/\D/g, '');
-  if (digits.startsWith('263')) return digits;
-  if (digits.startsWith('0')) return '263' + digits.slice(1);
-  return '263' + digits;
+  if (digits.startsWith('263')) return '+' + digits;
+  if (digits.startsWith('0')) return '+263' + digits.slice(1);
+  return '+263' + digits;
 }
 
 async function post(path, body) {

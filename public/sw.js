@@ -6,7 +6,7 @@
 //   images                           → stale-while-revalidate
 //   navigation                       → network, fall back to cached shell
 
-const VERSION     = 'minecon-2026-07-01-a';
+const VERSION     = 'minecon-2026-07-02-a';
 const SHELL_CACHE = `shell-${VERSION}`;
 const DATA_CACHE  = `data-${VERSION}`;
 const IMG_CACHE   = `img-${VERSION}`;

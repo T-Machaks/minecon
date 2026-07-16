@@ -35,7 +35,22 @@ function RoleBadge({ role }) {
   );
 }
 
-const EMPTY_FORM = { full_name: '', email: '', company: '', role: 'attendee' };
+const EMPTY_FORM = { full_name: '', email: '', company: '', phone: '', role: 'attendee' };
+
+function normalizeZimPhone(value) {
+  if (!value) return '';
+  const clean = value.replace(/[\s\-\(\)]/g, '');
+  if (clean.startsWith('+263')) return clean;
+  if (clean.startsWith('263')) return '+' + clean;
+  if (clean.startsWith('07') || clean.startsWith('07')) return '+263' + clean.slice(1);
+  return clean;
+}
+
+function isValidZimPhone(value) {
+  if (!value) return true;
+  const clean = value.replace(/[\s\-\(\)]/g, '');
+  return /^(\+2637[0-9]{8}|07[0-9]{8})$/.test(clean);
+}
 
 export default function UsersPanel() {
   const qc = useQueryClient();
@@ -79,7 +94,7 @@ export default function UsersPanel() {
   const openEdit = (u) => {
     if (isOrganizer && u.role === 'marketing_partner') return;
     setEditUser(u);
-    setForm({ full_name: u.full_name, email: u.email, company: u.company || '', role: u.role });
+    setForm({ full_name: u.full_name, email: u.email, company: u.company || '', phone: u.phone || '', role: u.role });
     setFormError('');
     setShowForm(true);
   };
@@ -89,10 +104,12 @@ export default function UsersPanel() {
     e.preventDefault();
     setFormError('');
     if (!form.full_name.trim() || !form.email.trim()) { setFormError('Name and email are required.'); return; }
+    if (form.phone && !isValidZimPhone(form.phone)) { setFormError('Phone must be a Zimbabwe mobile number (e.g. 0771234567 or +263771234567).'); return; }
+    const data = { ...form, phone: normalizeZimPhone(form.phone) };
     if (editUser) {
-      updateMutation.mutate({ id: editUser.id, data: form });
+      updateMutation.mutate({ id: editUser.id, data });
     } else {
-      createMutation.mutate(form);
+      createMutation.mutate(data);
     }
   };
 
@@ -179,7 +196,7 @@ export default function UsersPanel() {
                       <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full capitalize ${STATUS_STYLES[u.status] || ''}`}>{u.status}</span>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground truncate">{u.email}{u.company ? ` · ${u.company}` : ''}</p>
+                  <p className="text-xs text-muted-foreground truncate">{u.email}{u.company ? ` · ${u.company}` : ''}{u.phone ? ` · ${u.phone}` : ''}</p>
                 </div>
                 {!(currentUser?.role === 'organizer' && u.role === 'marketing_partner') && (
                   <div className="flex items-center gap-1 flex-shrink-0">
@@ -217,6 +234,7 @@ export default function UsersPanel() {
               <Field label="Full Name *" value={form.full_name} onChange={v => setForm(f => ({ ...f, full_name: v }))} placeholder="Jane Doe" />
               <Field label="Email *" type="email" value={form.email} onChange={v => setForm(f => ({ ...f, email: v }))} placeholder="jane@example.com" disabled={!!editUser} />
               <Field label="Company" value={form.company} onChange={v => setForm(f => ({ ...f, company: v }))} placeholder="Optional" />
+              <Field label="Phone (Zimbabwe)" type="tel" value={form.phone} onChange={v => setForm(f => ({ ...f, phone: v }))} placeholder="0771234567 or +263771234567" />
 
               <div>
                 <label className="block text-xs font-semibold text-muted-foreground uppercase mb-2">Role</label>

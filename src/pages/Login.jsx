@@ -16,21 +16,6 @@ const DEMO_ACCOUNTS = [
   { email: "attendee@minecon.global",   role: "Attendee",          dest: "Attendee App" },
 ];
 
-// ── Verification method pill ────────────────────────────────────────────────
-function MethodBadge({ icon: Icon, label, active, disabled }) {
-  return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-colors
-      ${disabled ? 'border-border text-muted-foreground/30 bg-muted/20 cursor-not-allowed' :
-        active  ? 'border-primary bg-primary/10 text-primary' :
-                  'border-border text-muted-foreground hover:border-primary/50 cursor-pointer'}`}
-      title={disabled ? 'Add a Zimbabwe mobile number to your account to use SMS OTP' : undefined}
-    >
-      <Icon className="w-3.5 h-3.5" />
-      {label}
-      {disabled && <span className="opacity-60 text-[10px]">· no ZW number</span>}
-    </span>
-  );
-}
 
 export default function Login() {
   const { login, changePassword, verifyOtp, verifyTotp, resendOtp, setSession } = useAuth();
@@ -177,7 +162,16 @@ export default function Login() {
     setLoading(true);
     try {
       const result = await verifyOtp(mfaToken, otp);
-      if (!result.success) { setError(result.error); return; }
+      if (!result.success) {
+        if (result.error?.toLowerCase().includes('expired') || result.error?.toLowerCase().includes('session')) {
+          sessionStorage.removeItem(OTP_SESSION_KEY);
+          setError('Your session expired. Please log in again.');
+          setTimeout(resetToCredentials, 2000);
+        } else {
+          setError(result.error);
+        }
+        return;
+      }
       handleSession(result);
     } catch {
       setError('Verification failed. Please try again.');
@@ -196,7 +190,13 @@ export default function Login() {
       if (result.method) setOtpMethod(result.method);
       setResendMsg(result.method === 'sms' ? 'Code sent via SMS.' : 'New code sent to your email.');
     } else {
-      setError(result.error);
+      if (result.error?.toLowerCase().includes('expired') || result.error?.toLowerCase().includes('session')) {
+        sessionStorage.removeItem(OTP_SESSION_KEY);
+        setError('Your session expired. Please log in again.');
+        setTimeout(resetToCredentials, 2000);
+      } else {
+        setError(result.error);
+      }
     }
   };
 
@@ -383,13 +383,37 @@ export default function Login() {
         footer={<button type="button" onClick={resetToCredentials} className="text-primary font-medium hover:underline">← Back to login</button>}
       >
         {/* Method selector */}
-        <div className="flex gap-2 mb-5">
-          <button type="button" onClick={() => otpMethod !== 'email' && handleResend('email')} disabled={resending}>
-            <MethodBadge icon={Mail} label="Email" active={otpMethod === 'email'} />
-          </button>
-          <button type="button" onClick={() => otpMethod !== 'sms' && phoneHint && handleResend('sms')} disabled={resending || !phoneHint}>
-            <MethodBadge icon={Smartphone} label="SMS" active={otpMethod === 'sms'} disabled={!phoneHint} />
-          </button>
+        <div className="mb-5">
+          <p className="text-xs font-medium text-muted-foreground mb-2">Receive code via</p>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              disabled={resending || otpMethod === 'email'}
+              onClick={() => otpMethod !== 'email' && handleResend('email')}
+              className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border text-sm font-medium transition-colors
+                ${otpMethod === 'email'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border hover:border-primary/50 text-muted-foreground hover:text-foreground'}`}
+            >
+              <Mail className="w-4 h-4 flex-shrink-0" />
+              <span>Email</span>
+            </button>
+            <button
+              type="button"
+              disabled={resending || !phoneHint || otpMethod === 'sms'}
+              onClick={() => otpMethod !== 'sms' && phoneHint && handleResend('sms')}
+              title={!phoneHint ? 'No Zimbabwe mobile number on this account' : undefined}
+              className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border text-sm font-medium transition-colors
+                ${!phoneHint
+                  ? 'border-border text-muted-foreground/40 cursor-not-allowed'
+                  : otpMethod === 'sms'
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-border hover:border-primary/50 text-muted-foreground hover:text-foreground'}`}
+            >
+              <Smartphone className="w-4 h-4 flex-shrink-0" />
+              <span>{phoneHint ? 'SMS' : 'SMS · unavailable'}</span>
+            </button>
+          </div>
         </div>
 
         {error && <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>}

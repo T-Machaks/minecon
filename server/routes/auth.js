@@ -262,7 +262,7 @@ router.post('/change-password', async (req, res) => {
       return res.status(400).json({ error: 'change_token and new_password are required.' });
     if (new_password.length < 8)
       return res.status(400).json({ error: 'Password must be at least 8 characters.' });
-    if (new_password === '@MineCon2026')
+    if (new_password === 'demo2026')
       return res.status(400).json({ error: 'You must choose a different password.' });
 
     cleanExpired();
@@ -344,7 +344,7 @@ router.post('/exhibitor-demo-login', async (req, res) => {
   try {
     const { user_id, password } = req.body;
     if (!user_id || !password) return res.status(400).json({ error: 'user_id and password required.' });
-    if (password !== '@MineCon2026') return res.status(401).json({ error: 'Incorrect password.' });
+    if (password !== 'demo2026') return res.status(401).json({ error: 'Incorrect password.' });
     const user = await getById(user_id);
     if (!user || user.role !== 'exhibitor') return res.status(404).json({ error: 'Exhibitor not found.' });
     if (user.status !== 'active') return res.status(403).json({ error: 'Account is not active.' });

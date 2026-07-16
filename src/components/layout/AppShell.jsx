@@ -3,7 +3,7 @@ import {
   Home, Users, Map, Calendar, Info, Bell,
   LayoutDashboard, QrCode, Menu, X, Star, Zap,
   BookOpen, UserCheck, Clock, Shield, ChevronLeft, ChevronRight, Download,
-  LogIn, LogOut, UserCircle, WifiOff, Video,
+  LogIn, LogOut, UserCircle, WifiOff, Video, Briefcase, FileText, Gavel,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import MineConLogo from './MineConLogo.jsx';
@@ -30,6 +30,14 @@ const navGroups = [
       { path: '/attendee-dashboard',  label: 'My Dashboard',    icon: LayoutDashboard },
       { path: '/register',            label: 'Registration',    icon: UserCheck },
       { path: '/qr-resources',        label: 'QR Resources',    icon: QrCode },
+    ],
+  },
+  {
+    label: 'Marketplace',
+    items: [
+      { path: '/jobs',     label: 'Jobs Board', icon: Briefcase },
+      { path: '/tenders',  label: 'Tenders',    icon: FileText },
+      { path: '/auctions', label: 'Auctions',   icon: Gavel },
     ],
   },
   {

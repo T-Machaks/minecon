@@ -11,3 +11,8 @@ export { User } from "./User";
 export { VirtualEnquiry } from "./VirtualEnquiry";
 export { GuidePage } from "./GuidePage";
 export { Session } from "./Session";
+export { JobListing } from "./JobListing";
+export { JobApplication } from "./JobApplication";
+export { TenderListing } from "./TenderListing";
+export { Auction } from "./Auction";
+export { Enquiry } from "./Enquiry";

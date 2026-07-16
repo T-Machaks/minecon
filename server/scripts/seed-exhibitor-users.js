@@ -6,7 +6,7 @@ import { generateId } from '../lib/idgen.js';
 
 const USER_TABLE = 'minecon_users';
 const EXH_TABLE  = 'minecon_exhibitors';
-const DEMO_PASSWORD = '@MineCon2026';
+const DEMO_PASSWORD = 'demo2026';
 
 const password_hash = await bcrypt.hash(DEMO_PASSWORD, 10);
 

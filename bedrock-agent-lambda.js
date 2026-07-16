@@ -148,6 +148,69 @@ exports.handler = async (event) => {
       return respond(event, 200, items);
     }
 
+    // ── GET /api/jobs ────────────────────────────────────────────────────────
+    if (apiPath === '/api/jobs' && httpMethod === 'GET') {
+      const r = await ddb.send(new ScanCommand({ TableName: 'minecon_job_listings' }));
+      const items = (r.Items || [])
+        .filter(j => (j.status || 'Open') === 'Open')
+        .sort((a, b) => (b.created_date ?? '') > (a.created_date ?? '') ? 1 : -1);
+      return respond(event, 200, items);
+    }
+
+    // ── GET /api/jobs/{id} ───────────────────────────────────────────────────
+    if (apiPath.startsWith('/api/jobs/') && httpMethod === 'GET') {
+      const id = params.id || apiPath.split('/').at(-1);
+      const r = await ddb.send(new GetCommand({ TableName: 'minecon_job_listings', Key: { id } }));
+      if (!r.Item) return respond(event, 404, { error: 'Job not found' });
+      return respond(event, 200, r.Item);
+    }
+
+    // ── GET /api/tenders ─────────────────────────────────────────────────────
+    if (apiPath === '/api/tenders' && httpMethod === 'GET') {
+      const r = await ddb.send(new ScanCommand({ TableName: 'minecon_tender_listings' }));
+      const items = (r.Items || [])
+        .filter(t => (t.status || 'Open') === 'Open')
+        .sort((a, b) => (b.created_date ?? '') > (a.created_date ?? '') ? 1 : -1);
+      return respond(event, 200, items);
+    }
+
+    // ── GET /api/tenders/{id} ────────────────────────────────────────────────
+    if (apiPath.startsWith('/api/tenders/') && httpMethod === 'GET') {
+      const id = params.id || apiPath.split('/').at(-1);
+      const r = await ddb.send(new GetCommand({ TableName: 'minecon_tender_listings', Key: { id } }));
+      if (!r.Item) return respond(event, 404, { error: 'Tender not found' });
+      return respond(event, 200, r.Item);
+    }
+
+    // ── GET /api/auctions ────────────────────────────────────────────────────
+    if (apiPath === '/api/auctions' && httpMethod === 'GET') {
+      const r = await ddb.send(new ScanCommand({ TableName: 'minecon_auctions' }));
+      const items = (r.Items || []).sort((a, b) =>
+        (b.created_date ?? '') > (a.created_date ?? '') ? 1 : -1
+      );
+      return respond(event, 200, items);
+    }
+
+    // ── GET /api/auctions/{id} ───────────────────────────────────────────────
+    if (apiPath.startsWith('/api/auctions/') && httpMethod === 'GET') {
+      const id = params.id || apiPath.split('/').at(-1);
+      const r = await ddb.send(new GetCommand({ TableName: 'minecon_auctions', Key: { id } }));
+      if (!r.Item) return respond(event, 404, { error: 'Auction not found' });
+      return respond(event, 200, r.Item);
+    }
+
+    // ── POST /api/enquiries ──────────────────────────────────────────────────
+    if (apiPath === '/api/enquiries' && httpMethod === 'POST') {
+      const item = {
+        id: randomUUID(),
+        created_date: new Date().toISOString(),
+        status: 'New',
+        ...body,
+      };
+      await ddb.send(new PutCommand({ TableName: 'minecon_enquiries', Item: item }));
+      return respond(event, 201, item);
+    }
+
     return respond(event, 404, { error: `No handler for ${httpMethod} ${apiPath}` });
 
   } catch (e) {
