@@ -15,7 +15,8 @@ export default crudRouter(TABLE, {
           FilterExpression: 'active = :t',
           ExpressionAttributeValues: { ':t': true },
         }));
-        res.json(result.Items || []);
+        const items = (result.Items || []).sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
+        res.json(items);
       } catch (e) {
         res.status(500).json({ error: e.message });
       }

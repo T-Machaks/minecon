@@ -104,24 +104,25 @@ export default function AdBannerCarousel() {
         </>
       )}
 
-      {/* Right-side logo (rendered at natural colours, no blend mode) */}
+      {/* Right-side logo in a white card (works for any logo bg colour) */}
       {isLogo && (
         <div
-          className="absolute right-4 lg:right-8 top-0 bottom-0 flex items-center justify-end pointer-events-none"
-          style={{ width: '44%', right: 0, paddingRight: '4%' }}
+          className="absolute top-0 bottom-0 flex items-center pointer-events-none"
+          style={{ right: '5%', width: '36%' }}
         >
-          <img
-            key={`logo-${current}`}
-            src={ad.image_url}
-            alt={ad.company}
-            draggable={false}
-            className="max-w-full max-h-[55%] object-contain"
-            style={{
-              animation: 'adFadeIn 0.4s ease-out',
-              filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.45))',
-              opacity: 0.9,
-            }}
-          />
+          <div
+            className="bg-white rounded-xl lg:rounded-2xl shadow-2xl p-3 lg:p-5 flex items-center justify-center w-full"
+            style={{ animation: 'adFadeIn 0.4s ease-out' }}
+          >
+            <img
+              key={`logo-${current}`}
+              src={ad.image_url}
+              alt={ad.company}
+              draggable={false}
+              className="max-w-full object-contain"
+              style={{ maxHeight: '80px' }}
+            />
+          </div>
         </div>
       )}
 
