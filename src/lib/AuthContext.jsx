@@ -171,6 +171,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const consoleDemoLogin = async (email) => {
+    try {
+      const res = await fetch('/api/auth/console-demo-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: 'demo2026' }),
+      });
+      const found = await res.json();
+      if (!res.ok) return { success: false, error: found.error || 'Demo login failed.' };
+      return setSession(found);
+    } catch (e) {
+      return { success: false, error: e.message || 'Demo login failed.' };
+    }
+  };
+
   const resendOtp = async (mfaToken, method) => {
     try {
       const res = await fetch('/api/auth/otp/resend', {
@@ -242,6 +257,7 @@ export const AuthProvider = ({ children }) => {
       appPublicSettings,
       authChecked,
       login,
+      consoleDemoLogin,
       changePassword,
       verifyOtp,
       verifyTotp,

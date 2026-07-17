@@ -339,6 +339,23 @@ router.post('/totp/verify', async (req, res) => {
   }
 });
 
+// ── POST /api/auth/console-demo-login  — demo superadmin, no MFA ─────────
+router.post('/console-demo-login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || password !== 'demo2026')
+      return res.status(401).json({ error: 'Invalid demo credentials.' });
+    const user = await findByEmail(email);
+    if (!user || !user.demo_account)
+      return res.status(404).json({ error: 'Demo account not found.' });
+    if (user.status !== 'active')
+      return res.status(403).json({ error: 'Account is not active.' });
+    res.json(sanitize(user));
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── POST /api/auth/exhibitor-demo-login  — demo mode, common password ────
 router.post('/exhibitor-demo-login', async (req, res) => {
   try {
