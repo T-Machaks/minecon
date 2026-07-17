@@ -18,52 +18,59 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: Install frontend deps
         run: npm ci
 
       - name: Build frontend
         run: npm run build
 
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@v1.2.0
+      - name: Package server source (no node_modules)
+        run: tar -czf server-src.tar.gz --exclude='server/node_modules' server/
+
+      - name: Upload server source to EC2
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
-          timeout: 120s
-          script: |
-            set -e
-            cd /home/ec2-user/minecon
+          source: 'server-src.tar.gz'
+          target: '/home/ec2-user/'
 
-            # Pull latest server code
-            git pull origin main
-
-            # Install any new server dependencies
-            cd server && npm ci --omit=dev && cd ..
-
-            # Restart API (picks up server/* changes immediately)
-            pm2 restart minecon-api
-
-      - name: Copy built frontend to nginx
+      - name: Upload frontend dist to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           source: 'dist/*'
-          target: '/tmp/minecon-dist'
+          target: '/home/ec2-user/minecon-dist'
           strip_components: 1
 
-      - name: Activate frontend on nginx
+      - name: Deploy API + activate frontend
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
+          timeout: 180s
           script: |
             set -e
-            sudo cp -r /tmp/minecon-dist/* /usr/share/nginx/minecon/
-            sudo chmod -R 755 /usr/share/nginx/minecon/assets/
-            sudo chcon -R -t httpd_sys_content_t /usr/share/nginx/minecon/
-            rm -rf /tmp/minecon-dist
+
+            # Extract server source over existing minecon-server/
+            mkdir -p /tmp/minecon-deploy
+            tar -xzf /home/ec2-user/server-src.tar.gz -C /tmp/minecon-deploy
+            cp -r /tmp/minecon-deploy/server/. /home/ec2-user/minecon-server/
+            rm -rf /tmp/minecon-deploy /home/ec2-user/server-src.tar.gz
+
+            # Reinstall server deps + restart API
+            cd /home/ec2-user/minecon-server
+            npm ci --omit=dev
+            pm2 restart minecon-api
+
+            # Activate frontend on nginx
+            sudo cp -r /home/ec2-user/minecon-dist/* /usr/share/nginx/minecon/
+            sudo chmod -R a+rX /usr/share/nginx/minecon/
+            sudo restorecon -r /usr/share/nginx/minecon/ 2>/dev/null || true
+            rm -rf /home/ec2-user/minecon-dist
+
             echo "Deploy complete"
