@@ -36,6 +36,7 @@ export default function AdBannerCarousel() {
   const accent = ad.accent || '#f59e0b';
   const isBg     = ad.image_type === 'bg'     && ad.image_url;
   const isCutout = ad.image_type === 'cutout' && ad.image_url;
+  const isLogo   = ad.image_type === 'logo'   && ad.image_url;
 
   const goTo = (i, e) => { e.preventDefault(); e.stopPropagation(); setPaused(true); setCurrent(i); };
   const prev = (e) => goTo((current - 1 + slots.length) % slots.length, e);
@@ -103,8 +104,29 @@ export default function AdBannerCarousel() {
         </>
       )}
 
+      {/* Right-side logo (rendered at natural colours, no blend mode) */}
+      {isLogo && (
+        <div
+          className="absolute right-4 lg:right-8 top-0 bottom-0 flex items-center justify-end pointer-events-none"
+          style={{ width: '44%', right: 0, paddingRight: '4%' }}
+        >
+          <img
+            key={`logo-${current}`}
+            src={ad.image_url}
+            alt={ad.company}
+            draggable={false}
+            className="max-w-full max-h-[55%] object-contain"
+            style={{
+              animation: 'adFadeIn 0.4s ease-out',
+              filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.45))',
+              opacity: 0.9,
+            }}
+          />
+        </div>
+      )}
+
       {/* No image: texture overlay only */}
-      {!isBg && !isCutout && (
+      {!isBg && !isCutout && !isLogo && (
         <div
           className="absolute inset-0 pointer-events-none opacity-[0.07]"
           style={{ backgroundImage: 'repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%)', backgroundSize: '10px 10px' }}
@@ -117,8 +139,8 @@ export default function AdBannerCarousel() {
         className="relative flex flex-col gap-2.5 lg:gap-4 p-4 lg:p-8 min-h-[156px] lg:min-h-[280px] xl:min-h-[320px]"
         style={{
           animation: 'adFadeIn 0.3s ease-out',
-          // Cutout: keep text in left 56% so it doesn't overlap the product image
-          paddingRight: isCutout ? '46%' : undefined,
+          // Keep text in left portion so it doesn't overlap right-side image
+          paddingRight: (isCutout || isLogo) ? '46%' : undefined,
         }}
       >
         {/* Top: logo + company + counter */}
